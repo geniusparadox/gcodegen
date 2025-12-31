@@ -796,6 +796,30 @@
                             </div>
                         </div>
                         <div class="divider"></div>
+                        <div class="card-title" style="font-size:13px;">Stock Settings</div>
+                        <div class="form-group">
+                            <label>Stock Profile</label>
+                            <select id="sStockProfile" onchange="updateSingleStockLabel()">
+                                <option value="round">Round Bar</option>
+                                <option value="hex">Hex Bar</option>
+                                <option value="square">Square Bar</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label id="sStockDiaLabel">Stock Diameter (mm)</label>
+                                <input type="number" id="sStockDiameter" value="50" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label>Stock Length (mm)</label>
+                                <input type="number" id="sStockLength" value="100" step="0.1">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Safe Z Position (mm)</label>
+                            <input type="number" id="sSafeZ" value="5" step="0.1">
+                        </div>
+                        <div class="divider"></div>
                         <div class="card-title" style="font-size:13px;">Safe Approach/Retract (G1)</div>
                         <div class="form-row">
                             <div class="form-group">
@@ -2981,6 +3005,22 @@
             }
         }
 
+        function updateSingleStockLabel() {
+            const profile = document.getElementById('sStockProfile').value;
+            const label = document.getElementById('sStockDiaLabel');
+            switch (profile) {
+                case 'round':
+                    label.textContent = 'Stock Diameter (mm)';
+                    break;
+                case 'hex':
+                    label.textContent = 'Hex Across Flats (mm)';
+                    break;
+                case 'square':
+                    label.textContent = 'Square Side (mm)';
+                    break;
+            }
+        }
+
         function updateSpindleFields() {
             const mode = document.getElementById('sSpindleMode').value;
             const label = document.getElementById('sSpeedLabel');
@@ -3025,6 +3065,29 @@
             const finishFeed = parseFloat(document.getElementById('sFinishFeed').value);
             const addHeader = document.getElementById('sAddHeader').checked;
             const addSafeStart = document.getElementById('sAddSafeStart').checked;
+
+            // Get stock settings
+            const stockProfile = document.getElementById('sStockProfile').value;
+            const stockDia = parseFloat(document.getElementById('sStockDiameter').value);
+            const stockLen = parseFloat(document.getElementById('sStockLength').value);
+            const safeZ = parseFloat(document.getElementById('sSafeZ').value);
+
+            // Calculate turning diameter for hex/square stock
+            let turningDia = stockDia;
+            let stockDesc = '';
+            switch (stockProfile) {
+                case 'round':
+                    stockDesc = `ROUND BAR DIA ${stockDia}`;
+                    break;
+                case 'hex':
+                    turningDia = stockDia * 1.1547;
+                    stockDesc = `HEX BAR ${stockDia} A/F (TURN DIA ${turningDia.toFixed(1)})`;
+                    break;
+                case 'square':
+                    turningDia = stockDia * 1.4142;
+                    stockDesc = `SQUARE BAR ${stockDia} (TURN DIA ${turningDia.toFixed(1)})`;
+                    break;
+            }
 
             // Get dimension values
             const params = {};
@@ -3089,6 +3152,7 @@
                     code.push(`(${progName})`);
                 }
                 code.push(`(${def.name.toUpperCase()} - ${def.cycle} CYCLE)`);
+                code.push(`(STOCK: ${stockDesc} x LEN ${stockLen})`);
                 code.push(`(DATE: ${new Date().toLocaleDateString()})`);
                 code.push('');
             }
@@ -3142,7 +3206,7 @@
                     }
                 };
 
-                const reliefCode = generateOperationCode(reliefOp, params.stockDia || 50, 5, sXClearance, sZClearance, sApproachFeed);
+                const reliefCode = generateOperationCode(reliefOp, turningDia, safeZ, sXClearance, sZClearance, sApproachFeed);
                 code = code.concat(reliefCode);
 
                 code.push('');
@@ -3160,7 +3224,7 @@
             code.push('G99');
             code.push('');
 
-            const opCode = generateOperationCode(op, params.stockDia || 50, 5, sXClearance, sZClearance, sApproachFeed);
+            const opCode = generateOperationCode(op, turningDia, safeZ, sXClearance, sZClearance, sApproachFeed);
             code = code.concat(opCode);
 
             code.push('');
