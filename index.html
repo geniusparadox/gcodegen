@@ -427,6 +427,232 @@
             flex: 1;
         }
 
+        /* 2D Simulation */
+        .simulation-container {
+            background: #1e1e2e;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .simulation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .simulation-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #a0a0a0;
+        }
+
+        .simulation-legend {
+            display: flex;
+            gap: 12px;
+            font-size: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #888;
+        }
+
+        .legend-line {
+            width: 20px;
+            height: 2px;
+        }
+
+        .legend-rapid { background: #fbbf24; }
+        .legend-feed { background: #4ade80; }
+        .legend-arc { background: #60a5fa; }
+        .legend-approach { background: #3b82f6; }
+
+        .simulation-canvas {
+            background: #0d0d14;
+            border-radius: 8px;
+            width: 100%;
+            height: 420px;
+            overflow: hidden;
+        }
+
+        .simulation-canvas svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .sim-workpiece {
+            fill: #3b3b4f;
+            stroke: #5a5a70;
+            stroke-width: 1;
+        }
+
+        .sim-finished {
+            fill: #2a4a3a;
+            stroke: #4ade80;
+            stroke-width: 1.5;
+        }
+
+        .sim-rapid {
+            stroke: #fbbf24;
+            stroke-width: 1;
+            stroke-dasharray: 4,3;
+            fill: none;
+        }
+
+        .sim-feed {
+            stroke: #4ade80;
+            stroke-width: 1.5;
+            fill: none;
+        }
+
+        .sim-arc {
+            stroke: #4ade80;
+            stroke-width: 1.5;
+            fill: none;
+        }
+
+        .sim-approach {
+            stroke: #3b82f6;
+            stroke-width: 1;
+            fill: none;
+        }
+
+        .sim-centerline {
+            stroke: #444;
+            stroke-width: 0.5;
+            stroke-dasharray: 8,4;
+        }
+
+        .sim-dimension {
+            font-size: 8px;
+            fill: #888;
+        }
+
+        .sim-tool {
+            fill: #ef4444;
+            stroke: #ff6b6b;
+            stroke-width: 1;
+        }
+
+        .sim-arrow {
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        .sim-arrow-rapid { stroke: #fbbf24; }
+        .sim-arrow-feed { stroke: #4ade80; }
+        .sim-arrow-arc { stroke: #60a5fa; }
+
+        .sim-start-point {
+            fill: #22c55e;
+            stroke: #fff;
+            stroke-width: 1;
+        }
+
+        .sim-end-point {
+            fill: #ef4444;
+            stroke: #fff;
+            stroke-width: 1;
+        }
+
+        .simulation-canvas {
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .simulation-canvas:hover {
+            opacity: 0.9;
+        }
+
+        .expand-hint {
+            font-size: 10px;
+            color: #666;
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        /* Fullscreen Simulation Modal */
+        .sim-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .sim-modal.active {
+            display: flex;
+        }
+
+        .sim-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 90%;
+            max-width: 1200px;
+            padding: 16px 0;
+        }
+
+        .sim-modal-title {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .sim-modal-legend {
+            display: flex;
+            gap: 20px;
+        }
+
+        .sim-modal-legend .legend-item {
+            color: #ccc;
+            font-size: 12px;
+        }
+
+        .sim-modal-close {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .sim-modal-close:hover {
+            background: #dc2626;
+        }
+
+        .sim-modal-canvas {
+            background: #0d0d14;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 1200px;
+            height: 70vh;
+            overflow: hidden;
+        }
+
+        .sim-modal-canvas svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .sim-modal-info {
+            color: #888;
+            font-size: 12px;
+            margin-top: 12px;
+        }
+
         .checkbox-row {
             display: flex;
             align-items: center;
@@ -724,6 +950,10 @@
                                 <svg viewBox="0 0 40 40"><path d="M12,8 L12,32 L28,26 L28,14 Z" stroke-width="1.5"/></svg>
                                 OD Taper
                             </button>
+                            <button class="add-op-btn" onclick="addOperation('od-profile')">
+                                <svg viewBox="0 0 40 40"><path d="M10,32 L10,24 L14,24 L14,20 L22,20 L24,18 L30,18 L30,12 L34,12" stroke-width="1.5" fill="none"/></svg>
+                                OD Profile
+                            </button>
                             <button class="add-op-btn" onclick="addOperation('id-boring')">
                                 <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="10" stroke-width="1.5"/></svg>
                                 Boring
@@ -766,6 +996,18 @@
 
                 <div class="right-column">
                     <div class="card" style="position: sticky; top: 16px;">
+                        <div class="simulation-container" id="builderSimulation" style="display:none;">
+                            <div class="simulation-header">
+                                <span class="simulation-title">2D TOOLPATH SIMULATION</span>
+                                <div class="simulation-legend">
+                                    <div class="legend-item"><div class="legend-line legend-feed"></div>Cutting</div>
+                                    <div class="legend-item"><div class="legend-line legend-rapid"></div>Rapid</div>
+                                    <div class="legend-item"><div class="legend-line legend-approach"></div>Approach/Retract</div>
+                                </div>
+                            </div>
+                            <div class="simulation-canvas" id="builderCanvas" onclick="expandSimulation('builder')"></div>
+                            <div class="expand-hint">Click to expand</div>
+                        </div>
                         <div class="card-title">Generated G-Code</div>
                         <div class="code-output" id="builderOutput">; Add operations and click Generate
 ; Complete program will appear here</div>
@@ -845,6 +1087,7 @@
                                 <option value="facing">Facing (G72)</option>
                                 <option value="od-turning">OD Turning (G71)</option>
                                 <option value="od-taper">OD Taper Turning (G71)</option>
+                                <option value="od-profile">OD Profile Turning (G71)</option>
                                 <option value="id-boring">ID Boring (G71)</option>
                                 <option value="id-taper">ID Taper Boring (G71)</option>
                                 <option value="od-threading">OD Threading (G76)</option>
@@ -969,6 +1212,18 @@
 
                 <div class="right-column">
                     <div class="card" style="position: sticky; top: 16px;">
+                        <div class="simulation-container" id="singleSimulation" style="display:none;">
+                            <div class="simulation-header">
+                                <span class="simulation-title">2D TOOLPATH SIMULATION</span>
+                                <div class="simulation-legend">
+                                    <div class="legend-item"><div class="legend-line legend-feed"></div>Cutting</div>
+                                    <div class="legend-item"><div class="legend-line legend-rapid"></div>Rapid</div>
+                                    <div class="legend-item"><div class="legend-line legend-approach"></div>Approach/Retract</div>
+                                </div>
+                            </div>
+                            <div class="simulation-canvas" id="singleCanvas" onclick="expandSimulation('single')"></div>
+                            <div class="expand-hint">Click to expand</div>
+                        </div>
                         <div class="card-title">Generated G-Code</div>
                         <div class="code-output" id="singleOutput">; Select operation and parameters
 ; G-Code will appear here</div>
@@ -1172,6 +1427,16 @@
                     { id: 'endDia', label: 'End Diameter (large, at chuck)', default: 50 },
                     { id: 'length', label: 'Taper Length', default: 30 },
                     { id: 'taperAngle', label: 'Taper Angle (deg, 0=use diameters)', default: 0 },
+                ]
+            },
+            'od-profile': {
+                name: 'OD Profile',
+                cycle: 'G71',
+                tools: ['OD Turning Tool', 'Roughing Tool'],
+                defaultTool: 1,
+                hasProfile: true,
+                fields: [
+                    { id: 'stockDia', label: 'Stock Diameter', default: 50 },
                 ]
             },
             'id-boring': {
@@ -1438,6 +1703,38 @@
                         <line x1="250" y1="125" x2="250" y2="105" stroke="#666" stroke-width="1" marker-end="url(#arrow3)"/>
                         <text x="253" y="113" font-size="9" fill="#666">X</text>
                         <defs><marker id="arrow3" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0, 6 3, 0 6" fill="#666"/></marker></defs>
+                    </svg>`,
+
+                'od-profile': `
+                    <svg viewBox="0 0 280 140" width="280" height="140">
+                        <!-- Centerline -->
+                        <line x1="20" y1="95" x2="260" y2="95" class="centerline"/>
+                        <text x="250" y="99" font-size="8" fill="#9ca3af">CL</text>
+
+                        <!-- Chuck/Spindle -->
+                        <rect x="20" y="35" width="15" height="120" fill="#9ca3af" opacity="0.3"/>
+
+                        <!-- Workpiece original -->
+                        <rect x="35" y="40" width="180" height="55" class="workpiece"/>
+
+                        <!-- Complex profile to cut -->
+                        <path d="M35,45 L35,40 L215,40 L215,50 L200,50 L195,55 L180,55 L180,65 L160,65 L155,60 L140,60 L140,70 L120,70 L115,65 L100,65 L100,75 L80,75 L75,70 L60,70 L60,80 L35,80 Z" class="cut-area"/>
+
+                        <!-- Finished profile line -->
+                        <path d="M215,50 L200,50 L195,55 L180,55 L180,65 L160,65 L155,60 L140,60 L140,70 L120,70 L115,65 L100,65 L100,75 L80,75 L75,70 L60,70 L60,80 L35,80" class="finished-profile" stroke-width="2" fill="none"/>
+
+                        <!-- Tool -->
+                        <polygon points="220,45 235,55 225,65 210,55" class="tool"/>
+
+                        <!-- Profile segment labels -->
+                        <text x="65" y="125" class="dim-text">Steps + Chamfers + Radii</text>
+
+                        <!-- Axes -->
+                        <line x1="250" y1="125" x2="220" y2="125" stroke="#666" stroke-width="1" marker-end="url(#arrowP)"/>
+                        <text x="228" y="137" font-size="9" fill="#666">Z</text>
+                        <line x1="250" y1="125" x2="250" y2="105" stroke="#666" stroke-width="1" marker-end="url(#arrowP)"/>
+                        <text x="253" y="113" font-size="9" fill="#666">X</text>
+                        <defs><marker id="arrowP" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0, 6 3, 0 6" fill="#666"/></marker></defs>
                     </svg>`,
 
                 'id-boring': `
@@ -1944,6 +2241,15 @@
                 op.params.reliefWidth = defaultPitch * 2; // ISO: 2 x Pitch
                 op.params.cornerRadius = 0.3;
                 op.params.zPos = -20;
+            } else if (def.hasProfile) {
+                // Profile turning with default segments
+                op.params.startX = 50;
+                op.params.startZ = 0;
+                op.params.segments = [
+                    { type: 'line', endX: 40, endZ: 0 },
+                    { type: 'line', endX: 40, endZ: -30 },
+                    { type: 'line', endX: 50, endZ: -30 }
+                ];
             } else {
                 def.fields.forEach(f => {
                     op.params[f.id] = f.default;
@@ -2101,6 +2407,39 @@
                     </div>
                     <input type="hidden" id="editParam_taperAngle" value="${op.params.taperAngle || 0}">
                 `;
+            } else if (def.hasProfile) {
+                // Profile turning form in modal
+                const startX = op.params.startX || 50;
+                const startZ = op.params.startZ || 0;
+                const segments = op.params.segments || [];
+
+                html += `
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Start X (Diameter)</label>
+                            <input type="number" id="editParam_startX" value="${startX}" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Start Z</label>
+                            <input type="number" id="editParam_startZ" value="${startZ}" step="0.1">
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <strong>Profile Segments</strong>
+                        <button class="btn btn-secondary" style="padding:4px 10px; font-size:12px;" onclick="addModalProfileSegment()">+ Add Segment</button>
+                    </div>
+                    <div id="modalProfileSegments"></div>
+                    <div style="background:#e8f4fd; padding:8px; border-radius:6px; margin-top:8px; font-size:11px;">
+                        <strong>Segment Types:</strong> Line (G01), Arc CW (G02), Arc CCW (G03)
+                    </div>
+                `;
+
+                // Store segments in a data attribute for later use
+                setTimeout(() => {
+                    modalProfileSegments = [...segments];
+                    renderModalProfileSegments();
+                }, 0);
             } else if (def.hasThreadRelief) {
                 // Thread relief form in modal
                 const reliefType = op.params.reliefType || 'iso';
@@ -2283,6 +2622,11 @@
                 op.params.reliefDepth = parseFloat(document.getElementById('editParam_reliefDepth').value);
                 op.params.cornerRadius = parseFloat(document.getElementById('editParam_cornerRadius').value);
                 op.params.zPos = parseFloat(document.getElementById('editParam_zPos').value);
+            } else if (def.hasProfile) {
+                // Profile turning operation
+                op.params.startX = parseFloat(document.getElementById('editParam_startX').value);
+                op.params.startZ = parseFloat(document.getElementById('editParam_startZ').value);
+                op.params.segments = [...modalProfileSegments];
             } else {
                 def.fields.forEach(f => {
                     op.params[f.id] = parseFloat(document.getElementById('editParam_' + f.id).value);
@@ -2473,6 +2817,10 @@
             code.push('M30');
 
             displayCode(code, 'builderOutput');
+
+            // Render 2D simulation
+            const gcode = code.join('\n');
+            renderSimulation('builderCanvas', 'builderSimulation', gcode, turningDia, stockLen, safeZ);
         }
 
         function generateOperationCode(op, stockDia, safeZ, xClear, zClear, approachFeed) {
@@ -2543,6 +2891,65 @@
                     if (op.finishing) {
                         code.push('(G70 OD TAPER FINISH CYCLE)');
                         code.push('G70 P100 Q200');
+                    }
+                    break;
+
+                case 'od-profile':
+                    {
+                        // Generate profile path from segments
+                        const startX = p.startX || 50;
+                        const startZ = p.startZ || 0;
+                        const segments = p.segments || [];
+
+                        // Build profile path from new segment format
+                        let profilePath = [];
+                        let minDia = startX;
+                        let lastZ = startZ;
+
+                        // Start point
+                        profilePath.push({ type: 'start', x: startX, z: startZ });
+
+                        // Process each segment
+                        segments.forEach((seg) => {
+                            const gCode = seg.type === 'arc-cw' ? 'G02' : (seg.type === 'arc-ccw' ? 'G03' : 'G01');
+                            const point = { type: gCode, x: seg.endX, z: seg.endZ };
+                            if (seg.type === 'arc-cw' || seg.type === 'arc-ccw') {
+                                point.r = seg.radius || 5;
+                            }
+                            profilePath.push(point);
+                            if (seg.endX < minDia) minDia = seg.endX;
+                            lastZ = seg.endZ;
+                        });
+
+                        // Add clearance move at end (back to start diameter)
+                        profilePath.push({ type: 'G01', x: startX + 2, z: lastZ });
+
+                        if (op.roughing) {
+                            code.push('(G71 OD PROFILE ROUGH CYCLE)');
+                            code.push(`(PROFILE: START X${startX} Z${startZ}, ${segments.length} SEGMENTS)`);
+                            code.push(`G00 X${(startX + 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                            code.push(`G71 U${op.doc.toFixed(1)} R1.0`);
+                            code.push(`G71 P100 Q200 U${op.finishAllowance.toFixed(2)} W0.1 F${op.roughFeed}`);
+
+                            // Generate profile path
+                            profilePath.forEach((pt, i) => {
+                                if (i === 0) {
+                                    code.push(`N100 G00 X${pt.x.toFixed(3)}`);
+                                    code.push(`G01 Z${pt.z.toFixed(1)} F${op.finishFeed}`);
+                                } else if (pt.type === 'G01') {
+                                    code.push(`G01 X${pt.x.toFixed(3)} Z${pt.z.toFixed(1)}`);
+                                } else if (pt.type === 'G02') {
+                                    code.push(`G02 X${pt.x.toFixed(3)} Z${pt.z.toFixed(1)} R${pt.r.toFixed(1)}`);
+                                } else if (pt.type === 'G03') {
+                                    code.push(`G03 X${pt.x.toFixed(3)} Z${pt.z.toFixed(1)} R${pt.r.toFixed(1)}`);
+                                }
+                            });
+                            code.push(`N200 G00 Z${safeZ.toFixed(1)}`);
+                        }
+                        if (op.finishing) {
+                            code.push('(G70 OD PROFILE FINISH CYCLE)');
+                            code.push('G70 P100 Q200');
+                        }
                     }
                     break;
 
@@ -2792,6 +3199,36 @@
                 `;
                 container.innerHTML = html;
                 updateThreadFields();
+            } else if (def.hasProfile) {
+                // Profile builder form
+                html += `
+                    <div style="background:#d1fae5; padding:10px; border-radius:8px; margin-bottom:12px;">
+                        <strong style="font-size:12px;">Profile Start Point</strong>
+                        <div class="form-row" style="margin-top:8px;">
+                            <div class="form-group">
+                                <label>Start X (Diameter)</label>
+                                <input type="number" id="sDim_startX" value="50" step="0.1" onchange="updateProfileStart('startX', this.value); renderProfileSegments();">
+                            </div>
+                            <div class="form-group">
+                                <label>Start Z</label>
+                                <input type="number" id="sDim_startZ" value="0" step="0.1" onchange="updateProfileStart('startZ', this.value); renderProfileSegments();">
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <strong>Profile Segments</strong>
+                        <button class="btn btn-secondary" style="padding:4px 10px; font-size:12px;" onclick="addProfileSegment()">+ Add Segment</button>
+                    </div>
+                    <div id="profileSegments">
+                        <!-- Segments will be added here -->
+                    </div>
+                    <div style="background:#e8f4fd; padding:10px; border-radius:8px; margin-top:10px; font-size:11px;">
+                        <strong>Move Types:</strong> Line (G01), Arc CW (G02), Arc CCW (G03)<br>
+                        Each segment shows Start → End coordinates for clarity.
+                    </div>
+                `;
+                container.innerHTML = html;
+                initProfileBuilder();
             } else if (def.hasThreadRelief) {
                 // Thread relief form
                 html += `
@@ -3021,6 +3458,727 @@
             }
         }
 
+        // ============================================
+        // 2D TOOLPATH SIMULATION
+        // ============================================
+
+        // Store simulation data for expand functionality
+        let currentSimulationData = {
+            builder: null,
+            single: null
+        };
+
+        function parseGCodeForSimulation(gcode, stockDia, safeZ, stockLen) {
+            const lines = gcode.split('\n');
+            const toolpath = [];
+
+            // Start position: above stock at safe Z
+            let currentX = stockDia + 2;
+            let currentZ = safeZ || 5;
+            let rapidMode = true;
+
+            // G71 cycle detection
+            let g71Doc = 2; // Default depth of cut
+            let g71Active = false;
+            let g71Profile = [];
+            let g71StartLine = -1;
+            let g71EndLine = -1;
+            let g71FinishU = 0.3;
+            let inProfile = false;
+            stockLen = stockLen || 50; // Default stock length
+
+            // First pass: find G71 parameters and profile
+            for (let i = 0; i < lines.length; i++) {
+                const trimmed = lines[i].trim();
+                if (!trimmed || trimmed.startsWith('(') || trimmed.startsWith(';')) continue;
+
+                // Detect G71 cycle parameters
+                if (trimmed.includes('G71')) {
+                    const uMatch = trimmed.match(/U(\d+\.?\d*)/);
+                    const pMatch = trimmed.match(/P(\d+)/);
+                    const qMatch = trimmed.match(/Q(\d+)/);
+
+                    if (uMatch && !pMatch) {
+                        g71Doc = parseFloat(uMatch[1]);
+                    }
+                    if (pMatch && qMatch) {
+                        g71StartLine = parseInt(pMatch[1]);
+                        g71EndLine = parseInt(qMatch[1]);
+                        g71Active = true;
+                        const finishU = trimmed.match(/U(\d+\.?\d*)/);
+                        if (finishU) g71FinishU = parseFloat(finishU[1]);
+                    }
+                }
+
+                // Check for N-numbered lines that define the profile
+                const nMatch = trimmed.match(/^N(\d+)/);
+                if (nMatch) {
+                    const lineNum = parseInt(nMatch[1]);
+                    if (lineNum === g71StartLine) inProfile = true;
+                    if (lineNum === g71EndLine) {
+                        g71Profile.push(trimmed);
+                        inProfile = false;
+                    }
+                }
+                // Capture ALL lines while inside profile block (not just N-lines)
+                if (inProfile && trimmed) {
+                    g71Profile.push(trimmed);
+                }
+            }
+
+            // Second pass: generate toolpath with roughing simulation
+            let firstMove = true;
+            rapidMode = true;
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || trimmed.startsWith('(') || trimmed.startsWith(';')) continue;
+
+                // Skip G71 lines themselves (we'll simulate the passes)
+                if (trimmed.includes('G71') || trimmed.includes('G70')) continue;
+
+                // Skip profile definition lines (N100-N200) - we handle them separately
+                if (/^N\d+/.test(trimmed) && g71Active) continue;
+
+                // Check for G-code mode
+                if (trimmed.includes('G00') || trimmed.includes('G0 ')) rapidMode = true;
+                if (trimmed.includes('G01') || trimmed.includes('G1 ')) rapidMode = false;
+
+                // Parse coordinates
+                const xMatch = trimmed.match(/X(-?\d+\.?\d*)/);
+                const zMatch = trimmed.match(/Z(-?\d+\.?\d*)/);
+                const rMatch = trimmed.match(/R(-?\d+\.?\d*)/);
+
+                let newX = xMatch ? parseFloat(xMatch[1]) : currentX;
+                let newZ = zMatch ? parseFloat(zMatch[1]) : currentZ;
+
+                // Set initial position from first G00 move
+                if (firstMove && (xMatch || zMatch)) {
+                    if (!toolpath.length) {
+                        currentX = newX;
+                        currentZ = newZ;
+                    }
+                    firstMove = false;
+                }
+
+                // Check for arc moves
+                let moveType = rapidMode ? 'rapid' : 'feed';
+                let radius = 0;
+                if (trimmed.includes('G02') || trimmed.includes('G2 ')) {
+                    moveType = 'arc-cw';
+                    radius = rMatch ? parseFloat(rMatch[1]) : 5;
+                }
+                if (trimmed.includes('G03') || trimmed.includes('G3 ')) {
+                    moveType = 'arc-ccw';
+                    radius = rMatch ? parseFloat(rMatch[1]) : 5;
+                }
+
+                // Only add if coordinates changed
+                if (newX !== currentX || newZ !== currentZ) {
+                    toolpath.push({
+                        fromX: currentX,
+                        fromZ: currentZ,
+                        toX: newX,
+                        toZ: newZ,
+                        type: moveType,
+                        radius: radius
+                    });
+                    currentX = newX;
+                    currentZ = newZ;
+                }
+            }
+
+            // If G71 cycle was detected, simulate the roughing passes
+            if (g71Active && g71Profile.length > 0) {
+                const roughingPasses = simulateG71Passes(g71Profile, stockDia, g71Doc, g71FinishU, safeZ, stockLen);
+                // Insert roughing passes at the beginning (after initial rapid)
+                const initialMoves = toolpath.filter(m => m.type === 'rapid').slice(0, 2);
+                const endMoves = toolpath.filter(m => m.type === 'rapid').slice(-2);
+                return [...initialMoves, ...roughingPasses, ...endMoves];
+            }
+
+            return toolpath;
+        }
+
+        function simulateG71Passes(profileLines, stockDia, doc, finishU, safeZ, stockLen) {
+            const passes = [];
+
+            // Parse profile to get target diameters and Z positions
+            let profilePoints = [];
+            let currentX = stockDia;
+            let currentZ = 0;
+
+            for (const line of profileLines) {
+                const xMatch = line.match(/X(-?\d+\.?\d*)/);
+                const zMatch = line.match(/Z(-?\d+\.?\d*)/);
+
+                if (xMatch) currentX = parseFloat(xMatch[1]);
+                if (zMatch) currentZ = parseFloat(zMatch[1]);
+
+                if (xMatch || zMatch) {
+                    profilePoints.push({ x: currentX, z: currentZ });
+                }
+            }
+
+            if (profilePoints.length === 0) return passes;
+
+            // Find the minimum diameter in the profile (deepest cut)
+            const minDia = Math.min(...profilePoints.map(p => p.x));
+
+            // Separate cutting profile from retract moves
+            // For OD turning: cutting ends when X increases beyond the finish diameter toward stock
+            let cuttingProfile = [];
+            let foundMinDia = false;
+            for (const pt of profilePoints) {
+                // Skip duplicate points
+                if (cuttingProfile.length > 0) {
+                    const lastPt = cuttingProfile[cuttingProfile.length - 1];
+                    if (lastPt.x === pt.x && lastPt.z === pt.z) continue;
+                }
+
+                // For OD turning: once we reach the minimum diameter and X starts increasing,
+                // that's the retract - stop collecting cutting points
+                if (pt.x === minDia) foundMinDia = true;
+                if (foundMinDia && pt.x > minDia + 1) break; // +1 for tolerance
+
+                // Only include points that are within or near the stock
+                if (pt.x <= stockDia + 1) {
+                    cuttingProfile.push(pt);
+                }
+            }
+
+            // Use the actual Z extent from the cutting profile (not retract moves)
+            const endZ = cuttingProfile.length > 0 ? Math.min(...cuttingProfile.map(p => p.z)) : -stockLen;
+            const startZ = 1; // Start cutting just before Z0
+
+            // Calculate number of passes needed
+            const totalDepth = (stockDia - minDia) / 2; // Radius difference
+            const numPasses = Math.ceil(totalDepth / doc);
+
+            // Retract position
+            let retractX = stockDia + 2;
+            let lastX = retractX;
+            let lastZ = safeZ;
+
+            // Generate each roughing pass - cut full Z length each time
+            for (let pass = 1; pass <= numPasses; pass++) {
+                let passX = stockDia - (pass * doc * 2); // Diameter reduction
+                if (passX < minDia + finishU) passX = minDia + finishU;
+
+                // Rapid positioning to safe Z (yellow)
+                if (lastZ !== safeZ) {
+                    passes.push({
+                        fromX: lastX,
+                        fromZ: lastZ,
+                        toX: lastX,
+                        toZ: safeZ,
+                        type: 'rapid'
+                    });
+                    lastZ = safeZ;
+                }
+
+                // Rapid to X position at safe Z (yellow)
+                passes.push({
+                    fromX: lastX,
+                    fromZ: safeZ,
+                    toX: passX,
+                    toZ: safeZ,
+                    type: 'rapid'
+                });
+                lastX = passX;
+
+                // Approach - rapid down to Z start position (blue)
+                passes.push({
+                    fromX: passX,
+                    fromZ: safeZ,
+                    toX: passX,
+                    toZ: startZ,
+                    type: 'approach'
+                });
+                lastZ = startZ;
+
+                // CUTTING PASS - Feed along full Z length (green)
+                passes.push({
+                    fromX: passX,
+                    fromZ: startZ,
+                    toX: passX,
+                    toZ: endZ,
+                    type: 'feed'
+                });
+                lastZ = endZ;
+
+                // Retract in X (blue)
+                passes.push({
+                    fromX: passX,
+                    fromZ: endZ,
+                    toX: retractX,
+                    toZ: endZ,
+                    type: 'approach'
+                });
+                lastX = retractX;
+
+                // Rapid back to safe Z (yellow)
+                passes.push({
+                    fromX: retractX,
+                    fromZ: endZ,
+                    toX: retractX,
+                    toZ: safeZ,
+                    type: 'rapid'
+                });
+                lastZ = safeZ;
+            }
+
+            // Add finish pass along the cutting profile (not retract moves)
+            if (cuttingProfile.length > 0) {
+                const finishDia = cuttingProfile[0].x;
+
+                // Rapid to finish X position (yellow)
+                passes.push({
+                    fromX: lastX,
+                    fromZ: safeZ,
+                    toX: finishDia,
+                    toZ: safeZ,
+                    type: 'rapid'
+                });
+
+                // Approach to Z start (blue)
+                passes.push({
+                    fromX: finishDia,
+                    fromZ: safeZ,
+                    toX: finishDia,
+                    toZ: startZ,
+                    type: 'approach'
+                });
+
+                // Follow cutting profile only (green - cutting)
+                let prevPt = { x: finishDia, z: startZ };
+                for (const pt of cuttingProfile) {
+                    // Only add if there's actual movement
+                    if (prevPt.x !== pt.x || prevPt.z !== pt.z) {
+                        passes.push({
+                            fromX: prevPt.x,
+                            fromZ: prevPt.z,
+                            toX: pt.x,
+                            toZ: pt.z,
+                            type: 'feed'
+                        });
+                        prevPt = pt;
+                    }
+                }
+
+                // Retract in X from end of cutting (blue)
+                passes.push({
+                    fromX: prevPt.x,
+                    fromZ: prevPt.z,
+                    toX: retractX,
+                    toZ: prevPt.z,
+                    type: 'approach'
+                });
+
+                // Rapid back to safe Z (yellow)
+                passes.push({
+                    fromX: retractX,
+                    fromZ: prevPt.z,
+                    toX: retractX,
+                    toZ: safeZ,
+                    type: 'rapid'
+                });
+            }
+
+            return passes;
+        }
+
+        function generateSimulationSVG(toolpath, stockDia, stockLen, safeZ, width, height, showLabels = true) {
+            if (toolpath.length === 0) {
+                return `<svg viewBox="0 0 ${width} ${height}"><text x="${width/2}" y="${height/2}" text-anchor="middle" fill="#666">No toolpath to display</text></svg>`;
+            }
+
+            // Calculate bounds
+            let minX = 0, maxX = stockDia || 50;
+            let minZ = -stockLen || -100, maxZ = safeZ || 5;
+
+            toolpath.forEach(move => {
+                minX = Math.min(minX, move.fromX, move.toX);
+                maxX = Math.max(maxX, move.fromX, move.toX);
+                minZ = Math.min(minZ, move.fromZ, move.toZ);
+                maxZ = Math.max(maxZ, move.fromZ, move.toZ);
+            });
+
+            // Add padding
+            const padding = showLabels ? 30 : 20;
+            const zRange = maxZ - minZ;
+            const xRange = maxX;
+            const scaleZ = (width - 2 * padding) / zRange;
+            const scaleX = (height - 2 * padding) / (xRange * 1.2);
+            const scale = Math.min(scaleZ, scaleX);
+
+            // Transform functions (inverted Z: tool moves right to left, 3 o'clock to 9 o'clock)
+            // Z positive (safe Z) on right, Z negative (into workpiece) on left
+            const toSvgZ = (z) => padding + (z - minZ) * scale;
+            const toSvgX = (x) => height - padding - (x / 2) * scale;
+
+            // Arrow size based on canvas size
+            const arrowSize = Math.max(4, Math.min(8, width / 60));
+
+            // Build SVG with arrow marker definitions
+            let svg = `<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <marker id="arrow-rapid" markerWidth="${arrowSize}" markerHeight="${arrowSize}" refX="${arrowSize-1}" refY="${arrowSize/2}" orient="auto" markerUnits="userSpaceOnUse">
+                        <polygon points="0 0, ${arrowSize} ${arrowSize/2}, 0 ${arrowSize}" fill="#fbbf24"/>
+                    </marker>
+                    <marker id="arrow-feed" markerWidth="${arrowSize}" markerHeight="${arrowSize}" refX="${arrowSize-1}" refY="${arrowSize/2}" orient="auto" markerUnits="userSpaceOnUse">
+                        <polygon points="0 0, ${arrowSize} ${arrowSize/2}, 0 ${arrowSize}" fill="#4ade80"/>
+                    </marker>
+                    <marker id="arrow-arc" markerWidth="${arrowSize}" markerHeight="${arrowSize}" refX="${arrowSize-1}" refY="${arrowSize/2}" orient="auto" markerUnits="userSpaceOnUse">
+                        <polygon points="0 0, ${arrowSize} ${arrowSize/2}, 0 ${arrowSize}" fill="#4ade80"/>
+                    </marker>
+                    <marker id="arrow-approach" markerWidth="${arrowSize}" markerHeight="${arrowSize}" refX="${arrowSize-1}" refY="${arrowSize/2}" orient="auto" markerUnits="userSpaceOnUse">
+                        <polygon points="0 0, ${arrowSize} ${arrowSize/2}, 0 ${arrowSize}" fill="#3b82f6"/>
+                    </marker>
+                </defs>`;
+
+            // Draw centerline
+            svg += `<line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" class="sim-centerline"/>`;
+            if (showLabels) {
+                svg += `<text x="${width - padding + 5}" y="${height - padding + 4}" class="sim-dimension">CL</text>`;
+            }
+
+            // Draw workpiece (stock) - Z0 on right (face), -stockLen on left
+            const stockTop = toSvgX(stockDia);
+            const stockLeft = toSvgZ(-stockLen);  // Left side of stock (into spindle)
+            const stockRight = toSvgZ(0);          // Right side of stock (face)
+            const stockHeight = (height - padding) - stockTop;
+            svg += `<rect x="${stockLeft}" y="${stockTop}" width="${stockRight - stockLeft}" height="${stockHeight}" class="sim-workpiece"/>`;
+
+            // Draw toolpath with arrows
+            toolpath.forEach((move, idx) => {
+                const x1 = toSvgZ(move.fromZ);
+                const y1 = toSvgX(move.fromX);
+                const x2 = toSvgZ(move.toZ);
+                const y2 = toSvgX(move.toX);
+
+                // Calculate line length to decide if we show arrow
+                const lineLen = Math.sqrt((x2-x1)**2 + (y2-y1)**2);
+                const showArrow = lineLen > arrowSize * 2;
+
+                if (move.type === 'rapid') {
+                    svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="sim-rapid" ${showArrow ? 'marker-end="url(#arrow-rapid)"' : ''}/>`;
+                } else if (move.type === 'approach') {
+                    svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="sim-approach" ${showArrow ? 'marker-end="url(#arrow-approach)"' : ''}/>`;
+                } else if (move.type === 'feed') {
+                    svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="sim-feed" ${showArrow ? 'marker-end="url(#arrow-feed)"' : ''}/>`;
+                } else if (move.type === 'arc-cw' || move.type === 'arc-ccw') {
+                    const r = move.radius * scale / 2;
+                    const sweep = move.type === 'arc-cw' ? 1 : 0;
+                    svg += `<path d="M ${x1} ${y1} A ${r} ${r} 0 0 ${sweep} ${x2} ${y2}" class="sim-arc" ${showArrow ? 'marker-end="url(#arrow-arc)"' : ''}/>`;
+                }
+            });
+
+            // Draw start point (green circle)
+            if (toolpath.length > 0) {
+                const startX = toSvgZ(toolpath[0].fromZ);
+                const startY = toSvgX(toolpath[0].fromX);
+                const pointSize = Math.max(4, arrowSize * 0.8);
+                svg += `<circle cx="${startX}" cy="${startY}" r="${pointSize}" class="sim-start-point"/>`;
+                if (showLabels) {
+                    svg += `<text x="${startX + pointSize + 3}" y="${startY + 3}" fill="#22c55e" font-size="10">START</text>`;
+                }
+
+                // Draw end point (red circle)
+                const lastMove = toolpath[toolpath.length - 1];
+                const endX = toSvgZ(lastMove.toZ);
+                const endY = toSvgX(lastMove.toX);
+                svg += `<circle cx="${endX}" cy="${endY}" r="${pointSize}" class="sim-end-point"/>`;
+                if (showLabels) {
+                    svg += `<text x="${endX + pointSize + 3}" y="${endY + 3}" fill="#ef4444" font-size="10">END</text>`;
+                }
+            }
+
+            // Draw dimensions and labels
+            if (showLabels) {
+                svg += `<text x="${stockRight + 5}" y="${stockTop - 8}" class="sim-dimension" font-size="10">Ø${stockDia}</text>`;
+                svg += `<text x="${(stockLeft + stockRight) / 2}" y="${height - 5}" class="sim-dimension" text-anchor="middle" font-size="10">L=${stockLen}</text>`;
+                // Axis labels: -Z on left (into spindle), +Z on right (safe zone)
+                svg += `<text x="${padding - 5}" y="${height - padding - 25}" class="sim-dimension" font-size="10">+X</text>`;
+                svg += `<text x="${padding + 5}" y="${height - padding + 12}" class="sim-dimension" font-size="10">-Z</text>`;
+                svg += `<text x="${width - padding - 10}" y="${height - padding + 12}" class="sim-dimension" font-size="10">+Z</text>`;
+                // Spindle indicator on left
+                svg += `<text x="${padding + 5}" y="${stockTop + 15}" class="sim-dimension" font-size="9" fill="#888">SPINDLE</text>`;
+            }
+
+            svg += '</svg>';
+            return svg;
+        }
+
+        function renderSimulation(canvasId, simulationId, gcode, stockDia, stockLen, safeZ) {
+            const canvas = document.getElementById(canvasId);
+            const simContainer = document.getElementById(simulationId);
+            if (!canvas || !simContainer) return;
+
+            // Show the simulation container
+            simContainer.style.display = 'block';
+
+            // Parse G-code to get toolpath (pass stock params for proper start position and Z length)
+            const toolpath = parseGCodeForSimulation(gcode, stockDia, safeZ, stockLen);
+
+            // Store data for expand functionality
+            const simType = canvasId.includes('builder') ? 'builder' : 'single';
+            currentSimulationData[simType] = { toolpath, stockDia, stockLen, safeZ };
+
+            // Generate and display SVG
+            const svg = generateSimulationSVG(toolpath, stockDia, stockLen, safeZ, 600, 400, true);
+            canvas.innerHTML = svg;
+        }
+
+        function expandSimulation(type) {
+            const data = currentSimulationData[type];
+            if (!data) return;
+
+            const modal = document.getElementById('simModal');
+            const modalCanvas = document.getElementById('simModalCanvas');
+
+            // Generate larger SVG for modal
+            const svg = generateSimulationSVG(data.toolpath, data.stockDia, data.stockLen, data.safeZ, 1200, 600, true);
+            modalCanvas.innerHTML = svg;
+
+            // Show modal
+            modal.classList.add('active');
+
+            // Add ESC key listener
+            document.addEventListener('keydown', handleEscKey);
+        }
+
+        function closeSimModal(event) {
+            if (event && event.target !== event.currentTarget) return;
+            const modal = document.getElementById('simModal');
+            modal.classList.remove('active');
+            document.removeEventListener('keydown', handleEscKey);
+        }
+
+        function handleEscKey(e) {
+            if (e.key === 'Escape') {
+                closeSimModal();
+            }
+        }
+
+        // Profile Builder Functions (Single Operation)
+        let profileSegments = [];
+        let profileStartX = 50;
+        let profileStartZ = 0;
+
+        function initProfileBuilder() {
+            profileStartX = parseFloat(document.getElementById('sDim_startX')?.value || 50);
+            profileStartZ = parseFloat(document.getElementById('sDim_startZ')?.value || 0);
+            profileSegments = [
+                { type: 'line', endX: 40, endZ: 0 },
+                { type: 'line', endX: 40, endZ: -30 },
+                { type: 'line', endX: 50, endZ: -30 }
+            ];
+            renderProfileSegments();
+        }
+
+        function addProfileSegment() {
+            // Get end point of last segment as start for new one
+            const lastSeg = profileSegments[profileSegments.length - 1];
+            const startX = lastSeg ? lastSeg.endX : profileStartX;
+            const startZ = lastSeg ? lastSeg.endZ : profileStartZ;
+
+            profileSegments.push({
+                type: 'line',
+                endX: startX,
+                endZ: startZ - 10,
+                radius: 5
+            });
+            renderProfileSegments();
+        }
+
+        function removeProfileSegment(index) {
+            if (profileSegments.length > 1) {
+                profileSegments.splice(index, 1);
+                renderProfileSegments();
+            }
+        }
+
+        function updateSegmentType(index, type) {
+            profileSegments[index].type = type;
+            renderProfileSegments();
+        }
+
+        function updateSegmentValue(index, field, value) {
+            profileSegments[index][field] = parseFloat(value);
+        }
+
+        function updateProfileStart(field, value) {
+            if (field === 'startX') profileStartX = parseFloat(value);
+            if (field === 'startZ') profileStartZ = parseFloat(value);
+        }
+
+        function getSegmentStartPoint(index) {
+            if (index === 0) {
+                return { x: profileStartX, z: profileStartZ };
+            }
+            const prevSeg = profileSegments[index - 1];
+            return { x: prevSeg.endX, z: prevSeg.endZ };
+        }
+
+        function renderProfileSegments() {
+            const container = document.getElementById('profileSegments');
+            if (!container) return;
+            let html = '';
+
+            profileSegments.forEach((seg, i) => {
+                const start = getSegmentStartPoint(i);
+                const isArc = seg.type === 'arc-cw' || seg.type === 'arc-ccw';
+
+                html += `
+                    <div style="background:#f8f9fa; padding:10px; border-radius:8px; margin-bottom:8px; border-left:3px solid ${seg.type === 'line' ? '#4ade80' : '#60a5fa'};">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span style="font-weight:600; font-size:12px;">Segment ${i + 1}</span>
+                            ${profileSegments.length > 1 ? `<button onclick="removeProfileSegment(${i})" style="background:#ef4444; color:white; border:none; border-radius:4px; padding:2px 8px; cursor:pointer; font-size:11px;">Remove</button>` : ''}
+                        </div>
+                        <div class="form-group" style="margin-bottom:8px;">
+                            <label style="font-size:11px;">Move Type</label>
+                            <select onchange="updateSegmentType(${i}, this.value)" style="padding:6px; font-size:12px;">
+                                <option value="line" ${seg.type === 'line' ? 'selected' : ''}>Line (G01)</option>
+                                <option value="arc-cw" ${seg.type === 'arc-cw' ? 'selected' : ''}>Arc CW (G02)</option>
+                                <option value="arc-ccw" ${seg.type === 'arc-ccw' ? 'selected' : ''}>Arc CCW (G03)</option>
+                            </select>
+                        </div>
+                        <div style="display:flex; gap:8px; margin-bottom:6px;">
+                            <div style="flex:1; background:#e8f4fd; padding:6px; border-radius:4px; text-align:center;">
+                                <div style="font-size:10px; color:#666;">Start</div>
+                                <div style="font-size:11px; font-weight:600;">X${start.x.toFixed(1)} Z${start.z.toFixed(1)}</div>
+                            </div>
+                            <div style="font-size:16px; align-self:center;">→</div>
+                            <div style="flex:1; background:#d1fae5; padding:6px; border-radius:4px; text-align:center;">
+                                <div style="font-size:10px; color:#666;">End</div>
+                                <div style="font-size:11px; font-weight:600;">X${seg.endX.toFixed(1)} Z${seg.endZ.toFixed(1)}</div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label style="font-size:11px;">End X (Dia)</label>
+                                <input type="number" value="${seg.endX}" step="0.1" onchange="updateSegmentValue(${i}, 'endX', this.value); renderProfileSegments();" style="padding:6px; font-size:12px;">
+                            </div>
+                            <div class="form-group">
+                                <label style="font-size:11px;">End Z</label>
+                                <input type="number" value="${seg.endZ}" step="0.1" onchange="updateSegmentValue(${i}, 'endZ', this.value); renderProfileSegments();" style="padding:6px; font-size:12px;">
+                            </div>
+                            ${isArc ? `
+                            <div class="form-group">
+                                <label style="font-size:11px;">Radius</label>
+                                <input type="number" value="${seg.radius || 5}" step="0.1" onchange="updateSegmentValue(${i}, 'radius', this.value)" style="padding:6px; font-size:12px;">
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Modal Profile Builder Functions (Program Builder)
+        let modalProfileSegments = [];
+
+        function addModalProfileSegment() {
+            const lastSeg = modalProfileSegments[modalProfileSegments.length - 1];
+            const startX = lastSeg ? lastSeg.endX : parseFloat(document.getElementById('editParam_startX')?.value || 50);
+            const startZ = lastSeg ? lastSeg.endZ : parseFloat(document.getElementById('editParam_startZ')?.value || 0);
+
+            modalProfileSegments.push({
+                type: 'line',
+                endX: startX,
+                endZ: startZ - 10,
+                radius: 5
+            });
+            renderModalProfileSegments();
+        }
+
+        function removeModalProfileSegment(index) {
+            if (modalProfileSegments.length > 1) {
+                modalProfileSegments.splice(index, 1);
+                renderModalProfileSegments();
+            }
+        }
+
+        function updateModalSegmentType(index, type) {
+            modalProfileSegments[index].type = type;
+            renderModalProfileSegments();
+        }
+
+        function updateModalSegmentValue(index, field, value) {
+            modalProfileSegments[index][field] = parseFloat(value);
+        }
+
+        function getModalSegmentStartPoint(index) {
+            if (index === 0) {
+                return {
+                    x: parseFloat(document.getElementById('editParam_startX')?.value || 50),
+                    z: parseFloat(document.getElementById('editParam_startZ')?.value || 0)
+                };
+            }
+            const prevSeg = modalProfileSegments[index - 1];
+            return { x: prevSeg.endX, z: prevSeg.endZ };
+        }
+
+        function renderModalProfileSegments() {
+            const container = document.getElementById('modalProfileSegments');
+            if (!container) return;
+            let html = '';
+
+            modalProfileSegments.forEach((seg, i) => {
+                const start = getModalSegmentStartPoint(i);
+                const isArc = seg.type === 'arc-cw' || seg.type === 'arc-ccw';
+
+                html += `
+                    <div style="background:#f8f9fa; padding:10px; border-radius:8px; margin-bottom:8px; border-left:3px solid ${seg.type === 'line' ? '#4ade80' : '#60a5fa'};">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span style="font-weight:600; font-size:12px;">Segment ${i + 1}</span>
+                            ${modalProfileSegments.length > 1 ? `<button onclick="removeModalProfileSegment(${i})" style="background:#ef4444; color:white; border:none; border-radius:4px; padding:2px 8px; cursor:pointer; font-size:11px;">Remove</button>` : ''}
+                        </div>
+                        <div class="form-group" style="margin-bottom:8px;">
+                            <label style="font-size:11px;">Move Type</label>
+                            <select onchange="updateModalSegmentType(${i}, this.value)" style="padding:6px; font-size:12px;">
+                                <option value="line" ${seg.type === 'line' ? 'selected' : ''}>Line (G01)</option>
+                                <option value="arc-cw" ${seg.type === 'arc-cw' ? 'selected' : ''}>Arc CW (G02)</option>
+                                <option value="arc-ccw" ${seg.type === 'arc-ccw' ? 'selected' : ''}>Arc CCW (G03)</option>
+                            </select>
+                        </div>
+                        <div style="display:flex; gap:8px; margin-bottom:6px;">
+                            <div style="flex:1; background:#e8f4fd; padding:6px; border-radius:4px; text-align:center;">
+                                <div style="font-size:10px; color:#666;">Start</div>
+                                <div style="font-size:11px; font-weight:600;">X${start.x.toFixed(1)} Z${start.z.toFixed(1)}</div>
+                            </div>
+                            <div style="font-size:16px; align-self:center;">→</div>
+                            <div style="flex:1; background:#d1fae5; padding:6px; border-radius:4px; text-align:center;">
+                                <div style="font-size:10px; color:#666;">End</div>
+                                <div style="font-size:11px; font-weight:600;">X${seg.endX.toFixed(1)} Z${seg.endZ.toFixed(1)}</div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label style="font-size:11px;">End X (Dia)</label>
+                                <input type="number" value="${seg.endX}" step="0.1" onchange="updateModalSegmentValue(${i}, 'endX', this.value); renderModalProfileSegments();" style="padding:6px; font-size:12px;">
+                            </div>
+                            <div class="form-group">
+                                <label style="font-size:11px;">End Z</label>
+                                <input type="number" value="${seg.endZ}" step="0.1" onchange="updateModalSegmentValue(${i}, 'endZ', this.value); renderModalProfileSegments();" style="padding:6px; font-size:12px;">
+                            </div>
+                            ${isArc ? `
+                            <div class="form-group">
+                                <label style="font-size:11px;">Radius</label>
+                                <input type="number" value="${seg.radius || 5}" step="0.1" onchange="updateModalSegmentValue(${i}, 'radius', this.value)" style="padding:6px; font-size:12px;">
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
         function updateSpindleFields() {
             const mode = document.getElementById('sSpindleMode').value;
             const label = document.getElementById('sSpeedLabel');
@@ -3121,6 +4279,11 @@
                 params.reliefDepth = parseFloat(document.getElementById('sDim_reliefDepth')?.value || 0.4);
                 params.cornerRadius = parseFloat(document.getElementById('sDim_cornerRadius')?.value || 0.3);
                 params.zPos = parseFloat(document.getElementById('sDim_zPos')?.value || -20);
+            } else if (def.hasProfile) {
+                // Profile turning operation
+                params.startX = parseFloat(document.getElementById('sDim_startX')?.value || 50);
+                params.startZ = parseFloat(document.getElementById('sDim_startZ')?.value || 0);
+                params.segments = [...profileSegments]; // Copy current segments
             } else {
                 // Non-threading operations - get values normally
                 def.fields.forEach(f => {
@@ -3234,6 +4397,10 @@
             code.push('M30');
 
             displayCode(code, 'singleOutput');
+
+            // Render 2D simulation
+            const gcode = code.join('\n');
+            renderSimulation('singleCanvas', 'singleSimulation', gcode, turningDia, stockLen, safeZ);
         }
 
         // Display & Utility Functions
@@ -3289,5 +4456,22 @@
             a.click();
         }
     </script>
+
+    <!-- Fullscreen Simulation Modal -->
+    <div class="sim-modal" id="simModal" onclick="closeSimModal(event)">
+        <div class="sim-modal-header">
+            <span class="sim-modal-title">2D TOOLPATH SIMULATION</span>
+            <div class="sim-modal-legend">
+                <div class="legend-item"><div class="legend-line legend-feed" style="display:inline-block;width:20px;height:2px;vertical-align:middle;margin-right:4px;"></div>Cutting</div>
+                <div class="legend-item"><div class="legend-line legend-rapid" style="display:inline-block;width:20px;height:2px;vertical-align:middle;margin-right:4px;"></div>Rapid</div>
+                <div class="legend-item"><div class="legend-line legend-approach" style="display:inline-block;width:20px;height:2px;vertical-align:middle;margin-right:4px;"></div>Approach/Retract</div>
+                <div class="legend-item"><span style="color:#22c55e;">●</span> Start</div>
+                <div class="legend-item"><span style="color:#ef4444;">●</span> End</div>
+            </div>
+            <button class="sim-modal-close" onclick="closeSimModal()">✕ Close</button>
+        </div>
+        <div class="sim-modal-canvas" id="simModalCanvas" onclick="event.stopPropagation()"></div>
+        <div class="sim-modal-info">Click outside or press ESC to close</div>
+    </div>
 </body>
 </html>
