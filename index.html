@@ -1,0 +1,2697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Free online FANUC G-code generator for CNC turning. Create complete turning programs with roughing (G71, G72) and finishing (G70) cycles. Supports threading, taper turning, boring, grooving and more.">
+    <meta name="keywords" content="FANUC, G-code, CNC, turning, lathe, G71, G72, G70, G76, threading, taper, boring, grooving, program builder">
+    <meta name="author" content="gcodegen.in">
+    <meta property="og:title" content="FANUC G-Code Generator - CNC Turning Program Builder">
+    <meta property="og:description" content="Free online tool to generate FANUC turning G-code programs with roughing and finishing cycles.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gcodegen.in">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <title>FANUC G-Code Generator | CNC Turning Program Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-primary: #F4F7F9;
+            --bg-card: #FFFFFF;
+            --bg-input: #FFFFFF;
+            --bg-code: #1e1e1e;
+            --text-primary: #4A4E69;
+            --text-secondary: #6B7280;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #D1D5DB;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+            background: var(--bg-card);
+            padding: 4px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border: none;
+            background: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        @media (min-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title .badge {
+            background: var(--accent);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .form-row.three {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        select, input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 15px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn {
+            padding: 12px 20px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-input);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-primary);
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        /* Template Cards */
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        @media (min-width: 600px) {
+            .template-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .template-card {
+            background: var(--bg-primary);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .template-card:hover {
+            border-color: var(--accent);
+        }
+
+        .template-card h4 {
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+
+        .template-card p {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Operation List */
+        .operation-list {
+            min-height: 100px;
+        }
+
+        .operation-item {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .operation-item .op-number {
+            background: var(--accent);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .operation-item .op-details {
+            flex: 1;
+        }
+
+        .operation-item .op-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .operation-item .op-type {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .operation-item .op-type .roughing {
+            color: var(--warning);
+        }
+
+        .operation-item .op-type .finishing {
+            color: var(--success);
+        }
+
+        .operation-item .op-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .operation-item .op-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .operation-item .op-actions button:hover {
+            color: var(--text-primary);
+        }
+
+        /* Add Operation Section */
+        .add-operation-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .add-op-btn {
+            background: var(--bg-primary);
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            padding: 12px 8px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .add-op-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            border-style: solid;
+        }
+
+        .add-op-btn svg {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            stroke: currentColor;
+            fill: none;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Cycle Options */
+        .cycle-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .cycle-option {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .cycle-option.active {
+            border-color: var(--accent);
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--accent);
+        }
+
+        .cycle-option small {
+            display: block;
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        /* Code Output */
+        .code-output {
+            background: var(--bg-code);
+            border-radius: 10px;
+            padding: 14px;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-size: 12px;
+            color: #d4d4d4;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+
+        .code-output .comment { color: #6a9955; }
+        .code-output .gcode { color: #569cd6; }
+        .code-output .mcode { color: #ce9178; }
+        .code-output .coord { color: #b5cea8; }
+
+        .output-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .output-actions .btn {
+            flex: 1;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .checkbox-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+
+        .checkbox-row label {
+            margin-bottom: 0;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .divider {
+            border-top: 1px solid var(--border);
+            margin: 16px 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state p {
+            margin-bottom: 12px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+        }
+
+        .modal-header .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .modal-body {
+            padding: 16px;
+        }
+
+        .modal-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        /* Operation Illustrations */
+        .op-illustration {
+            background: var(--bg-primary);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .op-illustration svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .op-illustration .dim-line {
+            stroke: #2563eb;
+            stroke-width: 1;
+            fill: none;
+        }
+
+        .op-illustration .dim-arrow {
+            fill: #2563eb;
+        }
+
+        .op-illustration .dim-text {
+            font-size: 10px;
+            fill: #2563eb;
+            font-weight: 600;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .op-illustration .workpiece {
+            fill: #e5e7eb;
+            stroke: #4A4E69;
+            stroke-width: 1.5;
+        }
+
+        .op-illustration .cut-area {
+            fill: #fecaca;
+            stroke: #ef4444;
+            stroke-width: 1;
+            stroke-dasharray: 3,2;
+        }
+
+        .op-illustration .tool {
+            fill: #fbbf24;
+            stroke: #92400e;
+            stroke-width: 1;
+        }
+
+        .op-illustration .centerline {
+            stroke: #9ca3af;
+            stroke-width: 0.5;
+            stroke-dasharray: 8,4;
+        }
+
+        .op-illustration .finished-profile {
+            stroke: #10b981;
+            stroke-width: 1.5;
+            fill: none;
+            stroke-dasharray: 4,2;
+        }
+
+        .illustration-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔧 FANUC Turning Program Builder</h1>
+            <p>Build complete CNC programs with roughing & finishing cycles</p>
+        </header>
+
+        <!-- Mode Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="builder">Program Builder</button>
+            <button class="tab" data-tab="single">Single Operation</button>
+        </div>
+
+        <!-- Program Builder Tab -->
+        <div class="tab-content active" id="builder-tab">
+            <div class="layout">
+                <div class="left-column">
+                    <!-- Quick Templates -->
+                    <div class="card">
+                        <div class="card-title">Quick Templates</div>
+                        <div class="template-grid">
+                            <div class="template-card" onclick="loadTemplate('face-od')">
+                                <h4>Face + OD Turn</h4>
+                                <p>Facing & OD roughing/finishing</p>
+                            </div>
+                            <div class="template-card" onclick="loadTemplate('face-bore')">
+                                <h4>Face + Bore</h4>
+                                <p>Facing & ID boring</p>
+                            </div>
+                            <div class="template-card" onclick="loadTemplate('face-drill')">
+                                <h4>Face + Drill</h4>
+                                <p>Facing & center drilling</p>
+                            </div>
+                            <div class="template-card" onclick="loadTemplate('full-od')">
+                                <h4>Full OD</h4>
+                                <p>Face, turn, groove, thread, part</p>
+                            </div>
+                            <div class="template-card" onclick="loadTemplate('full-id')">
+                                <h4>Full ID</h4>
+                                <p>Face, drill, bore, thread</p>
+                            </div>
+                            <div class="template-card" onclick="loadTemplate('custom')">
+                                <h4>Custom</h4>
+                                <p>Build from scratch</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Program Settings -->
+                    <div class="card">
+                        <div class="card-title">Program Settings</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Program Number (O)</label>
+                                <input type="number" id="progNumber" value="1000" min="1" max="9999">
+                            </div>
+                            <div class="form-group">
+                                <label>Program Name</label>
+                                <input type="text" id="progName" placeholder="e.g., SHAFT-001" maxlength="20">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Stock Profile</label>
+                                <select id="stockProfile" onchange="updateStockDimensionLabel()">
+                                    <option value="round">Round Bar</option>
+                                    <option value="hex">Hex Bar</option>
+                                    <option value="square">Square Bar</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label id="stockDiaLabel">Stock Diameter (mm)</label>
+                                <input type="number" id="stockDiameter" value="50" step="0.1">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Stock Length (mm)</label>
+                                <input type="number" id="stockLength" value="100" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label>Safe Z Position</label>
+                                <input type="number" id="safeZ" value="5" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Operation Sequence -->
+                    <div class="card">
+                        <div class="card-title">
+                            Operation Sequence
+                            <span class="badge" id="opCount">0</span>
+                        </div>
+                        <div class="operation-list" id="operationList">
+                            <div class="empty-state">
+                                <p>No operations added yet</p>
+                                <button class="btn btn-sm" onclick="showAddOperation()">+ Add First Operation</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add Operations -->
+                    <div class="card">
+                        <div class="card-title">Add Operation</div>
+                        <div class="add-operation-grid">
+                            <button class="add-op-btn" onclick="addOperation('facing')">
+                                <svg viewBox="0 0 40 40"><line x1="8" y1="20" x2="32" y2="20" stroke-width="2"/></svg>
+                                Facing
+                            </button>
+                            <button class="add-op-btn" onclick="addOperation('od-turning')">
+                                <svg viewBox="0 0 40 40"><rect x="14" y="8" width="12" height="24" stroke-width="1.5"/></svg>
+                                OD Turn
+                            </button>
+                            <button class="add-op-btn" onclick="addOperation('od-taper')">
+                                <svg viewBox="0 0 40 40"><path d="M12,8 L12,32 L28,26 L28,14 Z" stroke-width="1.5"/></svg>
+                                OD Taper
+                            </button>
+                            <button class="add-op-btn" onclick="addOperation('id-boring')">
+                                <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="10" stroke-width="1.5"/></svg>
+                                Boring
+                            </button>
+                            <button class="add-op-btn" onclick="addOperation('id-taper')">
+                                <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="12" stroke-width="1.5"/><circle cx="20" cy="20" r="6" stroke-width="1.5"/><line x1="14" y1="20" x2="8" y2="17" stroke-width="1"/><line x1="14" y1="20" x2="8" y2="23" stroke-width="1"/></svg>
+                                ID Taper
+                            </button>
+                            <button class="add-op-btn" onclick="addOperation('drilling')">
+                                <svg viewBox="0 0 40 40"><line x1="20" y1="8" x2="20" y2="32" stroke-width="2"/></svg>
+                                Drilling
+                            </button>
+                            <button class="add-op-btn" onclick="addOperation('od-threading')">
+                                <svg viewBox="0 0 40 40"><path d="M14,10 L26,14 M14,18 L26,22 M14,26 L26,30" stroke-width="1.5"/></svg>
+                                OD Thread
+                            </button>
+                            <button class="add-op-btn" onclick="addOperation('id-threading')">
+                                <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="8"/><path d="M16,16 L24,18 M16,22 L24,24" stroke-width="1"/></svg>
+                                ID Thread
+                            </button>
+                            <button class="add-op-btn" onclick="addOperation('grooving')">
+                                <svg viewBox="0 0 40 40"><rect x="18" y="10" width="4" height="20" stroke-width="1.5"/></svg>
+                                Grooving
+                            </button>
+                            <button class="add-op-btn" onclick="addOperation('parting')">
+                                <svg viewBox="0 0 40 40"><line x1="20" y1="8" x2="20" y2="32" stroke-width="3"/></svg>
+                                Parting
+                            </button>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-block btn-success" onclick="generateFullProgram()">
+                        Generate Complete Program
+                    </button>
+                </div>
+
+                <div class="right-column">
+                    <div class="card" style="position: sticky; top: 16px;">
+                        <div class="card-title">Generated G-Code</div>
+                        <div class="code-output" id="builderOutput">; Add operations and click Generate
+; Complete program will appear here</div>
+                        <div class="output-actions">
+                            <button class="btn btn-secondary" onclick="copyCode('builderOutput')">📋 Copy</button>
+                            <button class="btn btn-secondary" onclick="downloadCode('builderOutput')">💾 Download</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Single Operation Tab -->
+        <div class="tab-content" id="single-tab">
+            <div class="layout">
+                <div class="left-column">
+                    <!-- Operation Type -->
+                    <div class="card">
+                        <div class="card-title">Operation Type</div>
+                        <div class="form-group">
+                            <select id="singleOpType" onchange="updateSingleOpForm()">
+                                <option value="facing">Facing (G72)</option>
+                                <option value="od-turning">OD Turning (G71)</option>
+                                <option value="od-taper">OD Taper Turning (G71)</option>
+                                <option value="id-boring">ID Boring (G71)</option>
+                                <option value="id-taper">ID Taper Boring (G71)</option>
+                                <option value="od-threading">OD Threading (G76)</option>
+                                <option value="id-threading">ID Threading (G76)</option>
+                                <option value="grooving">Grooving (G75)</option>
+                                <option value="drilling">Peck Drilling (G74)</option>
+                                <option value="parting">Parting</option>
+                            </select>
+                        </div>
+
+                        <!-- Cycle Type Toggle -->
+                        <div class="cycle-toggle" id="cycleToggle">
+                            <div class="cycle-option active" data-cycle="roughing" onclick="selectCycle(this)">
+                                <strong>Roughing</strong>
+                                <small>G71/G72 Cycle</small>
+                            </div>
+                            <div class="cycle-option" data-cycle="finishing" onclick="selectCycle(this)">
+                                <strong>Finishing</strong>
+                                <small>G70 Cycle</small>
+                            </div>
+                            <div class="cycle-option" data-cycle="both" onclick="selectCycle(this)">
+                                <strong>Both</strong>
+                                <small>Rough + Finish</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tool Settings -->
+                    <div class="card">
+                        <div class="card-title">Tool & Spindle</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Tool Number</label>
+                                <input type="number" id="sToolNum" value="1" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Offset Number</label>
+                                <input type="number" id="sOffsetNum" value="1" min="1">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Spindle Mode</label>
+                            <select id="sSpindleMode" onchange="updateSpindleFields()">
+                                <option value="G97">G97 - Constant RPM</option>
+                                <option value="G96">G96 - Constant Surface Speed</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label id="sSpeedLabel">Speed (RPM)</label>
+                                <input type="number" id="sSpeed" value="1200">
+                            </div>
+                            <div class="form-group" id="sMaxRpmGroup" style="display:none;">
+                                <label>Max RPM (G50)</label>
+                                <input type="number" id="sMaxRpm" value="3000">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Coolant</label>
+                            <select id="sCoolant">
+                                <option value="M08">M08 - Coolant ON</option>
+                                <option value="M09">M09 - Coolant OFF</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Cutting Parameters -->
+                    <div class="card">
+                        <div class="card-title">Cutting Parameters</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Roughing DOC (mm)</label>
+                                <input type="number" id="sRoughDOC" value="2" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label>Finish Allowance (mm)</label>
+                                <input type="number" id="sFinishAllow" value="0.3" step="0.05">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Roughing Feed (mm/rev)</label>
+                                <input type="number" id="sRoughFeed" value="0.25" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label>Finish Feed (mm/rev)</label>
+                                <input type="number" id="sFinishFeed" value="0.1" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dimensions -->
+                    <div class="card">
+                        <div class="card-title">Dimensions</div>
+                        <div id="singleDimensions">
+                            <!-- Dynamic based on operation -->
+                        </div>
+                    </div>
+
+                    <!-- Options -->
+                    <div class="card">
+                        <div class="card-title">Options</div>
+                        <div class="checkbox-row">
+                            <input type="checkbox" id="sAddHeader" checked>
+                            <label for="sAddHeader">Add program header</label>
+                        </div>
+                        <div class="checkbox-row">
+                            <input type="checkbox" id="sAddSafeStart" checked>
+                            <label for="sAddSafeStart">Add safe start (G28)</label>
+                        </div>
+                        <div class="form-row" style="margin-top:12px;">
+                            <div class="form-group">
+                                <label>Program Number</label>
+                                <input type="number" id="sProgramNum" value="1000">
+                            </div>
+                            <div class="form-group">
+                                <label>Program Name</label>
+                                <input type="text" id="sProgName" placeholder="e.g., SHAFT-001" maxlength="20">
+                            </div>
+                        </div>
+                        <button class="btn btn-block" onclick="generateSingleOp()">Generate G-Code</button>
+                    </div>
+                </div>
+
+                <div class="right-column">
+                    <div class="card" style="position: sticky; top: 16px;">
+                        <div class="card-title">Generated G-Code</div>
+                        <div class="code-output" id="singleOutput">; Select operation and parameters
+; G-Code will appear here</div>
+                        <div class="output-actions">
+                            <button class="btn btn-secondary" onclick="copyCode('singleOutput')">📋 Copy</button>
+                            <button class="btn btn-secondary" onclick="downloadCode('singleOutput')">💾 Download</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Operation Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Edit Operation</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamic content -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn" onclick="saveOperation()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let operations = [];
+        let editingIndex = -1;
+        let selectedCycle = 'roughing';
+
+        // Standard Thread Data Tables
+        // Thread depth = 0.6134 * pitch (for 60° threads)
+        const threadData = {
+            // Metric ISO Threads - Coarse and Fine pitches
+            metric: {
+                // M3
+                'M3 x 0.5 (coarse)': { major: 3, pitch: 0.5, depth: 0.307 },
+                'M3 x 0.35 (fine)': { major: 3, pitch: 0.35, depth: 0.215 },
+                // M4
+                'M4 x 0.7 (coarse)': { major: 4, pitch: 0.7, depth: 0.429 },
+                'M4 x 0.5 (fine)': { major: 4, pitch: 0.5, depth: 0.307 },
+                // M5
+                'M5 x 0.8 (coarse)': { major: 5, pitch: 0.8, depth: 0.491 },
+                'M5 x 0.5 (fine)': { major: 5, pitch: 0.5, depth: 0.307 },
+                // M6
+                'M6 x 1.0 (coarse)': { major: 6, pitch: 1.0, depth: 0.613 },
+                'M6 x 0.75 (fine)': { major: 6, pitch: 0.75, depth: 0.460 },
+                'M6 x 0.5 (fine)': { major: 6, pitch: 0.5, depth: 0.307 },
+                // M8
+                'M8 x 1.25 (coarse)': { major: 8, pitch: 1.25, depth: 0.767 },
+                'M8 x 1.0 (fine)': { major: 8, pitch: 1.0, depth: 0.613 },
+                'M8 x 0.75 (fine)': { major: 8, pitch: 0.75, depth: 0.460 },
+                // M10
+                'M10 x 1.5 (coarse)': { major: 10, pitch: 1.5, depth: 0.920 },
+                'M10 x 1.25 (fine)': { major: 10, pitch: 1.25, depth: 0.767 },
+                'M10 x 1.0 (fine)': { major: 10, pitch: 1.0, depth: 0.613 },
+                'M10 x 0.75 (fine)': { major: 10, pitch: 0.75, depth: 0.460 },
+                // M12
+                'M12 x 1.75 (coarse)': { major: 12, pitch: 1.75, depth: 1.074 },
+                'M12 x 1.5 (fine)': { major: 12, pitch: 1.5, depth: 0.920 },
+                'M12 x 1.25 (fine)': { major: 12, pitch: 1.25, depth: 0.767 },
+                'M12 x 1.0 (fine)': { major: 12, pitch: 1.0, depth: 0.613 },
+                // M14
+                'M14 x 2.0 (coarse)': { major: 14, pitch: 2.0, depth: 1.227 },
+                'M14 x 1.5 (fine)': { major: 14, pitch: 1.5, depth: 0.920 },
+                'M14 x 1.25 (fine)': { major: 14, pitch: 1.25, depth: 0.767 },
+                'M14 x 1.0 (fine)': { major: 14, pitch: 1.0, depth: 0.613 },
+                // M16
+                'M16 x 2.0 (coarse)': { major: 16, pitch: 2.0, depth: 1.227 },
+                'M16 x 1.5 (fine)': { major: 16, pitch: 1.5, depth: 0.920 },
+                'M16 x 1.0 (fine)': { major: 16, pitch: 1.0, depth: 0.613 },
+                // M18
+                'M18 x 2.5 (coarse)': { major: 18, pitch: 2.5, depth: 1.534 },
+                'M18 x 2.0 (fine)': { major: 18, pitch: 2.0, depth: 1.227 },
+                'M18 x 1.5 (fine)': { major: 18, pitch: 1.5, depth: 0.920 },
+                'M18 x 1.0 (fine)': { major: 18, pitch: 1.0, depth: 0.613 },
+                // M20
+                'M20 x 2.5 (coarse)': { major: 20, pitch: 2.5, depth: 1.534 },
+                'M20 x 2.0 (fine)': { major: 20, pitch: 2.0, depth: 1.227 },
+                'M20 x 1.5 (fine)': { major: 20, pitch: 1.5, depth: 0.920 },
+                'M20 x 1.0 (fine)': { major: 20, pitch: 1.0, depth: 0.613 },
+                // M22
+                'M22 x 2.5 (coarse)': { major: 22, pitch: 2.5, depth: 1.534 },
+                'M22 x 2.0 (fine)': { major: 22, pitch: 2.0, depth: 1.227 },
+                'M22 x 1.5 (fine)': { major: 22, pitch: 1.5, depth: 0.920 },
+                // M24
+                'M24 x 3.0 (coarse)': { major: 24, pitch: 3.0, depth: 1.840 },
+                'M24 x 2.0 (fine)': { major: 24, pitch: 2.0, depth: 1.227 },
+                'M24 x 1.5 (fine)': { major: 24, pitch: 1.5, depth: 0.920 },
+                // M27
+                'M27 x 3.0 (coarse)': { major: 27, pitch: 3.0, depth: 1.840 },
+                'M27 x 2.0 (fine)': { major: 27, pitch: 2.0, depth: 1.227 },
+                'M27 x 1.5 (fine)': { major: 27, pitch: 1.5, depth: 0.920 },
+                // M30
+                'M30 x 3.5 (coarse)': { major: 30, pitch: 3.5, depth: 2.147 },
+                'M30 x 2.0 (fine)': { major: 30, pitch: 2.0, depth: 1.227 },
+                'M30 x 1.5 (fine)': { major: 30, pitch: 1.5, depth: 0.920 },
+                // M33
+                'M33 x 3.5 (coarse)': { major: 33, pitch: 3.5, depth: 2.147 },
+                'M33 x 2.0 (fine)': { major: 33, pitch: 2.0, depth: 1.227 },
+                'M33 x 1.5 (fine)': { major: 33, pitch: 1.5, depth: 0.920 },
+                // M36
+                'M36 x 4.0 (coarse)': { major: 36, pitch: 4.0, depth: 2.454 },
+                'M36 x 3.0 (fine)': { major: 36, pitch: 3.0, depth: 1.840 },
+                'M36 x 2.0 (fine)': { major: 36, pitch: 2.0, depth: 1.227 },
+                'M36 x 1.5 (fine)': { major: 36, pitch: 1.5, depth: 0.920 },
+                // M39
+                'M39 x 4.0 (coarse)': { major: 39, pitch: 4.0, depth: 2.454 },
+                'M39 x 3.0 (fine)': { major: 39, pitch: 3.0, depth: 1.840 },
+                'M39 x 2.0 (fine)': { major: 39, pitch: 2.0, depth: 1.227 },
+                // M42
+                'M42 x 4.5 (coarse)': { major: 42, pitch: 4.5, depth: 2.760 },
+                'M42 x 3.0 (fine)': { major: 42, pitch: 3.0, depth: 1.840 },
+                'M42 x 2.0 (fine)': { major: 42, pitch: 2.0, depth: 1.227 },
+                // M45
+                'M45 x 4.5 (coarse)': { major: 45, pitch: 4.5, depth: 2.760 },
+                'M45 x 3.0 (fine)': { major: 45, pitch: 3.0, depth: 1.840 },
+                'M45 x 2.0 (fine)': { major: 45, pitch: 2.0, depth: 1.227 },
+                // M48
+                'M48 x 5.0 (coarse)': { major: 48, pitch: 5.0, depth: 3.067 },
+                'M48 x 3.0 (fine)': { major: 48, pitch: 3.0, depth: 1.840 },
+                'M48 x 2.0 (fine)': { major: 48, pitch: 2.0, depth: 1.227 },
+            },
+            // NPT - National Pipe Taper (tapered, 1°47'24" = 1.7899°)
+            npt: {
+                '1/8" NPT': { major: 10.287, tpi: 27, depth: 0.940, taperAngle: 1.7899 },
+                '1/4" NPT': { major: 13.716, tpi: 18, depth: 1.411, taperAngle: 1.7899 },
+                '3/8" NPT': { major: 17.145, tpi: 18, depth: 1.411, taperAngle: 1.7899 },
+                '1/2" NPT': { major: 21.336, tpi: 14, depth: 1.814, taperAngle: 1.7899 },
+                '3/4" NPT': { major: 26.670, tpi: 14, depth: 1.814, taperAngle: 1.7899 },
+                '1" NPT': { major: 33.401, tpi: 11.5, depth: 2.209, taperAngle: 1.7899 },
+                '1-1/4" NPT': { major: 42.164, tpi: 11.5, depth: 2.209, taperAngle: 1.7899 },
+                '1-1/2" NPT': { major: 48.260, tpi: 11.5, depth: 2.209, taperAngle: 1.7899 },
+                '2" NPT': { major: 60.325, tpi: 11.5, depth: 2.209, taperAngle: 1.7899 },
+            },
+            // BSPP - British Standard Pipe Parallel (G threads)
+            bspp: {
+                'G1/8': { major: 9.728, tpi: 28, depth: 0.907, taperAngle: 0 },
+                'G1/4': { major: 13.157, tpi: 19, depth: 1.337, taperAngle: 0 },
+                'G3/8': { major: 16.662, tpi: 19, depth: 1.337, taperAngle: 0 },
+                'G1/2': { major: 20.955, tpi: 14, depth: 1.814, taperAngle: 0 },
+                'G5/8': { major: 22.911, tpi: 14, depth: 1.814, taperAngle: 0 },
+                'G3/4': { major: 26.441, tpi: 14, depth: 1.814, taperAngle: 0 },
+                'G7/8': { major: 30.201, tpi: 14, depth: 1.814, taperAngle: 0 },
+                'G1': { major: 33.249, tpi: 11, depth: 2.309, taperAngle: 0 },
+                'G1-1/4': { major: 41.910, tpi: 11, depth: 2.309, taperAngle: 0 },
+                'G1-1/2': { major: 47.803, tpi: 11, depth: 2.309, taperAngle: 0 },
+                'G2': { major: 59.614, tpi: 11, depth: 2.309, taperAngle: 0 },
+            },
+            // BSPT - British Standard Pipe Taper (R threads, 1°47'24" = 1.7899°)
+            bspt: {
+                'R1/8': { major: 9.728, tpi: 28, depth: 0.907, taperAngle: 1.7899 },
+                'R1/4': { major: 13.157, tpi: 19, depth: 1.337, taperAngle: 1.7899 },
+                'R3/8': { major: 16.662, tpi: 19, depth: 1.337, taperAngle: 1.7899 },
+                'R1/2': { major: 20.955, tpi: 14, depth: 1.814, taperAngle: 1.7899 },
+                'R3/4': { major: 26.441, tpi: 14, depth: 1.814, taperAngle: 1.7899 },
+                'R1': { major: 33.249, tpi: 11, depth: 2.309, taperAngle: 1.7899 },
+                'R1-1/4': { major: 41.910, tpi: 11, depth: 2.309, taperAngle: 1.7899 },
+                'R1-1/2': { major: 47.803, tpi: 11, depth: 2.309, taperAngle: 1.7899 },
+                'R2': { major: 59.614, tpi: 11, depth: 2.309, taperAngle: 1.7899 },
+            }
+        };
+
+        // Operation definitions
+        const opDefinitions = {
+            'facing': {
+                name: 'Facing',
+                cycle: 'G72',
+                tools: ['Facing Tool', 'Turning Tool'],
+                defaultTool: 1,
+                fields: [
+                    { id: 'stockDia', label: 'Stock Diameter', default: 50 },
+                    { id: 'faceDia', label: 'Face to Diameter', default: 0 },
+                    { id: 'faceAmount', label: 'Face Amount (Z)', default: 2 },
+                ]
+            },
+            'od-turning': {
+                name: 'OD Turning',
+                cycle: 'G71',
+                tools: ['OD Turning Tool', 'Roughing Tool'],
+                defaultTool: 1,
+                fields: [
+                    { id: 'startDia', label: 'Start Diameter', default: 50 },
+                    { id: 'endDia', label: 'Finish Diameter', default: 40 },
+                    { id: 'length', label: 'Turning Length', default: 30 },
+                ]
+            },
+            'od-taper': {
+                name: 'OD Taper',
+                cycle: 'G71',
+                tools: ['OD Turning Tool', 'Roughing Tool'],
+                defaultTool: 1,
+                fields: [
+                    { id: 'startDia', label: 'Start Diameter (small, at face)', default: 40 },
+                    { id: 'endDia', label: 'End Diameter (large, at chuck)', default: 50 },
+                    { id: 'length', label: 'Taper Length', default: 30 },
+                    { id: 'taperAngle', label: 'Taper Angle (deg, 0=use diameters)', default: 0 },
+                ]
+            },
+            'id-boring': {
+                name: 'ID Boring',
+                cycle: 'G71',
+                tools: ['Boring Bar'],
+                defaultTool: 2,
+                fields: [
+                    { id: 'startDia', label: 'Start Bore Dia', default: 15 },
+                    { id: 'endDia', label: 'Finish Bore Dia', default: 20 },
+                    { id: 'depth', label: 'Bore Depth', default: 25 },
+                ]
+            },
+            'id-taper': {
+                name: 'ID Taper',
+                cycle: 'G71',
+                tools: ['Boring Bar'],
+                defaultTool: 2,
+                fields: [
+                    { id: 'startDia', label: 'Start Bore Dia (large, at face)', default: 30 },
+                    { id: 'endDia', label: 'End Bore Dia (small, at depth)', default: 20 },
+                    { id: 'depth', label: 'Taper Depth', default: 25 },
+                    { id: 'taperAngle', label: 'Taper Angle (deg, 0=use diameters)', default: 0 },
+                ]
+            },
+            'drilling': {
+                name: 'Drilling',
+                cycle: 'G74',
+                tools: ['Center Drill', 'Twist Drill'],
+                defaultTool: 3,
+                fields: [
+                    { id: 'drillDia', label: 'Drill Diameter', default: 10 },
+                    { id: 'depth', label: 'Drill Depth', default: 30 },
+                    { id: 'peck', label: 'Peck Depth', default: 3 },
+                ]
+            },
+            'od-threading': {
+                name: 'OD Threading',
+                cycle: 'G76',
+                tools: ['OD Thread Tool'],
+                defaultTool: 4,
+                hasThreadType: true,
+                fields: [
+                    { id: 'threadType', label: 'Thread Type', default: 'metric', type: 'select', options: ['metric', 'npt', 'bsp', 'bspt'] },
+                    { id: 'majorDia', label: 'Major Diameter (mm)', default: 20 },
+                    { id: 'majorDiaInch', label: 'Major Diameter (inch)', default: 0.75, hidden: true },
+                    { id: 'pitch', label: 'Pitch (mm)', default: 2.5 },
+                    { id: 'tpi', label: 'Threads Per Inch', default: 11, hidden: true },
+                    { id: 'length', label: 'Thread Length (mm)', default: 20 },
+                    { id: 'lengthInch', label: 'Thread Length (inch)', default: 0.75, hidden: true },
+                    { id: 'depth', label: 'Thread Depth (mm)', default: 1.6 },
+                    { id: 'taperAngle', label: 'Taper Angle (deg)', default: 0, hidden: true },
+                ]
+            },
+            'id-threading': {
+                name: 'ID Threading',
+                cycle: 'G76',
+                tools: ['ID Thread Tool'],
+                defaultTool: 5,
+                hasThreadType: true,
+                fields: [
+                    { id: 'threadType', label: 'Thread Type', default: 'metric', type: 'select', options: ['metric', 'npt', 'bsp', 'bspt'] },
+                    { id: 'minorDia', label: 'Minor Diameter (mm)', default: 18 },
+                    { id: 'minorDiaInch', label: 'Minor Diameter (inch)', default: 0.65, hidden: true },
+                    { id: 'pitch', label: 'Pitch (mm)', default: 2.5 },
+                    { id: 'tpi', label: 'Threads Per Inch', default: 11, hidden: true },
+                    { id: 'length', label: 'Thread Length (mm)', default: 15 },
+                    { id: 'lengthInch', label: 'Thread Length (inch)', default: 0.6, hidden: true },
+                    { id: 'depth', label: 'Thread Depth (mm)', default: 1.6 },
+                    { id: 'taperAngle', label: 'Taper Angle (deg)', default: 0, hidden: true },
+                ]
+            },
+            'grooving': {
+                name: 'Grooving',
+                cycle: 'G75',
+                tools: ['Grooving Tool'],
+                defaultTool: 6,
+                fields: [
+                    { id: 'outerDia', label: 'Outer Diameter', default: 40 },
+                    { id: 'grooveDepth', label: 'Groove Depth', default: 5 },
+                    { id: 'grooveWidth', label: 'Groove Width', default: 3 },
+                    { id: 'zPos', label: 'Z Position', default: -20 },
+                ]
+            },
+            'parting': {
+                name: 'Parting',
+                cycle: 'none',
+                tools: ['Parting Tool'],
+                defaultTool: 7,
+                fields: [
+                    { id: 'outerDia', label: 'Outer Diameter', default: 40 },
+                    { id: 'innerDia', label: 'Inner Diameter', default: 0 },
+                    { id: 'zPos', label: 'Z Position', default: -50 },
+                ]
+            }
+        };
+
+        // Operation Illustrations (Z points left toward spindle, X points up)
+        function getOperationIllustration(type) {
+            const illustrations = {
+                'facing': `
+                    <svg viewBox="0 0 280 140" width="280" height="140">
+                        <!-- Centerline -->
+                        <line x1="20" y1="70" x2="260" y2="70" class="centerline"/>
+                        <text x="250" y="74" font-size="8" fill="#9ca3af">CL</text>
+
+                        <!-- Chuck/Spindle indicator -->
+                        <rect x="20" y="25" width="15" height="90" fill="#9ca3af" opacity="0.3"/>
+                        <text x="22" y="75" font-size="7" fill="#666">Chuck</text>
+
+                        <!-- Workpiece (top half shown) -->
+                        <rect x="35" y="30" width="160" height="40" class="workpiece"/>
+
+                        <!-- Material to remove (face) -->
+                        <rect x="175" y="30" width="20" height="40" class="cut-area"/>
+
+                        <!-- Tool approaching from right -->
+                        <polygon points="215,25 200,35 200,45 215,55" class="tool"/>
+
+                        <!-- Dimension: Stock Diameter -->
+                        <line x1="45" y1="30" x2="45" y2="70" class="dim-line"/>
+                        <line x1="40" y1="30" x2="50" y2="30" class="dim-line"/>
+                        <line x1="40" y1="70" x2="50" y2="70" class="dim-line"/>
+                        <text x="15" y="55" class="dim-text">Stock Dia</text>
+
+                        <!-- Dimension: Face Amount -->
+                        <line x1="175" y1="20" x2="195" y2="20" class="dim-line"/>
+                        <line x1="175" y1="15" x2="175" y2="25" class="dim-line"/>
+                        <line x1="195" y1="15" x2="195" y2="25" class="dim-line"/>
+                        <text x="168" y="12" class="dim-text">Face Amt (Z)</text>
+
+                        <!-- Dimension: Face to Diameter -->
+                        <line x1="175" y1="70" x2="175" y2="90" class="dim-line"/>
+                        <line x1="140" y1="85" x2="175" y2="85" class="dim-line"/>
+                        <text x="130" y="98" class="dim-text">Face to Dia</text>
+
+                        <!-- Z arrow (pointing left) -->
+                        <line x1="255" y1="120" x2="220" y2="120" stroke="#666" stroke-width="1" marker-end="url(#arrowhead)"/>
+                        <text x="230" y="132" font-size="10" fill="#666">Z</text>
+
+                        <!-- X arrow -->
+                        <line x1="255" y1="120" x2="255" y2="90" stroke="#666" stroke-width="1" marker-end="url(#arrowhead)"/>
+                        <text x="258" y="105" font-size="10" fill="#666">X</text>
+
+                        <defs>
+                            <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                                <polygon points="0 0, 6 3, 0 6" fill="#666"/>
+                            </marker>
+                        </defs>
+                    </svg>`,
+
+                'od-turning': `
+                    <svg viewBox="0 0 280 140" width="280" height="140">
+                        <!-- Centerline -->
+                        <line x1="20" y1="90" x2="260" y2="90" class="centerline"/>
+                        <text x="250" y="94" font-size="8" fill="#9ca3af">CL</text>
+
+                        <!-- Chuck/Spindle -->
+                        <rect x="20" y="35" width="15" height="110" fill="#9ca3af" opacity="0.3"/>
+
+                        <!-- Workpiece original -->
+                        <rect x="35" y="40" width="140" height="50" class="workpiece"/>
+
+                        <!-- Material to remove -->
+                        <rect x="35" y="40" width="140" height="15" class="cut-area"/>
+
+                        <!-- Finished profile -->
+                        <line x1="35" y1="55" x2="175" y2="55" class="finished-profile"/>
+
+                        <!-- Tool -->
+                        <polygon points="185,35 200,50 190,60 175,45" class="tool"/>
+
+                        <!-- Dimension: Start Diameter (at chuck) -->
+                        <line x1="45" y1="40" x2="45" y2="90" class="dim-line"/>
+                        <line x1="40" y1="40" x2="50" y2="40" class="dim-line"/>
+                        <line x1="40" y1="90" x2="50" y2="90" class="dim-line"/>
+                        <text x="15" y="60" class="dim-text">Start</text>
+                        <text x="18" y="70" class="dim-text">Dia</text>
+
+                        <!-- Dimension: Finish Diameter -->
+                        <line x1="185" y1="55" x2="185" y2="90" class="dim-line"/>
+                        <line x1="180" y1="55" x2="190" y2="55" class="dim-line"/>
+                        <line x1="180" y1="90" x2="190" y2="90" class="dim-line"/>
+                        <text x="193" y="75" class="dim-text">Finish Dia</text>
+
+                        <!-- Dimension: Length -->
+                        <line x1="35" y1="100" x2="175" y2="100" class="dim-line"/>
+                        <line x1="35" y1="95" x2="35" y2="105" class="dim-line"/>
+                        <line x1="175" y1="95" x2="175" y2="105" class="dim-line"/>
+                        <text x="80" y="115" class="dim-text">Turning Length</text>
+
+                        <!-- Axes -->
+                        <line x1="250" y1="120" x2="220" y2="120" stroke="#666" stroke-width="1" marker-end="url(#arrow2)"/>
+                        <text x="228" y="132" font-size="9" fill="#666">Z</text>
+                        <line x1="250" y1="120" x2="250" y2="100" stroke="#666" stroke-width="1" marker-end="url(#arrow2)"/>
+                        <text x="253" y="108" font-size="9" fill="#666">X</text>
+                        <defs><marker id="arrow2" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0, 6 3, 0 6" fill="#666"/></marker></defs>
+                    </svg>`,
+
+                'od-taper': `
+                    <svg viewBox="0 0 280 140" width="280" height="140">
+                        <!-- Centerline -->
+                        <line x1="20" y1="95" x2="260" y2="95" class="centerline"/>
+                        <text x="250" y="99" font-size="8" fill="#9ca3af">CL</text>
+
+                        <!-- Chuck/Spindle -->
+                        <rect x="20" y="35" width="15" height="120" fill="#9ca3af" opacity="0.3"/>
+
+                        <!-- Workpiece original -->
+                        <rect x="35" y="40" width="140" height="55" class="workpiece"/>
+
+                        <!-- Material to remove (taper shape) - small at face (right), large at chuck (left) -->
+                        <polygon points="35,40 175,40 175,70 35,55" class="cut-area"/>
+
+                        <!-- Finished taper profile - taper UP from right to left -->
+                        <line x1="175" y1="70" x2="35" y2="55" class="finished-profile" stroke-width="2"/>
+
+                        <!-- Tool -->
+                        <polygon points="185,60 200,70 190,80 175,70" class="tool"/>
+
+                        <!-- Dimension: Start Diameter (small, at face/right) -->
+                        <line x1="185" y1="70" x2="185" y2="95" class="dim-line"/>
+                        <line x1="180" y1="70" x2="190" y2="70" class="dim-line"/>
+                        <line x1="180" y1="95" x2="190" y2="95" class="dim-line"/>
+                        <text x="193" y="78" class="dim-text">Start Dia</text>
+                        <text x="193" y="88" class="dim-text">(small)</text>
+
+                        <!-- Dimension: End Diameter (large, at chuck/left) -->
+                        <line x1="45" y1="40" x2="45" y2="95" class="dim-line"/>
+                        <line x1="40" y1="40" x2="50" y2="40" class="dim-line"/>
+                        <line x1="40" y1="95" x2="50" y2="95" class="dim-line"/>
+                        <text x="8" y="62" class="dim-text">End Dia</text>
+                        <text x="12" y="72" class="dim-text">(large)</text>
+
+                        <!-- Dimension: Taper Length -->
+                        <line x1="35" y1="105" x2="175" y2="105" class="dim-line"/>
+                        <line x1="35" y1="100" x2="35" y2="110" class="dim-line"/>
+                        <line x1="175" y1="100" x2="175" y2="110" class="dim-line"/>
+                        <text x="80" y="120" class="dim-text">Taper Length</text>
+
+                        <!-- Taper Angle indicator -->
+                        <path d="M 160,68 A 20,20 0 0 1 165,75" stroke="#2563eb" stroke-width="1" fill="none"/>
+                        <text x="145" y="62" class="dim-text">Angle</text>
+
+                        <!-- Axes -->
+                        <line x1="250" y1="125" x2="220" y2="125" stroke="#666" stroke-width="1" marker-end="url(#arrow3)"/>
+                        <text x="228" y="137" font-size="9" fill="#666">Z</text>
+                        <line x1="250" y1="125" x2="250" y2="105" stroke="#666" stroke-width="1" marker-end="url(#arrow3)"/>
+                        <text x="253" y="113" font-size="9" fill="#666">X</text>
+                        <defs><marker id="arrow3" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0, 6 3, 0 6" fill="#666"/></marker></defs>
+                    </svg>`,
+
+                'id-boring': `
+                    <svg viewBox="0 0 280 140" width="280" height="140">
+                        <!-- Centerline -->
+                        <line x1="20" y1="70" x2="260" y2="70" class="centerline"/>
+                        <text x="250" y="74" font-size="8" fill="#9ca3af">CL</text>
+
+                        <!-- Chuck/Spindle -->
+                        <rect x="20" y="25" width="15" height="90" fill="#9ca3af" opacity="0.3"/>
+
+                        <!-- Workpiece with existing hole -->
+                        <rect x="35" y="30" width="120" height="40" class="workpiece"/>
+                        <rect x="35" y="55" width="120" height="15" fill="#F4F7F9" stroke="none"/>
+
+                        <!-- Material to remove -->
+                        <rect x="35" y="45" width="120" height="10" class="cut-area"/>
+
+                        <!-- Finished bore profile -->
+                        <line x1="35" y1="45" x2="155" y2="45" class="finished-profile"/>
+
+                        <!-- Boring bar tool (entering from right) -->
+                        <rect x="160" y="62" width="50" height="10" class="tool"/>
+                        <polygon points="160,62 150,67 160,72" class="tool"/>
+
+                        <!-- Dimension: Start Bore Dia (at face) -->
+                        <line x1="165" y1="55" x2="165" y2="70" class="dim-line"/>
+                        <line x1="160" y1="55" x2="170" y2="55" class="dim-line"/>
+                        <line x1="160" y1="70" x2="170" y2="70" class="dim-line"/>
+                        <text x="173" y="60" class="dim-text">Start</text>
+                        <text x="173" y="70" class="dim-text">Bore</text>
+
+                        <!-- Dimension: Finish Bore Dia -->
+                        <line x1="45" y1="45" x2="45" y2="70" class="dim-line"/>
+                        <line x1="40" y1="45" x2="50" y2="45" class="dim-line"/>
+                        <line x1="40" y1="70" x2="50" y2="70" class="dim-line"/>
+                        <text x="15" y="55" class="dim-text">Finish</text>
+                        <text x="18" y="65" class="dim-text">Bore</text>
+
+                        <!-- Dimension: Bore Depth -->
+                        <line x1="35" y1="20" x2="155" y2="20" class="dim-line"/>
+                        <line x1="35" y1="15" x2="35" y2="25" class="dim-line"/>
+                        <line x1="155" y1="15" x2="155" y2="25" class="dim-line"/>
+                        <text x="75" y="12" class="dim-text">Bore Depth</text>
+
+                        <!-- Axes -->
+                        <line x1="250" y1="110" x2="220" y2="110" stroke="#666" stroke-width="1" marker-end="url(#arrow4)"/>
+                        <text x="228" y="122" font-size="9" fill="#666">Z</text>
+                        <line x1="250" y1="110" x2="250" y2="85" stroke="#666" stroke-width="1" marker-end="url(#arrow4)"/>
+                        <text x="253" y="95" font-size="9" fill="#666">X</text>
+                        <defs><marker id="arrow4" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0, 6 3, 0 6" fill="#666"/></marker></defs>
+                    </svg>`,
+
+                'id-taper': `
+                    <svg viewBox="0 0 280 140" width="280" height="140">
+                        <!-- Centerline -->
+                        <line x1="20" y1="70" x2="260" y2="70" class="centerline"/>
+                        <text x="250" y="74" font-size="8" fill="#9ca3af">CL</text>
+
+                        <!-- Chuck/Spindle -->
+                        <rect x="20" y="20" width="15" height="100" fill="#9ca3af" opacity="0.3"/>
+
+                        <!-- Workpiece -->
+                        <rect x="35" y="25" width="120" height="45" class="workpiece"/>
+
+                        <!-- Existing hole (tapered) - large at face (right), small at depth (left) -->
+                        <polygon points="155,45 35,55 35,70 155,70" fill="#F4F7F9" stroke="none"/>
+
+                        <!-- Material to remove - taper DOWN from right to left -->
+                        <polygon points="155,40 35,50 35,55 155,45" class="cut-area"/>
+
+                        <!-- Finished taper profile - larger at face, smaller at depth -->
+                        <line x1="155" y1="40" x2="35" y2="50" class="finished-profile" stroke-width="2"/>
+
+                        <!-- Boring bar -->
+                        <rect x="160" y="55" width="50" height="10" class="tool"/>
+                        <polygon points="160,55 150,60 160,65" class="tool"/>
+
+                        <!-- Dimension: Start Bore (large, at face/right) -->
+                        <line x1="165" y1="40" x2="165" y2="70" class="dim-line"/>
+                        <line x1="160" y1="40" x2="170" y2="40" class="dim-line"/>
+                        <line x1="160" y1="70" x2="170" y2="70" class="dim-line"/>
+                        <text x="173" y="52" class="dim-text">Start Dia</text>
+                        <text x="173" y="62" class="dim-text">(large)</text>
+
+                        <!-- Dimension: End Bore (small, at depth/left) -->
+                        <line x1="45" y1="50" x2="45" y2="70" class="dim-line"/>
+                        <line x1="40" y1="50" x2="50" y2="50" class="dim-line"/>
+                        <line x1="40" y1="70" x2="50" y2="70" class="dim-line"/>
+                        <text x="8" y="56" class="dim-text">End Dia</text>
+                        <text x="10" y="66" class="dim-text">(small)</text>
+
+                        <!-- Dimension: Taper Depth -->
+                        <line x1="35" y1="18" x2="155" y2="18" class="dim-line"/>
+                        <line x1="35" y1="13" x2="35" y2="23" class="dim-line"/>
+                        <line x1="155" y1="13" x2="155" y2="23" class="dim-line"/>
+                        <text x="70" y="12" class="dim-text">Taper Depth</text>
+
+                        <!-- Taper Angle -->
+                        <path d="M 140,42 A 15,15 0 0 0 138,48" stroke="#2563eb" stroke-width="1" fill="none"/>
+                        <text x="143" y="38" class="dim-text">Angle</text>
+
+                        <!-- Axes -->
+                        <line x1="250" y1="110" x2="220" y2="110" stroke="#666" stroke-width="1" marker-end="url(#arrow5)"/>
+                        <text x="228" y="122" font-size="9" fill="#666">Z</text>
+                        <line x1="250" y1="110" x2="250" y2="85" stroke="#666" stroke-width="1" marker-end="url(#arrow5)"/>
+                        <text x="253" y="95" font-size="9" fill="#666">X</text>
+                        <defs><marker id="arrow5" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0, 6 3, 0 6" fill="#666"/></marker></defs>
+                    </svg>`,
+
+                'drilling': `
+                    <svg viewBox="0 0 280 140" width="280" height="140">
+                        <!-- Centerline -->
+                        <line x1="20" y1="70" x2="260" y2="70" class="centerline"/>
+                        <text x="250" y="74" font-size="8" fill="#9ca3af">CL</text>
+
+                        <!-- Chuck/Spindle -->
+                        <rect x="20" y="25" width="15" height="90" fill="#9ca3af" opacity="0.3"/>
+
+                        <!-- Workpiece (cross-section) -->
+                        <rect x="35" y="30" width="100" height="80" class="workpiece"/>
+
+                        <!-- Hole to be drilled -->
+                        <rect x="35" y="60" width="80" height="20" class="cut-area"/>
+
+                        <!-- Drill tool (from right) -->
+                        <polygon points="145,60 155,70 145,80" class="tool"/>
+                        <rect x="155" y="65" width="40" height="10" class="tool"/>
+
+                        <!-- Dimension: Drill Diameter -->
+                        <line x1="75" y1="60" x2="75" y2="80" class="dim-line"/>
+                        <line x1="70" y1="60" x2="80" y2="60" class="dim-line"/>
+                        <line x1="70" y1="80" x2="80" y2="80" class="dim-line"/>
+                        <text x="82" y="73" class="dim-text">Drill Dia</text>
+
+                        <!-- Dimension: Depth -->
+                        <line x1="35" y1="95" x2="115" y2="95" class="dim-line"/>
+                        <line x1="35" y1="90" x2="35" y2="100" class="dim-line"/>
+                        <line x1="115" y1="90" x2="115" y2="100" class="dim-line"/>
+                        <text x="60" y="108" class="dim-text">Depth</text>
+
+                        <!-- Peck depth indicator -->
+                        <line x1="95" y1="55" x2="115" y2="55" class="dim-line"/>
+                        <line x1="95" y1="50" x2="95" y2="60" class="dim-line"/>
+                        <line x1="115" y1="50" x2="115" y2="60" class="dim-line"/>
+                        <text x="97" y="47" class="dim-text">Peck</text>
+
+                        <!-- Axes -->
+                        <line x1="250" y1="120" x2="220" y2="120" stroke="#666" stroke-width="1" marker-end="url(#arrow6)"/>
+                        <text x="228" y="132" font-size="9" fill="#666">Z</text>
+                        <line x1="250" y1="120" x2="250" y2="95" stroke="#666" stroke-width="1" marker-end="url(#arrow6)"/>
+                        <text x="253" y="105" font-size="9" fill="#666">X</text>
+                        <defs><marker id="arrow6" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0, 6 3, 0 6" fill="#666"/></marker></defs>
+                    </svg>`,
+
+                'od-threading': `
+                    <svg viewBox="0 0 280 140" width="280" height="140">
+                        <!-- Centerline -->
+                        <line x1="20" y1="85" x2="260" y2="85" class="centerline"/>
+                        <text x="250" y="89" font-size="8" fill="#9ca3af">CL</text>
+
+                        <!-- Chuck/Spindle -->
+                        <rect x="20" y="45" width="15" height="80" fill="#9ca3af" opacity="0.3"/>
+
+                        <!-- Workpiece -->
+                        <rect x="35" y="50" width="140" height="35" class="workpiece"/>
+
+                        <!-- Thread profile -->
+                        <path d="M175,50 L165,55 L175,60 L165,65 L175,70 L165,75 L175,80 L165,85" stroke="#4A4E69" stroke-width="1.5" fill="none"/>
+                        <path d="M155,50 L145,55 L155,60 L145,65 L155,70 L145,75 L155,80 L145,85" stroke="#4A4E69" stroke-width="1.5" fill="none"/>
+
+                        <!-- Thread tool -->
+                        <polygon points="185,40 170,55 185,55" class="tool"/>
+
+                        <!-- Dimension: Major Diameter -->
+                        <line x1="45" y1="50" x2="45" y2="85" class="dim-line"/>
+                        <line x1="40" y1="50" x2="50" y2="50" class="dim-line"/>
+                        <line x1="40" y1="85" x2="50" y2="85" class="dim-line"/>
+                        <text x="15" y="65" class="dim-text">Major</text>
+                        <text x="20" y="75" class="dim-text">Dia</text>
+
+                        <!-- Dimension: Thread Length -->
+                        <line x1="35" y1="95" x2="175" y2="95" class="dim-line"/>
+                        <line x1="35" y1="90" x2="35" y2="100" class="dim-line"/>
+                        <line x1="175" y1="90" x2="175" y2="100" class="dim-line"/>
+                        <text x="80" y="108" class="dim-text">Thread Length</text>
+
+                        <!-- Dimension: Pitch -->
+                        <line x1="165" y1="40" x2="175" y2="40" class="dim-line"/>
+                        <line x1="165" y1="35" x2="165" y2="45" class="dim-line"/>
+                        <line x1="175" y1="35" x2="175" y2="45" class="dim-line"/>
+                        <text x="160" y="32" class="dim-text">Pitch</text>
+
+                        <!-- Dimension: Thread Depth -->
+                        <line x1="195" y1="50" x2="195" y2="57" class="dim-line"/>
+                        <line x1="190" y1="50" x2="200" y2="50" class="dim-line"/>
+                        <line x1="190" y1="57" x2="200" y2="57" class="dim-line"/>
+                        <text x="203" y="56" class="dim-text">Depth</text>
+
+                        <!-- Axes -->
+                        <line x1="250" y1="120" x2="220" y2="120" stroke="#666" stroke-width="1" marker-end="url(#arrow7)"/>
+                        <text x="228" y="132" font-size="9" fill="#666">Z</text>
+                        <line x1="250" y1="120" x2="250" y2="95" stroke="#666" stroke-width="1" marker-end="url(#arrow7)"/>
+                        <text x="253" y="105" font-size="9" fill="#666">X</text>
+                        <defs><marker id="arrow7" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0, 6 3, 0 6" fill="#666"/></marker></defs>
+                    </svg>`,
+
+                'id-threading': `
+                    <svg viewBox="0 0 280 140" width="280" height="140">
+                        <!-- Centerline -->
+                        <line x1="20" y1="70" x2="260" y2="70" class="centerline"/>
+                        <text x="250" y="74" font-size="8" fill="#9ca3af">CL</text>
+
+                        <!-- Chuck/Spindle -->
+                        <rect x="20" y="25" width="15" height="90" fill="#9ca3af" opacity="0.3"/>
+
+                        <!-- Workpiece with bore -->
+                        <rect x="35" y="30" width="120" height="40" class="workpiece"/>
+                        <rect x="35" y="50" width="120" height="20" fill="#F4F7F9" stroke="none"/>
+
+                        <!-- Internal thread profile -->
+                        <path d="M150,50 L145,53 L150,56 L145,59 L150,62 L145,65 L150,68 L145,70" stroke="#4A4E69" stroke-width="1" fill="none"/>
+                        <path d="M135,50 L130,53 L135,56 L130,59 L135,62 L130,65 L135,68 L130,70" stroke="#4A4E69" stroke-width="1" fill="none"/>
+
+                        <!-- Threading bar (from right) -->
+                        <rect x="160" y="55" width="50" height="8" class="tool"/>
+
+                        <!-- Dimension: Minor Diameter -->
+                        <line x1="45" y1="50" x2="45" y2="70" class="dim-line"/>
+                        <line x1="40" y1="50" x2="50" y2="50" class="dim-line"/>
+                        <line x1="40" y1="70" x2="50" y2="70" class="dim-line"/>
+                        <text x="15" y="58" class="dim-text">Minor</text>
+                        <text x="18" y="68" class="dim-text">Dia</text>
+
+                        <!-- Dimension: Thread Length -->
+                        <line x1="35" y1="20" x2="155" y2="20" class="dim-line"/>
+                        <line x1="35" y1="15" x2="35" y2="25" class="dim-line"/>
+                        <line x1="155" y1="15" x2="155" y2="25" class="dim-line"/>
+                        <text x="70" y="13" class="dim-text">Thread Length</text>
+
+                        <!-- Pitch indicator -->
+                        <line x1="145" y1="45" x2="150" y2="45" class="dim-line"/>
+                        <text x="138" y="42" class="dim-text">Pitch</text>
+
+                        <!-- Depth indicator -->
+                        <text x="100" y="62" class="dim-text">Depth</text>
+
+                        <!-- Axes -->
+                        <line x1="250" y1="110" x2="220" y2="110" stroke="#666" stroke-width="1" marker-end="url(#arrow8)"/>
+                        <text x="228" y="122" font-size="9" fill="#666">Z</text>
+                        <line x1="250" y1="110" x2="250" y2="85" stroke="#666" stroke-width="1" marker-end="url(#arrow8)"/>
+                        <text x="253" y="95" font-size="9" fill="#666">X</text>
+                        <defs><marker id="arrow8" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0, 6 3, 0 6" fill="#666"/></marker></defs>
+                    </svg>`,
+
+                'grooving': `
+                    <svg viewBox="0 0 280 140" width="280" height="140">
+                        <!-- Centerline -->
+                        <line x1="20" y1="90" x2="260" y2="90" class="centerline"/>
+                        <text x="250" y="94" font-size="8" fill="#9ca3af">CL</text>
+
+                        <!-- Chuck/Spindle -->
+                        <rect x="20" y="40" width="15" height="100" fill="#9ca3af" opacity="0.3"/>
+
+                        <!-- Workpiece -->
+                        <rect x="35" y="45" width="170" height="45" class="workpiece"/>
+
+                        <!-- Groove to cut -->
+                        <rect x="110" y="45" width="15" height="20" class="cut-area"/>
+
+                        <!-- Grooving tool -->
+                        <rect x="112" y="20" width="11" height="30" class="tool"/>
+
+                        <!-- Dimension: Outer Diameter -->
+                        <line x1="215" y1="45" x2="215" y2="90" class="dim-line"/>
+                        <line x1="210" y1="45" x2="220" y2="45" class="dim-line"/>
+                        <line x1="210" y1="90" x2="220" y2="90" class="dim-line"/>
+                        <text x="223" y="65" class="dim-text">Outer</text>
+                        <text x="228" y="75" class="dim-text">Dia</text>
+
+                        <!-- Dimension: Groove Depth -->
+                        <line x1="95" y1="45" x2="95" y2="65" class="dim-line"/>
+                        <line x1="90" y1="45" x2="100" y2="45" class="dim-line"/>
+                        <line x1="90" y1="65" x2="100" y2="65" class="dim-line"/>
+                        <text x="60" y="53" class="dim-text">Groove</text>
+                        <text x="65" y="63" class="dim-text">Depth</text>
+
+                        <!-- Dimension: Groove Width -->
+                        <line x1="110" y1="15" x2="125" y2="15" class="dim-line"/>
+                        <line x1="110" y1="10" x2="110" y2="20" class="dim-line"/>
+                        <line x1="125" y1="10" x2="125" y2="20" class="dim-line"/>
+                        <text x="108" y="8" class="dim-text">Width</text>
+
+                        <!-- Dimension: Z Position (from face) -->
+                        <line x1="117" y1="100" x2="205" y2="100" class="dim-line"/>
+                        <line x1="117" y1="95" x2="117" y2="105" class="dim-line"/>
+                        <line x1="205" y1="95" x2="205" y2="105" class="dim-line"/>
+                        <text x="145" y="115" class="dim-text">Z Position</text>
+
+                        <!-- Axes -->
+                        <line x1="250" y1="120" x2="220" y2="120" stroke="#666" stroke-width="1" marker-end="url(#arrow9)"/>
+                        <text x="228" y="132" font-size="9" fill="#666">Z</text>
+                        <line x1="250" y1="120" x2="250" y2="100" stroke="#666" stroke-width="1" marker-end="url(#arrow9)"/>
+                        <text x="253" y="108" font-size="9" fill="#666">X</text>
+                        <defs><marker id="arrow9" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0, 6 3, 0 6" fill="#666"/></marker></defs>
+                    </svg>`,
+
+                'parting': `
+                    <svg viewBox="0 0 280 140" width="280" height="140">
+                        <!-- Centerline -->
+                        <line x1="20" y1="90" x2="260" y2="90" class="centerline"/>
+                        <text x="250" y="94" font-size="8" fill="#9ca3af">CL</text>
+
+                        <!-- Chuck/Spindle -->
+                        <rect x="20" y="40" width="15" height="100" fill="#9ca3af" opacity="0.3"/>
+
+                        <!-- Workpiece (retained part) -->
+                        <rect x="35" y="45" width="100" height="45" class="workpiece"/>
+
+                        <!-- Part to be cut off (falls away) -->
+                        <rect x="138" y="45" width="70" height="45" fill="#d1d5db" stroke="#4A4E69" stroke-width="1.5"/>
+
+                        <!-- Parting cut line -->
+                        <rect x="135" y="45" width="3" height="45" class="cut-area"/>
+
+                        <!-- Parting tool -->
+                        <rect x="134" y="20" width="5" height="30" class="tool"/>
+
+                        <!-- Dimension: Outer Diameter -->
+                        <line x1="218" y1="45" x2="218" y2="90" class="dim-line"/>
+                        <line x1="213" y1="45" x2="223" y2="45" class="dim-line"/>
+                        <line x1="213" y1="90" x2="223" y2="90" class="dim-line"/>
+                        <text x="226" y="65" class="dim-text">Outer</text>
+                        <text x="230" y="75" class="dim-text">Dia</text>
+
+                        <!-- Dimension: Inner Diameter (if hollow) -->
+                        <line x1="45" y1="75" x2="45" y2="90" class="dim-line"/>
+                        <line x1="40" y1="75" x2="50" y2="75" class="dim-line"/>
+                        <line x1="40" y1="90" x2="50" y2="90" class="dim-line"/>
+                        <text x="8" y="80" class="dim-text">Inner Dia</text>
+                        <text x="5" y="90" class="dim-text">(if hollow)</text>
+
+                        <!-- Dimension: Z Position -->
+                        <line x1="136" y1="100" x2="208" y2="100" class="dim-line"/>
+                        <line x1="136" y1="95" x2="136" y2="105" class="dim-line"/>
+                        <line x1="208" y1="95" x2="208" y2="105" class="dim-line"/>
+                        <text x="155" y="115" class="dim-text">Z Position</text>
+
+                        <!-- Cut off indicator -->
+                        <text x="160" y="70" font-size="9" fill="#ef4444">Part Off</text>
+
+                        <!-- Axes -->
+                        <line x1="250" y1="120" x2="220" y2="120" stroke="#666" stroke-width="1" marker-end="url(#arrow10)"/>
+                        <text x="228" y="132" font-size="9" fill="#666">Z</text>
+                        <line x1="250" y1="120" x2="250" y2="100" stroke="#666" stroke-width="1" marker-end="url(#arrow10)"/>
+                        <text x="253" y="108" font-size="9" fill="#666">X</text>
+                        <defs><marker id="arrow10" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0, 6 3, 0 6" fill="#666"/></marker></defs>
+                    </svg>`
+            };
+
+            return illustrations[type] || '';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupTabs();
+            updateSingleOpForm();
+        });
+
+        function setupTabs() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab + '-tab').classList.add('active');
+                });
+            });
+        }
+
+        // Template Functions
+        function loadTemplate(template) {
+            operations = [];
+            switch(template) {
+                case 'face-od':
+                    operations.push(createOperation('facing', { roughing: true, finishing: true }));
+                    operations.push(createOperation('od-turning', { roughing: true, finishing: true }));
+                    break;
+                case 'face-bore':
+                    operations.push(createOperation('facing', { roughing: true, finishing: true }));
+                    operations.push(createOperation('drilling', { roughing: true }));
+                    operations.push(createOperation('id-boring', { roughing: true, finishing: true }));
+                    break;
+                case 'face-drill':
+                    operations.push(createOperation('facing', { roughing: true, finishing: true }));
+                    operations.push(createOperation('drilling', { roughing: true }));
+                    break;
+                case 'full-od':
+                    operations.push(createOperation('facing', { roughing: true, finishing: true }));
+                    operations.push(createOperation('od-turning', { roughing: true, finishing: true }));
+                    operations.push(createOperation('grooving', { roughing: true }));
+                    operations.push(createOperation('od-threading', { roughing: true }));
+                    operations.push(createOperation('parting', { roughing: true }));
+                    break;
+                case 'full-id':
+                    operations.push(createOperation('facing', { roughing: true, finishing: true }));
+                    operations.push(createOperation('drilling', { roughing: true }));
+                    operations.push(createOperation('id-boring', { roughing: true, finishing: true }));
+                    operations.push(createOperation('id-threading', { roughing: true }));
+                    break;
+                case 'custom':
+                    break;
+            }
+            renderOperationList();
+        }
+
+        function createOperation(type, options = {}) {
+            const def = opDefinitions[type];
+            const op = {
+                type: type,
+                name: def.name,
+                roughing: options.roughing !== false,
+                finishing: options.finishing || false,
+                tool: def.defaultTool,
+                speed: 1200,
+                roughFeed: 0.25,
+                finishFeed: 0.1,
+                doc: 2,
+                finishAllowance: 0.3,
+                params: {}
+            };
+
+            // Special handling for threading operations
+            if (def.hasThreadType) {
+                const defaultType = 'metric';
+                const defaultSize = 'M10 x 1.5 (coarse)';
+                const sizeData = threadData[defaultType][defaultSize];
+
+                op.params.threadType = defaultType;
+                op.params.threadSize = defaultSize;
+                op.params.majorDia = sizeData.major;
+                op.params.minorDia = sizeData.major; // Same for ID threading
+                op.params.pitch = sizeData.pitch;
+                op.params.depth = sizeData.depth;
+                op.params.length = 20;
+                op.params.taperAngle = 0;
+            } else {
+                def.fields.forEach(f => {
+                    op.params[f.id] = f.default;
+                });
+            }
+            return op;
+        }
+
+        function addOperation(type) {
+            operations.push(createOperation(type));
+            renderOperationList();
+        }
+
+        function removeOperation(index) {
+            operations.splice(index, 1);
+            renderOperationList();
+        }
+
+        function moveOperation(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= operations.length) return;
+            const temp = operations[index];
+            operations[index] = operations[newIndex];
+            operations[newIndex] = temp;
+            renderOperationList();
+        }
+
+        function editOperation(index) {
+            editingIndex = index;
+            const op = operations[index];
+            const def = opDefinitions[op.type];
+
+            // Determine which cycle option should be active
+            const isBoth = op.roughing && op.finishing;
+            const isRoughing = op.roughing && !op.finishing;
+            const isFinishing = !op.roughing && op.finishing;
+
+            let html = `
+                <div class="op-illustration">
+                    ${getOperationIllustration(op.type)}
+                </div>
+                <div class="cycle-toggle" id="modalCycleToggle">
+                    <div class="cycle-option ${isRoughing ? 'active' : ''}" data-cycle="roughing" onclick="toggleModalCycle(this)">
+                        <strong>Roughing</strong>
+                        <small>G71/G72</small>
+                    </div>
+                    <div class="cycle-option ${isFinishing ? 'active' : ''}" data-cycle="finishing" onclick="toggleModalCycle(this)">
+                        <strong>Finishing</strong>
+                        <small>G70</small>
+                    </div>
+                    <div class="cycle-option ${isBoth ? 'active' : ''}" data-cycle="both" onclick="toggleModalCycle(this)">
+                        <strong>Both</strong>
+                        <small>Rough+Finish</small>
+                    </div>
+                </div>
+                <div class="divider"></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tool Number</label>
+                        <input type="number" id="editTool" value="${op.tool}">
+                    </div>
+                    <div class="form-group">
+                        <label>Speed (RPM)</label>
+                        <input type="number" id="editSpeed" value="${op.speed}">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Rough Feed</label>
+                        <input type="number" id="editRoughFeed" value="${op.roughFeed}" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Finish Feed</label>
+                        <input type="number" id="editFinishFeed" value="${op.finishFeed}" step="0.01">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Depth of Cut</label>
+                        <input type="number" id="editDOC" value="${op.doc}" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>Finish Allowance</label>
+                        <input type="number" id="editFinishAllow" value="${op.finishAllowance}" step="0.05">
+                    </div>
+                </div>
+                <div class="divider"></div>
+                <h4 style="margin-bottom:12px;">Dimensions</h4>
+            `;
+
+            // Special handling for threading operations
+            if (def.hasThreadType) {
+                const currentType = op.params.threadType || 'metric';
+                const currentSize = op.params.threadSize || 'M10';
+                const isTapered = currentType === 'npt' || currentType === 'bspt';
+
+                // Build thread type options
+                const threadTypes = [
+                    { value: 'metric', label: 'Metric (M) Threads - ISO' },
+                    { value: 'npt', label: 'NPT - National Pipe Taper' },
+                    { value: 'bspp', label: 'BSPP (G) - British Pipe Parallel' },
+                    { value: 'bspt', label: 'BSPT (R) - British Pipe Taper' }
+                ];
+                let typeOptions = threadTypes.map(t =>
+                    `<option value="${t.value}" ${t.value === currentType ? 'selected' : ''}>${t.label}</option>`
+                ).join('');
+
+                // Build thread size options for current type
+                const sizes = threadData[currentType];
+                let sizeOptions = Object.keys(sizes).map(key =>
+                    `<option value="${key}" ${key === currentSize ? 'selected' : ''}>${key}</option>`
+                ).join('');
+
+                html += `
+                    <div class="form-group">
+                        <label>Thread Standard</label>
+                        <select id="editParam_threadType" onchange="updateModalThreadFields()">
+                            ${typeOptions}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Thread Size</label>
+                        <select id="editParam_threadSize" onchange="updateModalThreadDimensions()">
+                            ${sizeOptions}
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Major Diameter (mm)</label>
+                            <input type="number" id="editParam_majorDia" value="${op.params.majorDia.toFixed(3)}" step="0.001" readonly style="background:#f0f0f0;">
+                        </div>
+                        <div class="form-group">
+                            <label>Pitch (mm)</label>
+                            <input type="number" id="editParam_pitch" value="${op.params.pitch.toFixed(3)}" step="0.001" readonly style="background:#f0f0f0;">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Thread Length (mm)</label>
+                            <input type="number" id="editParam_length" value="${op.params.length}" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Thread Depth (mm)</label>
+                            <input type="number" id="editParam_depth" value="${op.params.depth.toFixed(3)}" step="0.001" readonly style="background:#f0f0f0;">
+                        </div>
+                    </div>
+                    <input type="hidden" id="editParam_taperAngle" value="${op.params.taperAngle || 0}">
+                `;
+            } else {
+                def.fields.forEach(f => {
+                    html += `
+                        <div class="form-group">
+                            <label>${f.label} (mm)</label>
+                            <input type="number" id="editParam_${f.id}" value="${op.params[f.id]}" step="0.1">
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('modalTitle').textContent = 'Edit ' + op.name;
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function updateModalThreadFields() {
+            const threadType = document.getElementById('editParam_threadType').value;
+            const sizeSelect = document.getElementById('editParam_threadSize');
+
+            // Update size options for the new thread type
+            const sizes = threadData[threadType];
+            const sizeKeys = Object.keys(sizes);
+            sizeSelect.innerHTML = sizeKeys.map(key => `<option value="${key}">${key}</option>`).join('');
+
+            // Update dimensions for first size
+            updateModalThreadDimensions();
+        }
+
+        function updateModalThreadDimensions() {
+            const threadType = document.getElementById('editParam_threadType').value;
+            const threadSize = document.getElementById('editParam_threadSize').value;
+
+            const sizeData = threadData[threadType][threadSize];
+            if (!sizeData) return;
+
+            // Calculate pitch
+            let pitch;
+            if (threadType === 'metric') {
+                pitch = sizeData.pitch;
+            } else {
+                pitch = 25.4 / sizeData.tpi;
+            }
+
+            // Update fields
+            document.getElementById('editParam_majorDia').value = sizeData.major.toFixed(3);
+            document.getElementById('editParam_pitch').value = pitch.toFixed(3);
+            document.getElementById('editParam_depth').value = sizeData.depth.toFixed(3);
+            document.getElementById('editParam_taperAngle').value = sizeData.taperAngle || 0;
+        }
+
+        function toggleModalCycle(el) {
+            // Remove active from all cycle options in modal
+            const allOptions = document.querySelectorAll('#modalCycleToggle .cycle-option');
+            for (let i = 0; i < allOptions.length; i++) {
+                allOptions[i].classList.remove('active');
+            }
+            // Add active to clicked element
+            el.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('active');
+            editingIndex = -1;
+        }
+
+        function saveOperation() {
+            if (editingIndex < 0) return;
+            const op = operations[editingIndex];
+            const def = opDefinitions[op.type];
+
+            // Find the active cycle option and get its data-cycle value
+            const activeOption = document.querySelector('#modalCycleToggle .cycle-option.active');
+            const selectedCycleModal = activeOption ? activeOption.dataset.cycle : 'both';
+            op.roughing = selectedCycleModal !== 'finishing';
+            op.finishing = selectedCycleModal !== 'roughing';
+
+            op.tool = parseInt(document.getElementById('editTool').value);
+            op.speed = parseInt(document.getElementById('editSpeed').value);
+            op.roughFeed = parseFloat(document.getElementById('editRoughFeed').value);
+            op.finishFeed = parseFloat(document.getElementById('editFinishFeed').value);
+            op.doc = parseFloat(document.getElementById('editDOC').value);
+            op.finishAllowance = parseFloat(document.getElementById('editFinishAllow').value);
+
+            // Special handling for threading operations
+            if (def.hasThreadType) {
+                op.params.threadType = document.getElementById('editParam_threadType').value;
+                op.params.threadSize = document.getElementById('editParam_threadSize').value;
+                op.params.majorDia = parseFloat(document.getElementById('editParam_majorDia').value);
+                op.params.minorDia = parseFloat(document.getElementById('editParam_majorDia').value); // Same for ID
+                op.params.pitch = parseFloat(document.getElementById('editParam_pitch').value);
+                op.params.length = parseFloat(document.getElementById('editParam_length').value);
+                op.params.depth = parseFloat(document.getElementById('editParam_depth').value);
+                op.params.taperAngle = parseFloat(document.getElementById('editParam_taperAngle').value);
+            } else {
+                def.fields.forEach(f => {
+                    op.params[f.id] = parseFloat(document.getElementById('editParam_' + f.id).value);
+                });
+            }
+
+            closeModal();
+            renderOperationList();
+        }
+
+        function renderOperationList() {
+            const list = document.getElementById('operationList');
+            document.getElementById('opCount').textContent = operations.length;
+
+            if (operations.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <p>No operations added yet</p>
+                        <p style="font-size:12px;">Select a template or add operations below</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            operations.forEach((op, i) => {
+                const cycleText = [];
+                if (op.roughing) cycleText.push('<span class="roughing">Roughing</span>');
+                if (op.finishing) cycleText.push('<span class="finishing">Finishing</span>');
+
+                html += `
+                    <div class="operation-item">
+                        <div class="op-number">${i + 1}</div>
+                        <div class="op-details">
+                            <div class="op-name">${op.name}</div>
+                            <div class="op-type">T${op.tool} | ${cycleText.join(' + ') || 'No cycle'}</div>
+                        </div>
+                        <div class="op-actions">
+                            <button onclick="moveOperation(${i}, -1)" title="Move Up">↑</button>
+                            <button onclick="moveOperation(${i}, 1)" title="Move Down">↓</button>
+                            <button onclick="editOperation(${i})" title="Edit">✏️</button>
+                            <button onclick="removeOperation(${i})" title="Remove">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+        }
+
+        // Generate Full Program
+        function updateStockDimensionLabel() {
+            const profile = document.getElementById('stockProfile').value;
+            const label = document.getElementById('stockDiaLabel');
+            switch (profile) {
+                case 'round':
+                    label.textContent = 'Stock Diameter (mm)';
+                    break;
+                case 'hex':
+                    label.textContent = 'Hex Across Flats (mm)';
+                    break;
+                case 'square':
+                    label.textContent = 'Square Side (mm)';
+                    break;
+            }
+        }
+
+        function generateFullProgram() {
+            if (operations.length === 0) {
+                alert('Add at least one operation');
+                return;
+            }
+
+            const progNum = document.getElementById('progNumber').value;
+            const progName = document.getElementById('progName').value.trim().toUpperCase();
+            const stockProfile = document.getElementById('stockProfile').value;
+            const stockDia = parseFloat(document.getElementById('stockDiameter').value);
+            const stockLen = parseFloat(document.getElementById('stockLength').value);
+            const safeZ = parseFloat(document.getElementById('safeZ').value);
+
+            // Calculate turning diameter for hex/square stock
+            let turningDia = stockDia;
+            let stockDesc = '';
+            switch (stockProfile) {
+                case 'round':
+                    stockDesc = `ROUND BAR DIA ${stockDia}`;
+                    break;
+                case 'hex':
+                    turningDia = stockDia * 1.1547; // Hex across corners = AF * 2/sqrt(3)
+                    stockDesc = `HEX BAR ${stockDia} A/F (TURN DIA ${turningDia.toFixed(1)})`;
+                    break;
+                case 'square':
+                    turningDia = stockDia * 1.4142; // Square diagonal = side * sqrt(2)
+                    stockDesc = `SQUARE BAR ${stockDia} (TURN DIA ${turningDia.toFixed(1)})`;
+                    break;
+            }
+
+            let code = [];
+            code.push(`O${String(progNum).padStart(4, '0')}`);
+            if (progName) {
+                code.push(`(${progName})`);
+            }
+            code.push('(FANUC TURNING PROGRAM)');
+            code.push(`(STOCK: ${stockDesc} x LEN ${stockLen})`);
+            code.push(`(DATE: ${new Date().toLocaleDateString()})`);
+            code.push(`(OPERATIONS: ${operations.length})`);
+            code.push('');
+            code.push('(SAFE START)');
+            code.push('G28 U0 W0');
+            code.push('G50 S3000');
+            code.push('');
+
+            operations.forEach((op, i) => {
+                code.push(`(--- OPERATION ${i + 1}: ${op.name.toUpperCase()} ---)`);
+                code.push(`T${String(op.tool).padStart(2, '0')}${String(op.tool).padStart(2, '0')}`);
+                code.push(`G97 S${op.speed} M03`);
+                code.push('M08');
+                code.push('G99');
+                code.push('');
+
+                const opCode = generateOperationCode(op, turningDia, safeZ);
+                code = code.concat(opCode);
+
+                code.push('');
+                code.push('G28 U0 W0');
+                code.push('M05');
+                code.push('M09');
+                code.push('');
+            });
+
+            code.push('(PROGRAM END)');
+            code.push('M30');
+
+            displayCode(code, 'builderOutput');
+        }
+
+        function generateOperationCode(op, stockDia, safeZ) {
+            let code = [];
+            const p = op.params;
+
+            switch(op.type) {
+                case 'facing':
+                    if (op.roughing) {
+                        code.push('(G72 FACING ROUGH CYCLE)');
+                        code.push(`G00 X${(p.stockDia + 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        code.push(`G72 W${op.doc.toFixed(1)} R1.0`);
+                        code.push(`G72 P100 Q200 U0.3 W0.1 F${op.roughFeed}`);
+                        code.push(`N100 G00 X${p.faceDia.toFixed(1)}`);
+                        code.push(`G01 Z0 F${op.finishFeed}`);
+                        code.push(`X${(p.stockDia + 1).toFixed(1)}`);
+                        code.push('N200 G00 Z' + safeZ.toFixed(1));
+                    }
+                    if (op.finishing) {
+                        code.push('(G70 FACING FINISH CYCLE)');
+                        code.push('G70 P100 Q200');
+                    }
+                    break;
+
+                case 'od-turning':
+                    if (op.roughing) {
+                        code.push('(G71 OD ROUGH CYCLE)');
+                        code.push(`G00 X${(p.startDia + 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        code.push(`G71 U${op.doc.toFixed(1)} R1.0`);
+                        code.push(`G71 P100 Q200 U${op.finishAllowance.toFixed(2)} W0.1 F${op.roughFeed}`);
+                        code.push(`N100 G00 X${p.endDia.toFixed(3)} S${op.speed}`);
+                        code.push(`G01 Z0 F${op.finishFeed}`);
+                        code.push(`Z-${p.length.toFixed(1)}`);
+                        code.push(`X${(p.startDia + 1).toFixed(1)}`);
+                        code.push('N200 G00 Z' + safeZ.toFixed(1));
+                    }
+                    if (op.finishing) {
+                        code.push('(G70 OD FINISH CYCLE)');
+                        code.push('G70 P100 Q200');
+                    }
+                    break;
+
+                case 'od-taper':
+                    // Calculate end diameter from angle if specified
+                    // startDia = small (at face/Z0), endDia = large (at chuck/Z-length)
+                    let odTaperEndDia = p.endDia;
+                    if (p.taperAngle > 0) {
+                        // Taper per side = length * tan(angle)
+                        const taperPerSide = p.length * Math.tan(p.taperAngle * Math.PI / 180);
+                        odTaperEndDia = p.startDia + (taperPerSide * 2); // Gets larger toward chuck
+                    }
+                    if (op.roughing) {
+                        code.push('(G71 OD TAPER ROUGH CYCLE)');
+                        code.push(`(TAPER: ${p.startDia.toFixed(1)} AT FACE TO ${odTaperEndDia.toFixed(1)} AT CHUCK OVER ${p.length.toFixed(1)}mm)`);
+                        code.push(`G00 X${(odTaperEndDia + 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        code.push(`G71 U${op.doc.toFixed(1)} R1.0`);
+                        code.push(`G71 P100 Q200 U${op.finishAllowance.toFixed(2)} W0.1 F${op.roughFeed}`);
+                        code.push(`N100 G00 X${p.startDia.toFixed(3)} S${op.speed}`);
+                        code.push(`G01 Z0 F${op.finishFeed}`);
+                        code.push(`X${odTaperEndDia.toFixed(3)} Z-${p.length.toFixed(1)}`);
+                        code.push(`X${(odTaperEndDia + 1).toFixed(1)}`);
+                        code.push('N200 G00 Z' + safeZ.toFixed(1));
+                    }
+                    if (op.finishing) {
+                        code.push('(G70 OD TAPER FINISH CYCLE)');
+                        code.push('G70 P100 Q200');
+                    }
+                    break;
+
+                case 'id-boring':
+                    if (op.roughing) {
+                        code.push('(G71 BORING ROUGH CYCLE)');
+                        code.push(`G00 X${(p.startDia - 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        code.push(`G71 U${op.doc.toFixed(1)} R1.0`);
+                        code.push(`G71 P100 Q200 U-${op.finishAllowance.toFixed(2)} W0.1 F${op.roughFeed}`);
+                        code.push(`N100 G00 X${p.endDia.toFixed(3)}`);
+                        code.push(`G01 Z0 F${op.finishFeed}`);
+                        code.push(`Z-${p.depth.toFixed(1)}`);
+                        code.push(`X${(p.startDia - 1).toFixed(1)}`);
+                        code.push('N200 G00 Z' + safeZ.toFixed(1));
+                    }
+                    if (op.finishing) {
+                        code.push('(G70 BORE FINISH CYCLE)');
+                        code.push('G70 P100 Q200');
+                    }
+                    break;
+
+                case 'id-taper':
+                    // Calculate end diameter from angle if specified
+                    // startDia = large (at face/Z0), endDia = small (at depth/Z-depth)
+                    let idTaperEndDia = p.endDia;
+                    if (p.taperAngle > 0) {
+                        // Taper per side = depth * tan(angle)
+                        const taperPerSide = p.depth * Math.tan(p.taperAngle * Math.PI / 180);
+                        idTaperEndDia = p.startDia - (taperPerSide * 2); // Gets smaller toward depth
+                    }
+                    if (op.roughing) {
+                        code.push('(G71 ID TAPER ROUGH CYCLE)');
+                        code.push(`(TAPER: ${p.startDia.toFixed(1)} AT FACE TO ${idTaperEndDia.toFixed(1)} AT DEPTH OVER ${p.depth.toFixed(1)}mm)`);
+                        code.push(`G00 X${(idTaperEndDia - 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        code.push(`G71 U${op.doc.toFixed(1)} R1.0`);
+                        code.push(`G71 P100 Q200 U-${op.finishAllowance.toFixed(2)} W0.1 F${op.roughFeed}`);
+                        code.push(`N100 G00 X${p.startDia.toFixed(3)} S${op.speed}`);
+                        code.push(`G01 Z0 F${op.finishFeed}`);
+                        code.push(`X${idTaperEndDia.toFixed(3)} Z-${p.depth.toFixed(1)}`);
+                        code.push(`X${(idTaperEndDia - 1).toFixed(1)}`);
+                        code.push('N200 G00 Z' + safeZ.toFixed(1));
+                    }
+                    if (op.finishing) {
+                        code.push('(G70 ID TAPER FINISH CYCLE)');
+                        code.push('G70 P100 Q200');
+                    }
+                    break;
+
+                case 'drilling':
+                    code.push('(G74 PECK DRILLING CYCLE)');
+                    code.push(`G00 X0 Z${safeZ.toFixed(1)}`);
+                    code.push('G74 R1.0');
+                    code.push(`G74 Z-${p.depth.toFixed(1)} Q${(p.peck * 1000).toFixed(0)} F${op.roughFeed}`);
+                    code.push(`G00 Z${safeZ.toFixed(1)}`);
+                    break;
+
+                case 'od-threading':
+                    {
+                        const threadTypeLabel = p.threadType ? p.threadType.toUpperCase() : 'METRIC';
+                        const threadSize = p.threadSize || '';
+                        const isTapered = p.taperAngle > 0;
+
+                        code.push(`(G76 OD THREADING - ${threadSize})`);
+                        code.push(`(STANDARD: ${threadTypeLabel} - PITCH: ${p.pitch.toFixed(3)}mm)`);
+                        code.push(`(MAJOR DIA: ${p.majorDia.toFixed(3)}mm - DEPTH: ${p.depth.toFixed(3)}mm)`);
+
+                        if (isTapered) {
+                            const taperPerSide = p.length * Math.tan(p.taperAngle * Math.PI / 180);
+                            code.push(`(TAPERED: 1:16 TAPER OVER ${p.length.toFixed(1)}mm)`);
+                        }
+
+                        code.push(`G00 X${(p.majorDia + 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        code.push('G76 P010060 Q100 R0.05');
+
+                        if (isTapered) {
+                            const taperAmount = p.length * Math.tan(p.taperAngle * Math.PI / 180);
+                            code.push(`G76 X${(p.majorDia - p.depth * 2).toFixed(3)} Z-${p.length.toFixed(1)} I-${taperAmount.toFixed(3)} P${(p.depth * 1000).toFixed(0)} Q200 F${p.pitch.toFixed(3)}`);
+                        } else {
+                            code.push(`G76 X${(p.majorDia - p.depth * 2).toFixed(3)} Z-${p.length.toFixed(1)} P${(p.depth * 1000).toFixed(0)} Q200 F${p.pitch.toFixed(3)}`);
+                        }
+                    }
+                    break;
+
+                case 'id-threading':
+                    {
+                        const threadTypeLabel = p.threadType ? p.threadType.toUpperCase() : 'METRIC';
+                        const threadSize = p.threadSize || '';
+                        const isTapered = p.taperAngle > 0;
+
+                        code.push(`(G76 ID THREADING - ${threadSize})`);
+                        code.push(`(STANDARD: ${threadTypeLabel} - PITCH: ${p.pitch.toFixed(3)}mm)`);
+                        code.push(`(BORE DIA: ${p.minorDia.toFixed(3)}mm - DEPTH: ${p.depth.toFixed(3)}mm)`);
+
+                        if (isTapered) {
+                            code.push(`(TAPERED: 1:16 TAPER OVER ${p.length.toFixed(1)}mm)`);
+                        }
+
+                        code.push(`G00 X${(p.minorDia - 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        code.push('G76 P010060 Q100 R0.05');
+
+                        if (isTapered) {
+                            const taperAmount = p.length * Math.tan(p.taperAngle * Math.PI / 180);
+                            code.push(`G76 X${(p.minorDia + p.depth * 2).toFixed(3)} Z-${p.length.toFixed(1)} I${taperAmount.toFixed(3)} P${(p.depth * 1000).toFixed(0)} Q200 F${p.pitch.toFixed(3)}`);
+                        } else {
+                            code.push(`G76 X${(p.minorDia + p.depth * 2).toFixed(3)} Z-${p.length.toFixed(1)} P${(p.depth * 1000).toFixed(0)} Q200 F${p.pitch.toFixed(3)}`);
+                        }
+                    }
+                    break;
+
+                case 'grooving':
+                    code.push('(G75 GROOVING CYCLE)');
+                    code.push(`G00 X${(p.outerDia + 2).toFixed(1)} Z${p.zPos.toFixed(1)}`);
+                    code.push('G75 R0.5');
+                    code.push(`G75 X${(p.outerDia - p.grooveDepth * 2).toFixed(1)} Z${(p.zPos - p.grooveWidth).toFixed(1)} P${(p.grooveDepth * 1000).toFixed(0)} Q${(p.grooveWidth * 500).toFixed(0)} F${(op.roughFeed / 2).toFixed(3)}`);
+                    break;
+
+                case 'parting':
+                    code.push('(PARTING OFF)');
+                    code.push(`G00 X${(p.outerDia + 2).toFixed(1)} Z${p.zPos.toFixed(1)}`);
+                    code.push(`G01 X${p.innerDia.toFixed(1)} F${(op.roughFeed / 3).toFixed(3)}`);
+                    if (p.innerDia <= 0) code.push('G04 P500');
+                    code.push(`G00 X${(p.outerDia + 5).toFixed(1)}`);
+                    break;
+            }
+
+            return code;
+        }
+
+        // Single Operation Tab
+        function updateSingleOpForm() {
+            const type = document.getElementById('singleOpType').value;
+            const def = opDefinitions[type];
+            const container = document.getElementById('singleDimensions');
+
+            // Show/hide cycle toggle for certain operations
+            // Show for facing, od-turning, od-taper, id-boring, id-taper (operations with roughing + finishing cycles)
+            const cycleToggle = document.getElementById('cycleToggle');
+            if (['drilling', 'od-threading', 'id-threading', 'grooving', 'parting'].includes(type)) {
+                cycleToggle.style.display = 'none';
+            } else {
+                cycleToggle.style.display = 'flex';
+            }
+
+            let html = `<div class="op-illustration">${getOperationIllustration(type)}</div>`;
+
+            // Handle threading operations with thread type selection
+            if (def.hasThreadType) {
+                html += `
+                    <div class="form-group">
+                        <label>Thread Standard</label>
+                        <select id="sDim_threadType" onchange="updateThreadFields()">
+                            <option value="metric">Metric (M) Threads - ISO</option>
+                            <option value="npt">NPT - National Pipe Taper</option>
+                            <option value="bspp">BSPP (G) - British Pipe Parallel</option>
+                            <option value="bspt">BSPT (R) - British Pipe Taper</option>
+                        </select>
+                    </div>
+                    <div id="threadFieldsContainer"></div>
+                `;
+                container.innerHTML = html;
+                updateThreadFields();
+            } else {
+                def.fields.forEach((f, i) => {
+                    if (f.hidden) return;
+                    if (i % 2 === 0) html += '<div class="form-row">';
+                    html += `
+                        <div class="form-group">
+                            <label>${f.label}</label>
+                            <input type="number" id="sDim_${f.id}" value="${f.default}" step="0.1">
+                        </div>
+                    `;
+                    if (i % 2 === 1 || i === def.fields.length - 1) html += '</div>';
+                });
+                container.innerHTML = html;
+            }
+        }
+
+        function updateThreadFields() {
+            const type = document.getElementById('singleOpType').value;
+            const threadType = document.getElementById('sDim_threadType').value;
+            const container = document.getElementById('threadFieldsContainer');
+            const isOD = type === 'od-threading';
+            const isTapered = threadType === 'npt' || threadType === 'bspt';
+
+            // Get the thread sizes for this type
+            const sizes = threadData[threadType];
+            const sizeKeys = Object.keys(sizes);
+
+            // Build size options
+            let sizeOptions = sizeKeys.map(key => `<option value="${key}">${key}</option>`).join('');
+
+            // Get default size (roughly middle of the list)
+            const defaultSize = sizeKeys[Math.floor(sizeKeys.length / 3)];
+
+            let html = `
+                <div class="form-group">
+                    <label>Thread Size</label>
+                    <select id="sDim_threadSize" onchange="updateThreadDimensions()">
+                        ${sizeOptions}
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>${isOD ? 'Major Diameter (mm)' : 'Bore Diameter (mm)'}</label>
+                        <input type="number" id="sDim_majorDia" value="" step="0.001" readonly style="background:#f0f0f0;">
+                    </div>
+                    <div class="form-group">
+                        <label>Pitch (mm)</label>
+                        <input type="number" id="sDim_pitch" value="" step="0.001" readonly style="background:#f0f0f0;">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Thread Length (mm)</label>
+                        <input type="number" id="sDim_length" value="20" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>Thread Depth (mm)</label>
+                        <input type="number" id="sDim_depth" value="" step="0.001" readonly style="background:#f0f0f0;">
+                    </div>
+                </div>
+                ${isTapered ? `
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Taper (${threadType.toUpperCase()})</label>
+                        <input type="text" value="1:16 (1°47'24&quot;)" readonly style="background:#f0f0f0;">
+                    </div>
+                    <div class="form-group">
+                        <label>Taper Angle</label>
+                        <input type="number" id="sDim_taperAngle" value="1.7899" step="0.0001" readonly style="background:#f0f0f0;">
+                    </div>
+                </div>
+                ` : '<input type="hidden" id="sDim_taperAngle" value="0">'}
+            `;
+
+            container.innerHTML = html;
+
+            // Set default size and update dimensions
+            document.getElementById('sDim_threadSize').value = defaultSize;
+            updateThreadDimensions();
+        }
+
+        function updateThreadDimensions() {
+            const threadType = document.getElementById('sDim_threadType').value;
+            const threadSize = document.getElementById('sDim_threadSize').value;
+            const type = document.getElementById('singleOpType').value;
+            const isOD = type === 'od-threading';
+
+            const sizeData = threadData[threadType][threadSize];
+            if (!sizeData) return;
+
+            // Calculate pitch (metric has pitch directly, others use TPI)
+            let pitch;
+            if (threadType === 'metric') {
+                pitch = sizeData.pitch;
+            } else {
+                pitch = 25.4 / sizeData.tpi; // Convert TPI to mm pitch
+            }
+
+            // Set major diameter
+            const majorDiaEl = document.getElementById('sDim_majorDia');
+            if (majorDiaEl) {
+                majorDiaEl.value = sizeData.major.toFixed(3);
+            }
+
+            // Set pitch
+            const pitchEl = document.getElementById('sDim_pitch');
+            if (pitchEl) {
+                pitchEl.value = pitch.toFixed(3);
+            }
+
+            // Set thread depth
+            const depthEl = document.getElementById('sDim_depth');
+            if (depthEl) {
+                depthEl.value = sizeData.depth.toFixed(3);
+            }
+
+            // Set taper angle if applicable
+            const taperEl = document.getElementById('sDim_taperAngle');
+            if (taperEl && sizeData.taperAngle !== undefined) {
+                taperEl.value = sizeData.taperAngle.toFixed(4);
+            }
+        }
+
+        function updateSpindleFields() {
+            const mode = document.getElementById('sSpindleMode').value;
+            const label = document.getElementById('sSpeedLabel');
+            const maxRpmGroup = document.getElementById('sMaxRpmGroup');
+
+            if (mode === 'G96') {
+                label.textContent = 'Surface Speed (m/min)';
+                maxRpmGroup.style.display = 'block';
+                document.getElementById('sSpeed').value = 150;
+            } else {
+                label.textContent = 'Speed (RPM)';
+                maxRpmGroup.style.display = 'none';
+                document.getElementById('sSpeed').value = 1200;
+            }
+        }
+
+        function selectCycle(el) {
+            // Remove active from all cycle options
+            const allOptions = document.querySelectorAll('#cycleToggle .cycle-option');
+            for (let i = 0; i < allOptions.length; i++) {
+                allOptions[i].classList.remove('active');
+            }
+            // Add active to clicked element
+            el.classList.add('active');
+            selectedCycle = el.dataset.cycle;
+        }
+
+        function generateSingleOp() {
+            const type = document.getElementById('singleOpType').value;
+            const def = opDefinitions[type];
+
+            const progNum = document.getElementById('sProgramNum').value;
+            const tool = document.getElementById('sToolNum').value;
+            const offset = document.getElementById('sOffsetNum').value;
+            const spindleMode = document.getElementById('sSpindleMode').value;
+            const speed = document.getElementById('sSpeed').value;
+            const maxRpm = document.getElementById('sMaxRpm').value;
+            const coolant = document.getElementById('sCoolant').value;
+            const roughDOC = parseFloat(document.getElementById('sRoughDOC').value);
+            const finishAllow = parseFloat(document.getElementById('sFinishAllow').value);
+            const roughFeed = parseFloat(document.getElementById('sRoughFeed').value);
+            const finishFeed = parseFloat(document.getElementById('sFinishFeed').value);
+            const addHeader = document.getElementById('sAddHeader').checked;
+            const addSafeStart = document.getElementById('sAddSafeStart').checked;
+
+            // Get dimension values
+            const params = {};
+
+            // Special handling for threading operations
+            if (def.hasThreadType) {
+                const threadTypeEl = document.getElementById('sDim_threadType');
+                const threadType = threadTypeEl ? threadTypeEl.value : 'metric';
+                const threadSize = document.getElementById('sDim_threadSize')?.value || '';
+                const isOD = type === 'od-threading';
+
+                params.threadType = threadType;
+                params.threadSize = threadSize;
+
+                // All dimensions are now pre-calculated and in mm
+                const majorDia = parseFloat(document.getElementById('sDim_majorDia')?.value || 20);
+                params.majorDia = isOD ? majorDia : 0;
+                params.minorDia = !isOD ? majorDia : 0; // For ID threading, use same diameter field
+
+                params.pitch = parseFloat(document.getElementById('sDim_pitch')?.value || 2.5);
+                params.length = parseFloat(document.getElementById('sDim_length')?.value || 20);
+                params.depth = parseFloat(document.getElementById('sDim_depth')?.value || 1.6);
+                params.taperAngle = parseFloat(document.getElementById('sDim_taperAngle')?.value || 0);
+            } else {
+                // Non-threading operations - get values normally
+                def.fields.forEach(f => {
+                    const el = document.getElementById('sDim_' + f.id);
+                    if (el) params[f.id] = parseFloat(el.value);
+                });
+            }
+
+            const op = {
+                type, roughing: selectedCycle !== 'finishing',
+                finishing: selectedCycle !== 'roughing',
+                tool: parseInt(tool), speed: parseInt(speed),
+                roughFeed, finishFeed, doc: roughDOC,
+                finishAllowance: finishAllow, params
+            };
+
+            const progName = document.getElementById('sProgName').value.trim().toUpperCase();
+
+            let code = [];
+            code.push(`O${String(progNum).padStart(4, '0')}`);
+
+            if (addHeader) {
+                if (progName) {
+                    code.push(`(${progName})`);
+                }
+                code.push(`(${def.name.toUpperCase()} - ${def.cycle} CYCLE)`);
+                code.push(`(DATE: ${new Date().toLocaleDateString()})`);
+                code.push('');
+            }
+
+            if (addSafeStart) {
+                code.push('G28 U0 W0');
+                code.push(`G50 S${spindleMode === 'G96' ? maxRpm : speed}`);
+            }
+
+            code.push(`T${String(tool).padStart(2, '0')}${String(offset).padStart(2, '0')}`);
+            code.push(`${spindleMode} S${speed} M03`);
+            code.push(coolant);
+            code.push('G99');
+            code.push('');
+
+            const opCode = generateOperationCode(op, params.stockDia || 50, 5);
+            code = code.concat(opCode);
+
+            code.push('');
+            code.push('M09');
+            code.push('M05');
+            code.push('G28 U0 W0');
+            code.push('M30');
+
+            displayCode(code, 'singleOutput');
+        }
+
+        // Display & Utility Functions
+        function displayCode(codeArray, outputId) {
+            const output = document.getElementById(outputId);
+            let html = '';
+
+            codeArray.forEach(line => {
+                if (line.includes('(')) {
+                    const parts = line.split('(');
+                    if (parts[0]) html += formatLine(parts[0]);
+                    if (parts[1]) html += `<span class="comment">(${parts[1]}</span>`;
+                    html += '\n';
+                } else if (line.startsWith('O') || line === '') {
+                    html += (line ? `<span class="gcode">${line}</span>` : '') + '\n';
+                } else {
+                    html += formatLine(line) + '\n';
+                }
+            });
+
+            output.innerHTML = html;
+        }
+
+        function formatLine(line) {
+            return line
+                .replace(/(G\d+)/g, '<span class="gcode">$1</span>')
+                .replace(/(M\d+)/g, '<span class="mcode">$1</span>')
+                .replace(/([XZUVWPQRSF]-?\d+\.?\d*)/g, '<span class="coord">$1</span>')
+                .replace(/(T\d+)/g, '<span class="mcode">$1</span>')
+                .replace(/(N\d+)/g, '<span class="gcode">$1</span>');
+        }
+
+        function copyCode(outputId) {
+            const text = document.getElementById(outputId).innerText;
+            navigator.clipboard.writeText(text).then(() => alert('Copied!'));
+        }
+
+        function downloadCode(outputId) {
+            const text = document.getElementById(outputId).innerText;
+            const progNum = outputId === 'builderOutput'
+                ? document.getElementById('progNumber').value
+                : document.getElementById('sProgramNum').value;
+            const progName = outputId === 'builderOutput'
+                ? document.getElementById('progName').value.trim()
+                : document.getElementById('sProgName').value.trim();
+            const blob = new Blob([text], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            const filename = progName
+                ? `O${String(progNum).padStart(4, '0')}_${progName.toUpperCase().replace(/\s+/g, '-')}.nc`
+                : `O${String(progNum).padStart(4, '0')}.nc`;
+            a.download = filename;
+            a.click();
+        }
+    </script>
+</body>
+</html>
