@@ -782,6 +782,37 @@
         <div class="tab-content" id="single-tab">
             <div class="layout">
                 <div class="left-column">
+                    <!-- Program Settings for Single Operation -->
+                    <div class="card">
+                        <div class="card-title">Program Settings</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Program Number</label>
+                                <input type="number" id="sProgramNum" value="1000">
+                            </div>
+                            <div class="form-group">
+                                <label>Program Name</label>
+                                <input type="text" id="sProgName" placeholder="e.g., SHAFT-001" maxlength="20">
+                            </div>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="card-title" style="font-size:13px;">Safe Approach/Retract (G1)</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>X Clearance (mm)</label>
+                                <input type="number" id="sXClearance" value="2" step="0.5">
+                            </div>
+                            <div class="form-group">
+                                <label>Z Clearance (mm)</label>
+                                <input type="number" id="sZClearance" value="2" step="0.5">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Approach/Retract Feed (mm/rev)</label>
+                            <input type="number" id="sApproachFeed" value="0.3" step="0.05">
+                        </div>
+                    </div>
+
                     <!-- Operation Type -->
                     <div class="card">
                         <div class="card-title">Operation Type</div>
@@ -792,13 +823,20 @@
                                 <option value="od-taper">OD Taper Turning (G71)</option>
                                 <option value="id-boring">ID Boring (G71)</option>
                                 <option value="id-taper">ID Taper Boring (G71)</option>
-                                <option value="thread-relief">Thread Relief Groove</option>
                                 <option value="od-threading">OD Threading (G76)</option>
                                 <option value="id-threading">ID Threading (G76)</option>
                                 <option value="grooving">Grooving (G75)</option>
                                 <option value="drilling">Peck Drilling (G74)</option>
                                 <option value="parting">Parting</option>
                             </select>
+                        </div>
+
+                        <!-- Thread Relief Option (shown for threading) -->
+                        <div id="threadReliefOption" style="display:none; margin-top:12px;">
+                            <div class="checkbox-row" style="background:#e8f4fd; padding:10px; border-radius:8px;">
+                                <input type="checkbox" id="sIncludeThreadRelief" checked>
+                                <label for="sIncludeThreadRelief" style="font-weight:600;">Include Thread Relief Groove (ISO Standard)</label>
+                            </div>
                         </div>
 
                         <!-- Cycle Type Toggle -->
@@ -901,33 +939,7 @@
                             <input type="checkbox" id="sAddSafeStart" checked>
                             <label for="sAddSafeStart">Add safe start (G28)</label>
                         </div>
-                        <div class="form-row" style="margin-top:12px;">
-                            <div class="form-group">
-                                <label>Program Number</label>
-                                <input type="number" id="sProgramNum" value="1000">
-                            </div>
-                            <div class="form-group">
-                                <label>Program Name</label>
-                                <input type="text" id="sProgName" placeholder="e.g., SHAFT-001" maxlength="20">
-                            </div>
-                        </div>
-                        <div class="divider"></div>
-                        <div class="card-title" style="font-size:13px;">Safe Approach/Retract (G1)</div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>X Clearance (mm)</label>
-                                <input type="number" id="sXClearance" value="2" step="0.5">
-                            </div>
-                            <div class="form-group">
-                                <label>Z Clearance (mm)</label>
-                                <input type="number" id="sZClearance" value="2" step="0.5">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Approach/Retract Feed (mm/rev)</label>
-                            <input type="number" id="sApproachFeed" value="0.3" step="0.05">
-                        </div>
-                        <button class="btn btn-block" onclick="generateSingleOp()">Generate G-Code</button>
+                        <button class="btn btn-block" style="margin-top:12px;" onclick="generateSingleOp()">Generate G-Code</button>
                     </div>
                 </div>
 
@@ -1897,6 +1909,7 @@
                 op.params.depth = sizeData.depth;
                 op.params.length = 20;
                 op.params.taperAngle = 0;
+                op.params.includeThreadRelief = true; // Default include thread relief
             } else if (def.hasThreadRelief) {
                 // Thread relief with ISO defaults
                 const defaultPitch = 2.0;
@@ -2002,6 +2015,15 @@
                 const currentType = op.params.threadType || 'metric';
                 const currentSize = op.params.threadSize || 'M10';
                 const isTapered = currentType === 'npt' || currentType === 'bspt';
+                const includeRelief = op.params.includeThreadRelief !== false; // Default true
+
+                // Thread relief option
+                html += `
+                    <div class="checkbox-row" style="background:#e8f4fd; padding:10px; border-radius:8px; margin-bottom:12px;">
+                        <input type="checkbox" id="editParam_includeThreadRelief" ${includeRelief ? 'checked' : ''}>
+                        <label for="editParam_includeThreadRelief" style="font-weight:600;">Include Thread Relief Groove (ISO Standard)</label>
+                    </div>
+                `;
 
                 // Build thread type options
                 const threadTypes = [
@@ -2227,6 +2249,7 @@
                 op.params.length = parseFloat(document.getElementById('editParam_length').value);
                 op.params.depth = parseFloat(document.getElementById('editParam_depth').value);
                 op.params.taperAngle = parseFloat(document.getElementById('editParam_taperAngle').value);
+                op.params.includeThreadRelief = document.getElementById('editParam_includeThreadRelief')?.checked ?? true;
             } else if (def.hasThreadRelief) {
                 // Thread relief operation
                 op.params.reliefType = document.getElementById('editParam_reliefType').value;
@@ -2351,7 +2374,61 @@
             code.push('');
 
             operations.forEach((op, i) => {
-                code.push(`(--- OPERATION ${i + 1}: ${op.name.toUpperCase()} ---)`);
+                const def = opDefinitions[op.type];
+                const isThreadingOp = ['od-threading', 'id-threading'].includes(op.type);
+                const includeRelief = op.params.includeThreadRelief;
+
+                // If threading with thread relief, generate thread relief first
+                if (isThreadingOp && includeRelief) {
+                    const groovingTool = 6; // Default grooving tool
+                    code.push(`(--- OPERATION ${i + 1}a: THREAD RELIEF GROOVE ---)`);
+                    code.push(`T${String(groovingTool).padStart(2, '0')}${String(groovingTool).padStart(2, '0')}`);
+                    code.push(`G97 S${Math.round(op.speed * 0.7)} M03`);
+                    code.push('M08');
+                    code.push('G99');
+                    code.push('');
+
+                    // Calculate ISO thread relief dimensions
+                    const pitch = op.params.pitch || 2.0;
+                    const reliefWidth = pitch * 2;
+                    const reliefDepth = pitch * 0.1 + 0.2;
+                    const threadLength = op.params.length || 20;
+                    const outerDia = op.type === 'od-threading' ? op.params.majorDia : op.params.minorDia;
+                    const zPos = -threadLength;
+
+                    const reliefOp = {
+                        type: 'thread-relief',
+                        roughing: true,
+                        finishing: false,
+                        tool: groovingTool,
+                        speed: Math.round(op.speed * 0.7),
+                        roughFeed: op.roughFeed / 2,
+                        finishFeed: op.finishFeed,
+                        doc: op.doc,
+                        finishAllowance: op.finishAllowance,
+                        params: {
+                            reliefType: 'iso',
+                            threadPitch: pitch,
+                            outerDia: outerDia,
+                            reliefWidth: reliefWidth,
+                            reliefDepth: reliefDepth,
+                            cornerRadius: 0.3,
+                            zPos: zPos
+                        }
+                    };
+
+                    const reliefCode = generateOperationCode(reliefOp, turningDia, safeZ, xClearance, zClearance, approachFeed);
+                    code = code.concat(reliefCode);
+
+                    code.push('');
+                    code.push('G28 U0 W0');
+                    code.push('M05');
+                    code.push('M09');
+                    code.push('');
+                }
+
+                // Main operation
+                code.push(`(--- OPERATION ${i + 1}${isThreadingOp && includeRelief ? 'b' : ''}: ${op.name.toUpperCase()} ---)`);
                 code.push(`T${String(op.tool).padStart(2, '0')}${String(op.tool).padStart(2, '0')}`);
                 code.push(`G97 S${op.speed} M03`);
                 code.push('M08');
@@ -2664,6 +2741,14 @@
                 cycleToggle.style.display = 'none';
             } else {
                 cycleToggle.style.display = 'flex';
+            }
+
+            // Show/hide thread relief option for threading operations
+            const threadReliefOption = document.getElementById('threadReliefOption');
+            if (['od-threading', 'id-threading'].includes(type)) {
+                threadReliefOption.style.display = 'block';
+            } else {
+                threadReliefOption.style.display = 'none';
             }
 
             let html = `<div class="op-illustration">${getOperationIllustration(type)}</div>`;
@@ -3014,6 +3099,62 @@
                 code.push(`G50 S${spindleMode === 'G96' ? maxRpm : speed}`);
             }
 
+            // Check if thread relief should be included for threading operations
+            const includeThreadRelief = document.getElementById('sIncludeThreadRelief')?.checked;
+            const isThreadingOp = ['od-threading', 'id-threading'].includes(type);
+
+            // If threading with thread relief, generate thread relief first with grooving tool
+            if (isThreadingOp && includeThreadRelief) {
+                const groovingTool = 6; // Default grooving tool number
+                code.push('(--- THREAD RELIEF GROOVE ---)');
+                code.push(`T${String(groovingTool).padStart(2, '0')}${String(groovingTool).padStart(2, '0')}`);
+                code.push(`G97 S${Math.round(speed * 0.7)} M03`);
+                code.push(coolant);
+                code.push('G99');
+                code.push('');
+
+                // Calculate ISO thread relief dimensions
+                const pitch = params.pitch || 2.0;
+                const reliefWidth = pitch * 2;
+                const reliefDepth = pitch * 0.1 + 0.2;
+                const threadLength = params.length || 20;
+                const outerDia = type === 'od-threading' ? params.majorDia : params.minorDia;
+                const zPos = -threadLength; // Position at end of thread
+
+                // Create thread relief operation
+                const reliefOp = {
+                    type: 'thread-relief',
+                    roughing: true,
+                    finishing: false,
+                    tool: groovingTool,
+                    speed: Math.round(speed * 0.7),
+                    roughFeed: roughFeed / 2,
+                    finishFeed: finishFeed,
+                    doc: roughDOC,
+                    finishAllowance: finishAllow,
+                    params: {
+                        reliefType: 'iso',
+                        threadPitch: pitch,
+                        outerDia: outerDia,
+                        reliefWidth: reliefWidth,
+                        reliefDepth: reliefDepth,
+                        cornerRadius: 0.3,
+                        zPos: zPos
+                    }
+                };
+
+                const reliefCode = generateOperationCode(reliefOp, params.stockDia || 50, 5, sXClearance, sZClearance, sApproachFeed);
+                code = code.concat(reliefCode);
+
+                code.push('');
+                code.push('G28 U0 W0');
+                code.push('M05');
+                code.push('M09');
+                code.push('');
+            }
+
+            // Main operation tool call
+            code.push(`(--- ${def.name.toUpperCase()} ---)`);
             code.push(`T${String(tool).padStart(2, '0')}${String(offset).padStart(2, '0')}`);
             code.push(`${spindleMode} S${speed} M03`);
             code.push(coolant);
