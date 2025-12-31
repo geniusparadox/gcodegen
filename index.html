@@ -3647,13 +3647,18 @@
                 }
             }
 
+            // If no cutting profile found, use all profile points as fallback
+            if (cuttingProfile.length === 0) {
+                cuttingProfile = profilePoints.filter(p => p.x <= stockDia);
+            }
+
             // Use the actual Z extent from the cutting profile (not retract moves)
             const endZ = cuttingProfile.length > 0 ? Math.min(...cuttingProfile.map(p => p.z)) : -stockLen;
             const startZ = 1; // Start cutting just before Z0
 
             // Calculate number of passes needed
             const totalDepth = (stockDia - minDia) / 2; // Radius difference
-            const numPasses = Math.ceil(totalDepth / doc);
+            const numPasses = Math.max(1, Math.ceil(totalDepth / doc)); // At least 1 pass
 
             // Retract position
             let retractX = stockDia + 2;
@@ -3806,11 +3811,11 @@
 
             // Add padding
             const padding = showLabels ? 30 : 20;
-            const zRange = maxZ - minZ;
-            const xRange = maxX;
+            const zRange = Math.max(1, maxZ - minZ); // Prevent division by zero
+            const xRange = Math.max(1, maxX); // Prevent division by zero
             const scaleZ = (width - 2 * padding) / zRange;
             const scaleX = (height - 2 * padding) / (xRange * 1.2);
-            const scale = Math.min(scaleZ, scaleX);
+            const scale = Math.min(scaleZ, scaleX) || 1; // Fallback to 1 if NaN
 
             // Transform functions (inverted Z: tool moves right to left, 3 o'clock to 9 o'clock)
             // Z positive (safe Z) on right, Z negative (into workpiece) on left
