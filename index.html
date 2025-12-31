@@ -676,6 +676,22 @@
                                 <input type="number" id="safeZ" value="5" step="0.1">
                             </div>
                         </div>
+                        <div class="divider"></div>
+                        <div class="card-title" style="font-size:13px;">Safe Approach/Retract (G1)</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>X Clearance (mm)</label>
+                                <input type="number" id="xClearance" value="2" step="0.5">
+                            </div>
+                            <div class="form-group">
+                                <label>Z Clearance (mm)</label>
+                                <input type="number" id="zClearance" value="2" step="0.5">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Approach/Retract Feed (mm/rev)</label>
+                            <input type="number" id="approachFeed" value="0.3" step="0.05">
+                        </div>
                     </div>
 
                     <!-- Operation Sequence -->
@@ -719,6 +735,10 @@
                             <button class="add-op-btn" onclick="addOperation('drilling')">
                                 <svg viewBox="0 0 40 40"><line x1="20" y1="8" x2="20" y2="32" stroke-width="2"/></svg>
                                 Drilling
+                            </button>
+                            <button class="add-op-btn" onclick="addOperation('thread-relief')">
+                                <svg viewBox="0 0 40 40"><rect x="16" y="12" width="8" height="16" stroke-width="1.5"/><path d="M14,20 L26,20" stroke-width="1" stroke-dasharray="2,2"/></svg>
+                                Thread Relief
                             </button>
                             <button class="add-op-btn" onclick="addOperation('od-threading')">
                                 <svg viewBox="0 0 40 40"><path d="M14,10 L26,14 M14,18 L26,22 M14,26 L26,30" stroke-width="1.5"/></svg>
@@ -772,6 +792,7 @@
                                 <option value="od-taper">OD Taper Turning (G71)</option>
                                 <option value="id-boring">ID Boring (G71)</option>
                                 <option value="id-taper">ID Taper Boring (G71)</option>
+                                <option value="thread-relief">Thread Relief Groove</option>
                                 <option value="od-threading">OD Threading (G76)</option>
                                 <option value="id-threading">ID Threading (G76)</option>
                                 <option value="grooving">Grooving (G75)</option>
@@ -889,6 +910,22 @@
                                 <label>Program Name</label>
                                 <input type="text" id="sProgName" placeholder="e.g., SHAFT-001" maxlength="20">
                             </div>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="card-title" style="font-size:13px;">Safe Approach/Retract (G1)</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>X Clearance (mm)</label>
+                                <input type="number" id="sXClearance" value="2" step="0.5">
+                            </div>
+                            <div class="form-group">
+                                <label>Z Clearance (mm)</label>
+                                <input type="number" id="sZClearance" value="2" step="0.5">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Approach/Retract Feed (mm/rev)</label>
+                            <input type="number" id="sApproachFeed" value="0.3" step="0.05">
                         </div>
                         <button class="btn btn-block" onclick="generateSingleOp()">Generate G-Code</button>
                     </div>
@@ -1169,6 +1206,22 @@
                     { id: 'lengthInch', label: 'Thread Length (inch)', default: 0.6, hidden: true },
                     { id: 'depth', label: 'Thread Depth (mm)', default: 1.6 },
                     { id: 'taperAngle', label: 'Taper Angle (deg)', default: 0, hidden: true },
+                ]
+            },
+            'thread-relief': {
+                name: 'Thread Relief',
+                cycle: 'none',
+                tools: ['Grooving Tool', 'VNMG Tool'],
+                defaultTool: 6,
+                hasThreadRelief: true,
+                fields: [
+                    { id: 'reliefType', label: 'Relief Type', default: 'iso', type: 'select', options: ['iso', 'custom'] },
+                    { id: 'threadPitch', label: 'Thread Pitch (mm)', default: 2.0 },
+                    { id: 'outerDia', label: 'Outer Diameter (mm)', default: 20 },
+                    { id: 'reliefDepth', label: 'Relief Depth (mm)', default: 0 },
+                    { id: 'reliefWidth', label: 'Relief Width (mm)', default: 0 },
+                    { id: 'cornerRadius', label: 'Corner Radius (mm)', default: 0.3 },
+                    { id: 'zPos', label: 'Z Position', default: -20 },
                 ]
             },
             'grooving': {
@@ -1604,6 +1657,55 @@
                         <defs><marker id="arrow8" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0, 6 3, 0 6" fill="#666"/></marker></defs>
                     </svg>`,
 
+                'thread-relief': `
+                    <svg viewBox="0 0 280 140" width="280" height="140">
+                        <!-- Centerline -->
+                        <line x1="20" y1="85" x2="260" y2="85" class="centerline"/>
+                        <text x="250" y="89" font-size="8" fill="#9ca3af">CL</text>
+
+                        <!-- Chuck/Spindle -->
+                        <rect x="20" y="45" width="15" height="80" fill="#9ca3af" opacity="0.3"/>
+
+                        <!-- Workpiece with thread profile -->
+                        <rect x="35" y="50" width="100" height="35" class="workpiece"/>
+                        <rect x="135" y="55" width="60" height="30" class="workpiece"/>
+
+                        <!-- Thread profile on right section -->
+                        <path d="M175,55 L170,58 L175,61 L170,64 L175,67 L170,70 L175,73 L170,76 L175,79 L170,82 L175,85" stroke="#4A4E69" stroke-width="1" fill="none"/>
+
+                        <!-- Thread relief groove -->
+                        <rect x="130" y="50" width="5" height="10" class="cut-area"/>
+                        <path d="M130,60 Q130,62 132,62 L133,62 Q135,62 135,60" stroke="#ef4444" stroke-width="1" fill="none"/>
+
+                        <!-- Grooving tool -->
+                        <rect x="130" y="25" width="5" height="28" class="tool"/>
+
+                        <!-- Dimension: Relief Depth -->
+                        <line x1="120" y1="50" x2="120" y2="60" class="dim-line"/>
+                        <line x1="115" y1="50" x2="125" y2="50" class="dim-line"/>
+                        <line x1="115" y1="60" x2="125" y2="60" class="dim-line"/>
+                        <text x="85" y="55" class="dim-text">Depth</text>
+
+                        <!-- Dimension: Relief Width -->
+                        <line x1="130" y1="20" x2="135" y2="20" class="dim-line"/>
+                        <line x1="130" y1="15" x2="130" y2="25" class="dim-line"/>
+                        <line x1="135" y1="15" x2="135" y2="25" class="dim-line"/>
+                        <text x="125" y="12" class="dim-text">Width</text>
+
+                        <!-- ISO Standard note -->
+                        <text x="60" y="100" font-size="8" fill="#2563eb">ISO: Width = 2×Pitch, Depth = 0.1×Pitch</text>
+
+                        <!-- Corner radius indicator -->
+                        <text x="140" y="68" class="dim-text">R</text>
+
+                        <!-- Axes -->
+                        <line x1="250" y1="120" x2="220" y2="120" stroke="#666" stroke-width="1" marker-end="url(#arrowTR)"/>
+                        <text x="228" y="132" font-size="9" fill="#666">Z</text>
+                        <line x1="250" y1="120" x2="250" y2="100" stroke="#666" stroke-width="1" marker-end="url(#arrowTR)"/>
+                        <text x="253" y="108" font-size="9" fill="#666">X</text>
+                        <defs><marker id="arrowTR" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0 0, 6 3, 0 6" fill="#666"/></marker></defs>
+                    </svg>`,
+
                 'grooving': `
                     <svg viewBox="0 0 280 140" width="280" height="140">
                         <!-- Centerline -->
@@ -1795,6 +1897,16 @@
                 op.params.depth = sizeData.depth;
                 op.params.length = 20;
                 op.params.taperAngle = 0;
+            } else if (def.hasThreadRelief) {
+                // Thread relief with ISO defaults
+                const defaultPitch = 2.0;
+                op.params.reliefType = 'iso';
+                op.params.threadPitch = defaultPitch;
+                op.params.outerDia = 20;
+                op.params.reliefDepth = defaultPitch * 0.1 + 0.2; // ISO: 0.1P + 0.2mm clearance
+                op.params.reliefWidth = defaultPitch * 2; // ISO: 2 x Pitch
+                op.params.cornerRadius = 0.3;
+                op.params.zPos = -20;
             } else {
                 def.fields.forEach(f => {
                     op.params[f.id] = f.default;
@@ -1943,6 +2055,49 @@
                     </div>
                     <input type="hidden" id="editParam_taperAngle" value="${op.params.taperAngle || 0}">
                 `;
+            } else if (def.hasThreadRelief) {
+                // Thread relief form in modal
+                const reliefType = op.params.reliefType || 'iso';
+                const isIso = reliefType === 'iso';
+                html += `
+                    <div class="form-group">
+                        <label>Relief Type</label>
+                        <select id="editParam_reliefType" onchange="updateModalReliefFields()">
+                            <option value="iso" ${reliefType === 'iso' ? 'selected' : ''}>ISO Standard (Width = 2×Pitch)</option>
+                            <option value="custom" ${reliefType === 'custom' ? 'selected' : ''}>Custom Dimensions</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Thread Pitch (mm)</label>
+                            <input type="number" id="editParam_threadPitch" value="${op.params.threadPitch || 2.0}" step="0.1" onchange="updateModalReliefFields()">
+                        </div>
+                        <div class="form-group">
+                            <label>Outer Diameter (mm)</label>
+                            <input type="number" id="editParam_outerDia" value="${op.params.outerDia || 20}" step="0.1">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Relief Width (mm)</label>
+                            <input type="number" id="editParam_reliefWidth" value="${op.params.reliefWidth || 4.0}" step="0.1" ${isIso ? 'readonly style="background:#f0f0f0;"' : ''}>
+                        </div>
+                        <div class="form-group">
+                            <label>Relief Depth (mm)</label>
+                            <input type="number" id="editParam_reliefDepth" value="${op.params.reliefDepth || 0.4}" step="0.1" ${isIso ? 'readonly style="background:#f0f0f0;"' : ''}>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Corner Radius (mm)</label>
+                            <input type="number" id="editParam_cornerRadius" value="${op.params.cornerRadius || 0.3}" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Z Position (mm)</label>
+                            <input type="number" id="editParam_zPos" value="${op.params.zPos || -20}" step="0.1">
+                        </div>
+                    </div>
+                `;
             } else {
                 def.fields.forEach(f => {
                     html += `
@@ -1970,6 +2125,41 @@
 
             // Update dimensions for first size
             updateModalThreadDimensions();
+        }
+
+        function updateModalReliefFields() {
+            const reliefType = document.getElementById('editParam_reliefType')?.value || 'iso';
+            const pitch = parseFloat(document.getElementById('editParam_threadPitch')?.value || 2.0);
+
+            const widthEl = document.getElementById('editParam_reliefWidth');
+            const depthEl = document.getElementById('editParam_reliefDepth');
+
+            if (reliefType === 'iso') {
+                // Calculate ISO standard dimensions
+                const isoWidth = pitch * 2;
+                const isoDepth = pitch * 0.1 + 0.2;
+
+                if (widthEl) {
+                    widthEl.value = isoWidth.toFixed(2);
+                    widthEl.style.background = '#f0f0f0';
+                    widthEl.readOnly = true;
+                }
+                if (depthEl) {
+                    depthEl.value = isoDepth.toFixed(2);
+                    depthEl.style.background = '#f0f0f0';
+                    depthEl.readOnly = true;
+                }
+            } else {
+                // Custom - allow editing
+                if (widthEl) {
+                    widthEl.style.background = '#fff';
+                    widthEl.readOnly = false;
+                }
+                if (depthEl) {
+                    depthEl.style.background = '#fff';
+                    depthEl.readOnly = false;
+                }
+            }
         }
 
         function updateModalThreadDimensions() {
@@ -2037,6 +2227,15 @@
                 op.params.length = parseFloat(document.getElementById('editParam_length').value);
                 op.params.depth = parseFloat(document.getElementById('editParam_depth').value);
                 op.params.taperAngle = parseFloat(document.getElementById('editParam_taperAngle').value);
+            } else if (def.hasThreadRelief) {
+                // Thread relief operation
+                op.params.reliefType = document.getElementById('editParam_reliefType').value;
+                op.params.threadPitch = parseFloat(document.getElementById('editParam_threadPitch').value);
+                op.params.outerDia = parseFloat(document.getElementById('editParam_outerDia').value);
+                op.params.reliefWidth = parseFloat(document.getElementById('editParam_reliefWidth').value);
+                op.params.reliefDepth = parseFloat(document.getElementById('editParam_reliefDepth').value);
+                op.params.cornerRadius = parseFloat(document.getElementById('editParam_cornerRadius').value);
+                op.params.zPos = parseFloat(document.getElementById('editParam_zPos').value);
             } else {
                 def.fields.forEach(f => {
                     op.params[f.id] = parseFloat(document.getElementById('editParam_' + f.id).value);
@@ -2115,6 +2314,9 @@
             const stockDia = parseFloat(document.getElementById('stockDiameter').value);
             const stockLen = parseFloat(document.getElementById('stockLength').value);
             const safeZ = parseFloat(document.getElementById('safeZ').value);
+            const xClearance = parseFloat(document.getElementById('xClearance').value);
+            const zClearance = parseFloat(document.getElementById('zClearance').value);
+            const approachFeed = parseFloat(document.getElementById('approachFeed').value);
 
             // Calculate turning diameter for hex/square stock
             let turningDia = stockDia;
@@ -2156,7 +2358,7 @@
                 code.push('G99');
                 code.push('');
 
-                const opCode = generateOperationCode(op, turningDia, safeZ);
+                const opCode = generateOperationCode(op, turningDia, safeZ, xClearance, zClearance, approachFeed);
                 code = code.concat(opCode);
 
                 code.push('');
@@ -2172,9 +2374,13 @@
             displayCode(code, 'builderOutput');
         }
 
-        function generateOperationCode(op, stockDia, safeZ) {
+        function generateOperationCode(op, stockDia, safeZ, xClear, zClear, approachFeed) {
             let code = [];
             const p = op.params;
+            // Use defaults if not provided
+            const xClearance = xClear || 2;
+            const zClearance = zClear || 2;
+            const appFeed = approachFeed || 0.3;
 
             switch(op.type) {
                 case 'facing':
@@ -2297,17 +2503,25 @@
                         const threadTypeLabel = p.threadType ? p.threadType.toUpperCase() : 'METRIC';
                         const threadSize = p.threadSize || '';
                         const isTapered = p.taperAngle > 0;
+                        const startX = p.majorDia + xClearance;
+                        const startZ = zClearance;
 
                         code.push(`(G76 OD THREADING - ${threadSize})`);
                         code.push(`(STANDARD: ${threadTypeLabel} - PITCH: ${p.pitch.toFixed(3)}mm)`);
                         code.push(`(MAJOR DIA: ${p.majorDia.toFixed(3)}mm - DEPTH: ${p.depth.toFixed(3)}mm)`);
 
                         if (isTapered) {
-                            const taperPerSide = p.length * Math.tan(p.taperAngle * Math.PI / 180);
                             code.push(`(TAPERED: 1:16 TAPER OVER ${p.length.toFixed(1)}mm)`);
                         }
 
-                        code.push(`G00 X${(p.majorDia + 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        // Safe rapid to clearance position
+                        code.push(`G00 X${(startX + 10).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        // G1 approach to starting position
+                        code.push('(SAFE APPROACH - G1)');
+                        code.push(`G01 X${startX.toFixed(1)} F${appFeed}`);
+                        code.push(`G01 Z${startZ.toFixed(1)} F${appFeed}`);
+
+                        // Threading cycle
                         code.push('G76 P010060 Q100 R0.05');
 
                         if (isTapered) {
@@ -2316,6 +2530,12 @@
                         } else {
                             code.push(`G76 X${(p.majorDia - p.depth * 2).toFixed(3)} Z-${p.length.toFixed(1)} P${(p.depth * 1000).toFixed(0)} Q200 F${p.pitch.toFixed(3)}`);
                         }
+
+                        // Safe G1 retract
+                        code.push('(SAFE RETRACT - G1)');
+                        code.push(`G01 X${startX.toFixed(1)} F${appFeed}`);
+                        code.push(`G01 Z${startZ.toFixed(1)} F${appFeed}`);
+                        code.push(`G00 X${(startX + 10).toFixed(1)} Z${safeZ.toFixed(1)}`);
                     }
                     break;
 
@@ -2324,6 +2544,8 @@
                         const threadTypeLabel = p.threadType ? p.threadType.toUpperCase() : 'METRIC';
                         const threadSize = p.threadSize || '';
                         const isTapered = p.taperAngle > 0;
+                        const startX = p.minorDia - xClearance;
+                        const startZ = zClearance;
 
                         code.push(`(G76 ID THREADING - ${threadSize})`);
                         code.push(`(STANDARD: ${threadTypeLabel} - PITCH: ${p.pitch.toFixed(3)}mm)`);
@@ -2333,7 +2555,14 @@
                             code.push(`(TAPERED: 1:16 TAPER OVER ${p.length.toFixed(1)}mm)`);
                         }
 
-                        code.push(`G00 X${(p.minorDia - 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        // Safe rapid to clearance position
+                        code.push(`G00 X${(startX - 5).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        // G1 approach to starting position
+                        code.push('(SAFE APPROACH - G1)');
+                        code.push(`G01 X${startX.toFixed(1)} F${appFeed}`);
+                        code.push(`G01 Z${startZ.toFixed(1)} F${appFeed}`);
+
+                        // Threading cycle
                         code.push('G76 P010060 Q100 R0.05');
 
                         if (isTapered) {
@@ -2342,6 +2571,64 @@
                         } else {
                             code.push(`G76 X${(p.minorDia + p.depth * 2).toFixed(3)} Z-${p.length.toFixed(1)} P${(p.depth * 1000).toFixed(0)} Q200 F${p.pitch.toFixed(3)}`);
                         }
+
+                        // Safe G1 retract
+                        code.push('(SAFE RETRACT - G1)');
+                        code.push(`G01 X${startX.toFixed(1)} F${appFeed}`);
+                        code.push(`G01 Z${startZ.toFixed(1)} F${appFeed}`);
+                        code.push(`G00 X${(startX - 5).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                    }
+                    break;
+
+                case 'thread-relief':
+                    {
+                        // Calculate ISO thread relief dimensions if using ISO standard
+                        // ISO: Width = 2 x Pitch, Depth = 0.1 x Pitch + clearance
+                        const pitch = p.threadPitch || 2.0;
+                        let reliefWidth = p.reliefWidth;
+                        let reliefDepth = p.reliefDepth;
+                        const radius = p.cornerRadius || 0.3;
+
+                        if (p.reliefType === 'iso') {
+                            reliefWidth = pitch * 2;
+                            reliefDepth = pitch * 0.1 + 0.2; // ISO standard with clearance
+                        }
+
+                        const startX = p.outerDia + xClearance;
+                        const grooveX = p.outerDia - (reliefDepth * 2);
+                        const grooveZ = p.zPos;
+
+                        code.push(`(THREAD RELIEF GROOVE - ISO STANDARD)`);
+                        code.push(`(PITCH: ${pitch.toFixed(2)}mm - WIDTH: ${reliefWidth.toFixed(2)}mm - DEPTH: ${reliefDepth.toFixed(2)}mm)`);
+                        code.push(`(CORNER RADIUS: ${radius.toFixed(2)}mm)`);
+
+                        // Safe rapid to clearance position
+                        code.push(`G00 X${(startX + 10).toFixed(1)} Z${safeZ.toFixed(1)}`);
+
+                        // G1 approach to starting position
+                        code.push('(SAFE APPROACH - G1)');
+                        code.push(`G01 X${startX.toFixed(1)} F${appFeed}`);
+                        code.push(`G01 Z${(grooveZ + zClearance).toFixed(1)} F${appFeed}`);
+
+                        // Position for grooving
+                        code.push(`G00 X${p.outerDia.toFixed(1)} Z${grooveZ.toFixed(1)}`);
+
+                        // Plunge groove with corner blend
+                        code.push('(GROOVE PLUNGE)');
+                        code.push(`G01 X${grooveX.toFixed(3)} F${(op.roughFeed / 2).toFixed(3)}`);
+                        code.push('G04 P200'); // Dwell for chip breaking
+
+                        // Move along groove width
+                        code.push(`G01 Z${(grooveZ - reliefWidth).toFixed(1)} F${(op.roughFeed / 2).toFixed(3)}`);
+
+                        // Retract from groove
+                        code.push(`G01 X${p.outerDia.toFixed(1)} F${(op.roughFeed / 2).toFixed(3)}`);
+
+                        // Safe G1 retract
+                        code.push('(SAFE RETRACT - G1)');
+                        code.push(`G01 X${startX.toFixed(1)} F${appFeed}`);
+                        code.push(`G01 Z${zClearance.toFixed(1)} F${appFeed}`);
+                        code.push(`G00 X${(startX + 10).toFixed(1)} Z${safeZ.toFixed(1)}`);
                     }
                     break;
 
@@ -2373,7 +2660,7 @@
             // Show/hide cycle toggle for certain operations
             // Show for facing, od-turning, od-taper, id-boring, id-taper (operations with roughing + finishing cycles)
             const cycleToggle = document.getElementById('cycleToggle');
-            if (['drilling', 'od-threading', 'id-threading', 'grooving', 'parting'].includes(type)) {
+            if (['drilling', 'od-threading', 'id-threading', 'thread-relief', 'grooving', 'parting'].includes(type)) {
                 cycleToggle.style.display = 'none';
             } else {
                 cycleToggle.style.display = 'flex';
@@ -2397,6 +2684,61 @@
                 `;
                 container.innerHTML = html;
                 updateThreadFields();
+            } else if (def.hasThreadRelief) {
+                // Thread relief form
+                html += `
+                    <div class="form-group">
+                        <label>Relief Type</label>
+                        <select id="sDim_reliefType" onchange="updateReliefFields()">
+                            <option value="iso">ISO Standard (Width = 2×Pitch)</option>
+                            <option value="custom">Custom Dimensions</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tool Type</label>
+                        <select id="sDim_toolType">
+                            <option value="grooving">Grooving Tool</option>
+                            <option value="vnmg">VNMG Tool</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Thread Pitch (mm)</label>
+                            <input type="number" id="sDim_threadPitch" value="2.0" step="0.1" onchange="updateReliefFields()">
+                        </div>
+                        <div class="form-group">
+                            <label>Outer Diameter (mm)</label>
+                            <input type="number" id="sDim_outerDia" value="20" step="0.1">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Relief Width (mm)</label>
+                            <input type="number" id="sDim_reliefWidth" value="4.0" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Relief Depth (mm)</label>
+                            <input type="number" id="sDim_reliefDepth" value="0.4" step="0.1">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Corner Radius (mm)</label>
+                            <input type="number" id="sDim_cornerRadius" value="0.3" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Z Position (mm)</label>
+                            <input type="number" id="sDim_zPos" value="-20" step="0.1">
+                        </div>
+                    </div>
+                    <div style="background:#e8f4fd; padding:10px; border-radius:8px; margin-top:10px; font-size:12px;">
+                        <strong>ISO Thread Relief Standard:</strong><br>
+                        Width = 2 × Pitch<br>
+                        Depth = 0.1 × Pitch + 0.2mm (clearance)
+                    </div>
+                `;
+                container.innerHTML = html;
+                updateReliefFields();
             } else {
                 def.fields.forEach((f, i) => {
                     if (f.hidden) return;
@@ -2520,6 +2862,41 @@
             }
         }
 
+        function updateReliefFields() {
+            const reliefType = document.getElementById('sDim_reliefType')?.value || 'iso';
+            const pitch = parseFloat(document.getElementById('sDim_threadPitch')?.value || 2.0);
+
+            const widthEl = document.getElementById('sDim_reliefWidth');
+            const depthEl = document.getElementById('sDim_reliefDepth');
+
+            if (reliefType === 'iso') {
+                // Calculate ISO standard dimensions
+                const isoWidth = pitch * 2;
+                const isoDepth = pitch * 0.1 + 0.2;
+
+                if (widthEl) {
+                    widthEl.value = isoWidth.toFixed(2);
+                    widthEl.style.background = '#f0f0f0';
+                    widthEl.readOnly = true;
+                }
+                if (depthEl) {
+                    depthEl.value = isoDepth.toFixed(2);
+                    depthEl.style.background = '#f0f0f0';
+                    depthEl.readOnly = true;
+                }
+            } else {
+                // Custom - allow editing
+                if (widthEl) {
+                    widthEl.style.background = '#fff';
+                    widthEl.readOnly = false;
+                }
+                if (depthEl) {
+                    depthEl.style.background = '#fff';
+                    depthEl.readOnly = false;
+                }
+            }
+        }
+
         function updateSpindleFields() {
             const mode = document.getElementById('sSpindleMode').value;
             const label = document.getElementById('sSpeedLabel');
@@ -2587,6 +2964,16 @@
                 params.length = parseFloat(document.getElementById('sDim_length')?.value || 20);
                 params.depth = parseFloat(document.getElementById('sDim_depth')?.value || 1.6);
                 params.taperAngle = parseFloat(document.getElementById('sDim_taperAngle')?.value || 0);
+            } else if (def.hasThreadRelief) {
+                // Thread relief operation
+                params.reliefType = document.getElementById('sDim_reliefType')?.value || 'iso';
+                params.toolType = document.getElementById('sDim_toolType')?.value || 'grooving';
+                params.threadPitch = parseFloat(document.getElementById('sDim_threadPitch')?.value || 2.0);
+                params.outerDia = parseFloat(document.getElementById('sDim_outerDia')?.value || 20);
+                params.reliefWidth = parseFloat(document.getElementById('sDim_reliefWidth')?.value || 4.0);
+                params.reliefDepth = parseFloat(document.getElementById('sDim_reliefDepth')?.value || 0.4);
+                params.cornerRadius = parseFloat(document.getElementById('sDim_cornerRadius')?.value || 0.3);
+                params.zPos = parseFloat(document.getElementById('sDim_zPos')?.value || -20);
             } else {
                 // Non-threading operations - get values normally
                 def.fields.forEach(f => {
@@ -2594,6 +2981,11 @@
                     if (el) params[f.id] = parseFloat(el.value);
                 });
             }
+
+            // Get safe approach parameters for single operation
+            const sXClearance = parseFloat(document.getElementById('sXClearance')?.value || 2);
+            const sZClearance = parseFloat(document.getElementById('sZClearance')?.value || 2);
+            const sApproachFeed = parseFloat(document.getElementById('sApproachFeed')?.value || 0.3);
 
             const op = {
                 type, roughing: selectedCycle !== 'finishing',
@@ -2628,7 +3020,7 @@
             code.push('G99');
             code.push('');
 
-            const opCode = generateOperationCode(op, params.stockDia || 50, 5);
+            const opCode = generateOperationCode(op, params.stockDia || 50, 5, sXClearance, sZClearance, sApproachFeed);
             code = code.concat(opCode);
 
             code.push('');
