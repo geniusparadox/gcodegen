@@ -1003,6 +1003,7 @@
                         <div class="output-actions">
                             <button class="btn btn-secondary" onclick="copyCode('builderOutput')">📋 Copy</button>
                             <button class="btn btn-secondary" onclick="downloadCode('builderOutput')">💾 Download</button>
+                            <button class="btn btn-secondary" id="builderSimBtn" onclick="toggleSimulation('builder')" style="display:none;">📊 Simulation</button>
                         </div>
                         <div class="simulation-container" id="builderSimulation" style="display:none;">
                             <div class="simulation-header">
@@ -1219,6 +1220,7 @@
                         <div class="output-actions">
                             <button class="btn btn-secondary" onclick="copyCode('singleOutput')">📋 Copy</button>
                             <button class="btn btn-secondary" onclick="downloadCode('singleOutput')">💾 Download</button>
+                            <button class="btn btn-secondary" id="singleSimBtn" onclick="toggleSimulation('single')" style="display:none;">📊 Simulation</button>
                         </div>
                         <div class="simulation-container" id="singleSimulation" style="display:none;">
                             <div class="simulation-header">
@@ -4116,19 +4118,38 @@
             const simContainer = document.getElementById(simulationId);
             if (!canvas || !simContainer) return;
 
-            // Show the simulation container
-            simContainer.style.display = 'block';
-
             // Parse G-code to get toolpath (pass stock params for proper start position and Z length)
             const toolpath = parseGCodeForSimulation(gcode, stockDia, safeZ, stockLen);
 
-            // Store data for expand functionality
+            // Store data for toggle/expand functionality
             const simType = canvasId.includes('builder') ? 'builder' : 'single';
             currentSimulationData[simType] = { toolpath, stockDia, stockLen, safeZ };
 
-            // Generate and display SVG
+            // Generate SVG (but don't show yet)
             const svg = generateSimulationSVG(toolpath, stockDia, stockLen, safeZ, 600, 400, true);
             canvas.innerHTML = svg;
+
+            // Show the simulation button (not the simulation itself)
+            const simBtn = document.getElementById(simType + 'SimBtn');
+            if (simBtn) simBtn.style.display = 'inline-block';
+
+            // Hide simulation container by default
+            simContainer.style.display = 'none';
+        }
+
+        function toggleSimulation(type) {
+            const simContainer = document.getElementById(type === 'builder' ? 'builderSimulation' : 'singleSimulation');
+            const simBtn = document.getElementById(type + 'SimBtn');
+
+            if (!simContainer) return;
+
+            if (simContainer.style.display === 'none') {
+                simContainer.style.display = 'block';
+                if (simBtn) simBtn.textContent = '📊 Hide Simulation';
+            } else {
+                simContainer.style.display = 'none';
+                if (simBtn) simBtn.textContent = '📊 Simulation';
+            }
         }
 
         function expandSimulation(type) {
