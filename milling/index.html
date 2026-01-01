@@ -843,6 +843,81 @@
             fill: #059669;
             font-weight: 600;
         }
+
+        /* Expandable preview container */
+        .expandable-preview {
+            margin-top: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .expandable-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: #f8fafc;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .expandable-header:hover {
+            background: #f1f5f9;
+        }
+
+        .expandable-header span {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .expandable-header .expand-icon {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s;
+        }
+
+        .expandable-preview.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: white;
+        }
+
+        .expandable-preview.expanded .expandable-content {
+            max-height: 800px;
+        }
+
+        .preview-views {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 16px;
+        }
+
+        .preview-view-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .preview-view-container svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (min-width: 700px) {
+            .preview-views {
+                flex-direction: row;
+                justify-content: space-around;
+            }
+        }
     </style>
 </head>
 <body>
@@ -949,7 +1024,17 @@
                                 <input type="number" id="clearanceZ" value="5" step="0.5" oninput="updateAllPreviews()">
                             </div>
                         </div>
-                        <div class="safe-distance-preview" id="safeDistancePreview"></div>
+                        <div class="expandable-preview expanded" id="safeDistanceExpandable">
+                            <div class="expandable-header" onclick="toggleSafeDistancePreview()">
+                                <span>Preview Illustration</span>
+                                <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </div>
+                            <div class="expandable-content">
+                                <div class="preview-views" id="safeDistancePreview"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Material Selection -->
@@ -1553,122 +1638,145 @@
             container.innerHTML = svg;
         }
 
+        function toggleSafeDistancePreview() {
+            const container = document.getElementById('safeDistanceExpandable');
+            container.classList.toggle('expanded');
+        }
+
         function updateSafeDistancePreview() {
             const setup = getWorkpieceSetup();
             const origin = setup.origin;
             const container = document.getElementById('safeDistancePreview');
 
+            // Common view size
+            const viewSize = 220;
+
             // Calculate scales for XY view
             const maxDimXY = Math.max(setup.lengthX + setup.clearanceX * 2, setup.widthY + setup.clearanceY * 2);
-            const scaleXY = Math.min(75 / maxDimXY, 0.9);
+            const scaleXY = Math.min((viewSize - 60) / maxDimXY, 1.2);
             const wpW = setup.lengthX * scaleXY;
             const wpD = setup.widthY * scaleXY;
             const clrX = setup.clearanceX * scaleXY;
             const clrY = setup.clearanceY * scaleXY;
 
+            // XY View positioning
+            const xyOffsetX = 30 + clrX;
+            const xyOffsetY = 35 + clrY;
+            const pos = getOriginPosition(setup, wpW, wpD, xyOffsetX, xyOffsetY);
+
             // Calculate scales for XZ view
-            const maxH = Math.max(setup.safeZRapid + 10, setup.heightZ + setup.safeZRapid);
-            const scaleZ = 65 / maxH;
+            const maxH = Math.max(setup.safeZRapid + 15, setup.heightZ + setup.safeZRapid);
+            const scaleZ = (viewSize - 80) / maxH;
             const wpH = setup.heightZ * scaleZ;
             const safeZ = setup.safeZRapid * scaleZ;
             const clearZ = setup.clearanceZ * scaleZ;
 
-            // XY View positioning - account for clearance margins
-            const xyOffsetX = 25 + clrX;
-            const xyOffsetY = 25 + clrY;
-            const pos = getOriginPosition(setup, wpW, wpD, xyOffsetX, xyOffsetY);
-
             // Side view positioning
-            const sideOffsetX = 195;
-            const baseY = 105;
+            const sideOffsetX = 30;
+            const baseY = viewSize - 35;
             const wpTop = baseY - wpH;
 
-            const svg = `
-                <svg viewBox="0 0 380 168" width="380" height="168">
-                    <!-- XY TOP VIEW -->
-                    <text x="${xyOffsetX + wpW/2}" y="12" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">XY Top View</text>
+            // XY Top View SVG
+            const xySvg = `
+                <div class="preview-view-container">
+                    <svg viewBox="0 0 ${viewSize} ${viewSize}" width="${viewSize}" height="${viewSize}">
+                        <!-- Title -->
+                        <text x="${viewSize/2}" y="16" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">XY Top View</text>
 
-                    <!-- X Clearance zones (left and right) -->
-                    <rect x="${xyOffsetX - clrX}" y="${xyOffsetY}" width="${clrX}" height="${wpD}"
-                          fill="#fef3c7" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3,2"/>
-                    <rect x="${xyOffsetX + wpW}" y="${xyOffsetY}" width="${clrX}" height="${wpD}"
-                          fill="#fef3c7" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3,2"/>
+                        <!-- X Clearance zones (left and right) -->
+                        <rect x="${xyOffsetX - clrX}" y="${xyOffsetY}" width="${clrX}" height="${wpD}"
+                              fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,2"/>
+                        <rect x="${xyOffsetX + wpW}" y="${xyOffsetY}" width="${clrX}" height="${wpD}"
+                              fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,2"/>
 
-                    <!-- Y Clearance zones (top and bottom) -->
-                    <rect x="${xyOffsetX}" y="${xyOffsetY - clrY}" width="${wpW}" height="${clrY}"
-                          fill="#dcfce7" stroke="#059669" stroke-width="1" stroke-dasharray="3,2"/>
-                    <rect x="${xyOffsetX}" y="${xyOffsetY + wpD}" width="${wpW}" height="${clrY}"
-                          fill="#dcfce7" stroke="#059669" stroke-width="1" stroke-dasharray="3,2"/>
+                        <!-- Y Clearance zones (top and bottom) -->
+                        <rect x="${xyOffsetX}" y="${xyOffsetY - clrY}" width="${wpW}" height="${clrY}"
+                              fill="#dcfce7" stroke="#059669" stroke-width="1.5" stroke-dasharray="4,2"/>
+                        <rect x="${xyOffsetX}" y="${xyOffsetY + wpD}" width="${wpW}" height="${clrY}"
+                              fill="#dcfce7" stroke="#059669" stroke-width="1.5" stroke-dasharray="4,2"/>
 
-                    <!-- Workpiece top view -->
-                    <rect x="${xyOffsetX}" y="${xyOffsetY}" width="${wpW}" height="${wpD}" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5"/>
+                        <!-- Workpiece top view -->
+                        <rect x="${xyOffsetX}" y="${xyOffsetY}" width="${wpW}" height="${wpD}" fill="#e0e7ff" stroke="#6366f1" stroke-width="2"/>
 
-                    <!-- Origin marker on XY view -->
-                    <circle cx="${pos.originX}" cy="${pos.originY}" r="4" fill="#7c3aed" stroke="white" stroke-width="1.5"/>
-                    <line x1="${pos.originX - 7}" y1="${pos.originY}" x2="${pos.originX + 7}" y2="${pos.originY}" stroke="#7c3aed" stroke-width="1"/>
-                    <line x1="${pos.originX}" y1="${pos.originY - 7}" x2="${pos.originX}" y2="${pos.originY + 7}" stroke="#7c3aed" stroke-width="1"/>
+                        <!-- Origin marker -->
+                        <circle cx="${pos.originX}" cy="${pos.originY}" r="5" fill="#7c3aed" stroke="white" stroke-width="2"/>
+                        <line x1="${pos.originX - 10}" y1="${pos.originY}" x2="${pos.originX + 10}" y2="${pos.originY}" stroke="#7c3aed" stroke-width="1.5"/>
+                        <line x1="${pos.originX}" y1="${pos.originY - 10}" x2="${pos.originX}" y2="${pos.originY + 10}" stroke="#7c3aed" stroke-width="1.5"/>
 
-                    <!-- Dimension labels -->
-                    <text x="${xyOffsetX + wpW/2}" y="${xyOffsetY - clrY - 4}" text-anchor="middle" class="preview-dimension">${setup.lengthX}</text>
-                    <text x="${xyOffsetX + wpW + clrX + 8}" y="${xyOffsetY + wpD/2 + 3}" class="preview-dimension">${setup.widthY}</text>
+                        <!-- Dimension labels -->
+                        <text x="${xyOffsetX + wpW/2}" y="${xyOffsetY - clrY - 6}" text-anchor="middle" font-size="11" font-weight="600" fill="#1e40af">${setup.lengthX} mm</text>
+                        <text x="${xyOffsetX + wpW + clrX + 10}" y="${xyOffsetY + wpD/2 + 4}" font-size="11" font-weight="600" fill="#1e40af">${setup.widthY} mm</text>
 
-                    <!-- X Clearance label -->
-                    <text x="${xyOffsetX - clrX/2}" y="${xyOffsetY + wpD + 12}" text-anchor="middle" font-size="7" fill="#f59e0b">X:${setup.clearanceX}</text>
+                        <!-- X Clearance labels -->
+                        <text x="${xyOffsetX - clrX/2}" y="${xyOffsetY + wpD/2 + 4}" text-anchor="middle" font-size="9" font-weight="500" fill="#f59e0b">${setup.clearanceX}</text>
+                        <text x="${xyOffsetX + wpW + clrX/2}" y="${xyOffsetY + wpD/2 + 4}" text-anchor="middle" font-size="9" font-weight="500" fill="#f59e0b">${setup.clearanceX}</text>
 
-                    <!-- Y Clearance label -->
-                    <text x="${xyOffsetX + wpW + clrX + 5}" y="${xyOffsetY - clrY/2 + 3}" font-size="7" fill="#059669">Y:${setup.clearanceY}</text>
+                        <!-- Y Clearance labels -->
+                        <text x="${xyOffsetX + wpW/2}" y="${xyOffsetY - clrY/2 + 3}" text-anchor="middle" font-size="9" font-weight="500" fill="#059669">${setup.clearanceY}</text>
+                        <text x="${xyOffsetX + wpW/2}" y="${xyOffsetY + wpD + clrY/2 + 3}" text-anchor="middle" font-size="9" font-weight="500" fill="#059669">${setup.clearanceY}</text>
 
-                    <!-- Safe distance summary below XY view -->
-                    <text x="${xyOffsetX - clrX}" y="${xyOffsetY + wpD + clrY + 14}" font-size="8" fill="#f59e0b">X Clr: ${setup.clearanceX} mm</text>
-                    <text x="${xyOffsetX - clrX}" y="${xyOffsetY + wpD + clrY + 26}" font-size="8" fill="#059669">Y Clr: ${setup.clearanceY} mm</text>
-                    <text x="${xyOffsetX - clrX}" y="${xyOffsetY + wpD + clrY + 38}" font-size="8" fill="#3b82f6">Z Clr: ${setup.clearanceZ} mm</text>
-
-                    <!-- SIDE VIEW (XZ) -->
-                    <text x="${sideOffsetX + 60}" y="12" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">XZ Side View</text>
-
-                    <!-- Table -->
-                    <rect x="${sideOffsetX}" y="${baseY}" width="130" height="6" fill="#94a3b8" stroke="#64748b" stroke-width="1"/>
-
-                    <!-- Workpiece side view -->
-                    <rect x="${sideOffsetX + 15}" y="${wpTop}" width="100" height="${wpH}" fill="#c7d2fe" stroke="#6366f1" stroke-width="1.5"/>
-                    <text x="${sideOffsetX + 65}" y="${wpTop + wpH/2 + 3}" text-anchor="middle" font-size="8" fill="#64748b">Z=${setup.heightZ}</text>
-
-                    <!-- Origin at top surface -->
-                    <circle cx="${sideOffsetX + 130}" cy="${wpTop}" r="4" fill="#7c3aed"/>
-                    <text x="${sideOffsetX + 140}" y="${wpTop + 4}" class="preview-origin">Z=0</text>
-
-                    <!-- Clearance Z level -->
-                    <line x1="${sideOffsetX + 10}" y1="${wpTop - clearZ}" x2="${sideOffsetX + 125}" y2="${wpTop - clearZ}" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4,2"/>
-                    <circle cx="${sideOffsetX + 130}" cy="${wpTop - clearZ}" r="3" fill="#3b82f6"/>
-                    <text x="${sideOffsetX + 140}" y="${wpTop - clearZ + 4}" class="preview-safe" fill="#3b82f6">Z=${setup.clearanceZ}</text>
-
-                    <!-- Safe Z level -->
-                    <line x1="${sideOffsetX + 10}" y1="${wpTop - safeZ}" x2="${sideOffsetX + 125}" y2="${wpTop - safeZ}" stroke="#059669" stroke-width="2"/>
-                    <circle cx="${sideOffsetX + 130}" cy="${wpTop - safeZ}" r="3" fill="#059669"/>
-                    <text x="${sideOffsetX + 140}" y="${wpTop - safeZ + 4}" class="preview-safe">Z=${setup.safeZRapid}</text>
-
-                    <!-- Tool path -->
-                    <path d="M ${sideOffsetX + 65} ${wpTop - safeZ} L ${sideOffsetX + 65} ${wpTop - clearZ} L ${sideOffsetX + 65} ${wpTop - 3}"
-                          stroke="#059669" stroke-width="1.5" fill="none" stroke-dasharray="4,2"/>
-
-                    <!-- Tool -->
-                    <polygon points="${sideOffsetX + 60},${wpTop - safeZ - 6} ${sideOffsetX + 70},${wpTop - safeZ - 6} ${sideOffsetX + 65},${wpTop - safeZ}" fill="#374151"/>
-                    <rect x="${sideOffsetX + 62}" y="${wpTop - safeZ - 16}" width="6" height="10" fill="#374151"/>
-
-                    <!-- Legend at bottom -->
-                    <rect x="20" y="155" width="10" height="3" fill="#059669"/>
-                    <text x="33" y="159" font-size="8" fill="#64748b">Safe Z</text>
-                    <rect x="70" y="155" width="10" height="3" fill="#f59e0b"/>
-                    <text x="83" y="159" font-size="8" fill="#64748b">X Clr</text>
-                    <rect x="115" y="155" width="10" height="3" fill="#059669"/>
-                    <text x="128" y="159" font-size="8" fill="#64748b">Y Clr</text>
-                    <rect x="160" y="155" width="10" height="3" fill="#3b82f6"/>
-                    <text x="173" y="159" font-size="8" fill="#64748b">Z Clr</text>
-                    <rect x="205" y="155" width="10" height="3" fill="#6366f1"/>
-                    <text x="218" y="159" font-size="8" fill="#64748b">Workpiece</text>
-                </svg>
+                        <!-- Legend -->
+                        <rect x="15" y="${viewSize - 22}" width="12" height="4" fill="#f59e0b" rx="1"/>
+                        <text x="30" y="${viewSize - 17}" font-size="9" fill="#64748b">X Clr</text>
+                        <rect x="65" y="${viewSize - 22}" width="12" height="4" fill="#059669" rx="1"/>
+                        <text x="80" y="${viewSize - 17}" font-size="9" fill="#64748b">Y Clr</text>
+                        <rect x="115" y="${viewSize - 22}" width="12" height="4" fill="#6366f1" rx="1"/>
+                        <text x="130" y="${viewSize - 17}" font-size="9" fill="#64748b">Workpiece</text>
+                    </svg>
+                </div>
             `;
-            container.innerHTML = svg;
+
+            // XZ Side View SVG
+            const xzSvg = `
+                <div class="preview-view-container">
+                    <svg viewBox="0 0 ${viewSize} ${viewSize}" width="${viewSize}" height="${viewSize}">
+                        <!-- Title -->
+                        <text x="${viewSize/2}" y="16" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">XZ Side View</text>
+
+                        <!-- Table -->
+                        <rect x="${sideOffsetX}" y="${baseY}" width="${viewSize - 60}" height="8" fill="#94a3b8" stroke="#64748b" stroke-width="1"/>
+                        <text x="${sideOffsetX + (viewSize-60)/2}" y="${baseY + 18}" text-anchor="middle" font-size="9" fill="#64748b">Table</text>
+
+                        <!-- Workpiece side view -->
+                        <rect x="${sideOffsetX + 20}" y="${wpTop}" width="${viewSize - 100}" height="${wpH}" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/>
+                        <text x="${sideOffsetX + 20 + (viewSize-100)/2}" y="${wpTop + wpH/2 + 4}" text-anchor="middle" font-size="10" fill="#64748b">Z = ${setup.heightZ}</text>
+
+                        <!-- Origin at top surface -->
+                        <circle cx="${viewSize - 35}" cy="${wpTop}" r="5" fill="#7c3aed" stroke="white" stroke-width="2"/>
+                        <text x="${viewSize - 20}" y="${wpTop + 4}" font-size="10" font-weight="600" fill="#7c3aed">Z=0</text>
+
+                        <!-- Z Clearance level -->
+                        <line x1="${sideOffsetX + 15}" y1="${wpTop - clearZ}" x2="${viewSize - 45}" y2="${wpTop - clearZ}" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5,3"/>
+                        <circle cx="${viewSize - 35}" cy="${wpTop - clearZ}" r="4" fill="#3b82f6"/>
+                        <text x="${viewSize - 20}" y="${wpTop - clearZ + 4}" font-size="9" font-weight="600" fill="#3b82f6">Z=${setup.clearanceZ}</text>
+
+                        <!-- Safe Z level -->
+                        <line x1="${sideOffsetX + 15}" y1="${wpTop - safeZ}" x2="${viewSize - 45}" y2="${wpTop - safeZ}" stroke="#059669" stroke-width="2.5"/>
+                        <circle cx="${viewSize - 35}" cy="${wpTop - safeZ}" r="4" fill="#059669"/>
+                        <text x="${viewSize - 20}" y="${wpTop - safeZ + 4}" font-size="9" font-weight="600" fill="#059669">Z=${setup.safeZRapid}</text>
+
+                        <!-- Tool path -->
+                        <path d="M ${sideOffsetX + 20 + (viewSize-100)/2} ${wpTop - safeZ}
+                                 L ${sideOffsetX + 20 + (viewSize-100)/2} ${wpTop - clearZ}
+                                 L ${sideOffsetX + 20 + (viewSize-100)/2} ${wpTop - 4}"
+                              stroke="#059669" stroke-width="2" fill="none" stroke-dasharray="5,3"/>
+
+                        <!-- Tool -->
+                        <polygon points="${sideOffsetX + 20 + (viewSize-100)/2 - 8},${wpTop - safeZ - 8} ${sideOffsetX + 20 + (viewSize-100)/2 + 8},${wpTop - safeZ - 8} ${sideOffsetX + 20 + (viewSize-100)/2},${wpTop - safeZ}" fill="#374151"/>
+                        <rect x="${sideOffsetX + 20 + (viewSize-100)/2 - 4}" y="${wpTop - safeZ - 22}" width="8" height="14" fill="#374151"/>
+
+                        <!-- Legend -->
+                        <rect x="15" y="${viewSize - 22}" width="12" height="4" fill="#059669" rx="1"/>
+                        <text x="30" y="${viewSize - 17}" font-size="9" fill="#64748b">Safe Z</text>
+                        <rect x="75" y="${viewSize - 22}" width="12" height="4" fill="#3b82f6" rx="1"/>
+                        <text x="90" y="${viewSize - 17}" font-size="9" fill="#64748b">Z Clr</text>
+                        <rect x="130" y="${viewSize - 22}" width="12" height="4" fill="#6366f1" rx="1"/>
+                        <text x="145" y="${viewSize - 17}" font-size="9" fill="#64748b">Workpiece</text>
+                    </svg>
+                </div>
+            `;
+
+            container.innerHTML = xySvg + xzSvg;
         }
 
         function applyMaterialPreset() {
