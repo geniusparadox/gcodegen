@@ -2838,6 +2838,7 @@
                 case 'facing':
                     if (op.roughing) {
                         code.push('(G72 FACING ROUGH CYCLE)');
+                        code.push(`(FACE FROM DIA ${p.stockDia.toFixed(1)} TO DIA ${p.faceDia.toFixed(1)})`);
                         code.push(`G00 X${(p.stockDia + 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
                         code.push(`G72 W${op.doc.toFixed(1)} R1.0`);
                         code.push(`G72 P100 Q200 U0.3 W0.1 F${op.roughFeed}`);
@@ -2960,7 +2961,10 @@
                 case 'id-boring':
                     if (op.roughing) {
                         code.push('(G71 BORING ROUGH CYCLE)');
-                        code.push(`G00 X${(p.startDia - 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        code.push(`(BORE FROM DIA ${p.startDia.toFixed(1)} TO DIA ${p.endDia.toFixed(1)} x DEPTH ${p.depth.toFixed(1)})`);
+                        // Rapid to safe Z first, then position at bore center
+                        code.push(`G00 Z${safeZ.toFixed(1)}`);
+                        code.push(`G00 X${(p.startDia - 2).toFixed(1)}`);
                         code.push(`G71 U${op.doc.toFixed(1)} R1.0`);
                         code.push(`G71 P100 Q200 U-${op.finishAllowance.toFixed(2)} W0.1 F${op.roughFeed}`);
                         code.push(`N100 G00 X${p.endDia.toFixed(3)}`);
@@ -2988,7 +2992,9 @@
                     if (op.roughing) {
                         code.push('(G71 ID TAPER ROUGH CYCLE)');
                         code.push(`(TAPER: ${p.startDia.toFixed(1)} AT FACE TO ${idTaperEndDia.toFixed(1)} AT DEPTH OVER ${p.depth.toFixed(1)}mm)`);
-                        code.push(`G00 X${(idTaperEndDia - 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        // Rapid to safe Z first, then position at bore
+                        code.push(`G00 Z${safeZ.toFixed(1)}`);
+                        code.push(`G00 X${(idTaperEndDia - 2).toFixed(1)}`);
                         code.push(`G71 U${op.doc.toFixed(1)} R1.0`);
                         code.push(`G71 P100 Q200 U-${op.finishAllowance.toFixed(2)} W0.1 F${op.roughFeed}`);
                         code.push(`N100 G00 X${p.startDia.toFixed(3)} S${op.speed}`);
@@ -3110,8 +3116,9 @@
                         const startX = p.outerDia + xClearance;
                         const grooveX = p.outerDia - (reliefDepth * 2);
                         const grooveZ = p.zPos;
+                        const reliefLabel = p.reliefType === 'iso' ? 'ISO STANDARD' : 'CUSTOM';
 
-                        code.push(`(THREAD RELIEF GROOVE - ISO STANDARD)`);
+                        code.push(`(THREAD RELIEF GROOVE - ${reliefLabel})`);
                         code.push(`(PITCH: ${pitch.toFixed(2)}mm - WIDTH: ${reliefWidth.toFixed(2)}mm - DEPTH: ${reliefDepth.toFixed(2)}mm)`);
                         code.push(`(CORNER RADIUS: ${radius.toFixed(2)}mm)`);
 
@@ -3145,10 +3152,20 @@
                     break;
 
                 case 'grooving':
-                    code.push('(G75 GROOVING CYCLE)');
-                    code.push(`G00 X${(p.outerDia + 2).toFixed(1)} Z${p.zPos.toFixed(1)}`);
-                    code.push('G75 R0.5');
-                    code.push(`G75 X${(p.outerDia - p.grooveDepth * 2).toFixed(1)} Z${(p.zPos - p.grooveWidth).toFixed(1)} P${(p.grooveDepth * 1000).toFixed(0)} Q${(p.grooveWidth * 500).toFixed(0)} F${(op.roughFeed / 2).toFixed(3)}`);
+                    {
+                        const grooveBottom = p.outerDia - (p.grooveDepth * 2);
+                        const grooveEndZ = p.zPos - p.grooveWidth;
+                        // P = radial peck depth in microns (use doc or default 0.5mm)
+                        const peckDepth = Math.min(op.doc || 0.5, p.grooveDepth) * 1000;
+                        // Q = axial step in microns (use 80% of groove width or 2mm max per step)
+                        const axialStep = Math.min(p.grooveWidth * 0.8, 2) * 1000;
+
+                        code.push('(G75 GROOVING CYCLE)');
+                        code.push(`(GROOVE: WIDTH ${p.grooveWidth.toFixed(1)}mm x DEPTH ${p.grooveDepth.toFixed(1)}mm AT Z${p.zPos.toFixed(1)})`);
+                        code.push(`G00 X${(p.outerDia + 2).toFixed(1)} Z${p.zPos.toFixed(1)}`);
+                        code.push('G75 R0.5');
+                        code.push(`G75 X${grooveBottom.toFixed(1)} Z${grooveEndZ.toFixed(1)} P${peckDepth.toFixed(0)} Q${axialStep.toFixed(0)} F${(op.roughFeed / 2).toFixed(3)}`);
+                    }
                     break;
 
                 case 'parting':
