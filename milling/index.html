@@ -1551,54 +1551,58 @@
             const origin = setup.origin;
             const container = document.getElementById('safeDistancePreview');
 
-            // Calculate scales
+            // Calculate scales for XY view
             const maxDimXY = Math.max(setup.lengthX, setup.widthY);
-            const scaleXY = Math.min(100 / maxDimXY, 1.2);
+            const scaleXY = Math.min(80 / maxDimXY, 1.0);
             const wpW = setup.lengthX * scaleXY;
             const wpD = setup.widthY * scaleXY;
+            const xyClr = setup.clearanceXY * scaleXY * 0.4;
 
+            // Calculate scales for XZ view
             const maxH = Math.max(setup.safeZRapid + 10, setup.heightZ + setup.safeZRapid);
-            const scaleZ = 80 / maxH;
+            const scaleZ = 70 / maxH;
             const wpH = setup.heightZ * scaleZ;
             const safeZ = setup.safeZRapid * scaleZ;
             const clearZ = setup.clearanceZ * scaleZ;
-            const xyClr = setup.clearanceXY * scaleXY * 0.3;
 
             // XY View positioning
-            const xyOffsetX = 30;
-            const xyOffsetY = 40;
+            const xyOffsetX = 25;
+            const xyOffsetY = 28;
             const pos = getOriginPosition(setup, wpW, wpD, xyOffsetX, xyOffsetY);
 
             // Side view positioning
-            const sideOffsetX = 180;
-            const baseY = 115;
+            const sideOffsetX = 190;
+            const baseY = 108;
             const wpTop = baseY - wpH;
 
             const svg = `
-                <svg viewBox="0 0 380 145" width="380" height="145">
+                <svg viewBox="0 0 380 165" width="380" height="165">
                     <!-- XY TOP VIEW -->
-                    <text x="${xyOffsetX + wpW/2}" y="15" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">XY Top View</text>
+                    <text x="${xyOffsetX + wpW/2}" y="12" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">XY Top View</text>
+
+                    <!-- XY Clearance box around workpiece -->
+                    <rect x="${xyOffsetX - xyClr}" y="${xyOffsetY - xyClr}" width="${wpW + xyClr*2}" height="${wpD + xyClr*2}"
+                          fill="#dbeafe" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3,2"/>
 
                     <!-- Workpiece top view -->
                     <rect x="${xyOffsetX}" y="${xyOffsetY}" width="${wpW}" height="${wpD}" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5"/>
 
-                    <!-- XY Clearance box around workpiece -->
-                    <rect x="${xyOffsetX - xyClr}" y="${xyOffsetY - xyClr}" width="${wpW + xyClr*2}" height="${wpD + xyClr*2}"
-                          fill="none" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3,2"/>
-                    <text x="${xyOffsetX - xyClr/2}" y="${xyOffsetY + wpD + xyClr + 12}" class="preview-safe" fill="#3b82f6">XY Clr: ${setup.clearanceXY}</text>
-
                     <!-- Origin marker on XY view -->
-                    <circle cx="${pos.originX}" cy="${pos.originY}" r="5" fill="#7c3aed" stroke="white" stroke-width="1.5"/>
-                    <line x1="${pos.originX - 8}" y1="${pos.originY}" x2="${pos.originX + 8}" y2="${pos.originY}" stroke="#7c3aed" stroke-width="1"/>
-                    <line x1="${pos.originX}" y1="${pos.originY - 8}" x2="${pos.originX}" y2="${pos.originY + 8}" stroke="#7c3aed" stroke-width="1"/>
-                    <text x="${pos.originX}" y="${pos.originY - 12}" text-anchor="middle" font-size="8" fill="#7c3aed">Origin</text>
+                    <circle cx="${pos.originX}" cy="${pos.originY}" r="4" fill="#7c3aed" stroke="white" stroke-width="1.5"/>
+                    <line x1="${pos.originX - 7}" y1="${pos.originY}" x2="${pos.originX + 7}" y2="${pos.originY}" stroke="#7c3aed" stroke-width="1"/>
+                    <line x1="${pos.originX}" y1="${pos.originY - 7}" x2="${pos.originX}" y2="${pos.originY + 7}" stroke="#7c3aed" stroke-width="1"/>
 
                     <!-- Dimensions on XY -->
-                    <text x="${xyOffsetX + wpW/2}" y="${xyOffsetY - 8}" text-anchor="middle" class="preview-dimension">${setup.lengthX}</text>
-                    <text x="${xyOffsetX + wpW + 10}" y="${xyOffsetY + wpD/2 + 3}" class="preview-dimension">${setup.widthY}</text>
+                    <text x="${xyOffsetX + wpW/2}" y="${xyOffsetY - xyClr - 4}" text-anchor="middle" class="preview-dimension">${setup.lengthX}</text>
+                    <text x="${xyOffsetX + wpW + xyClr + 8}" y="${xyOffsetY + wpD/2 + 3}" class="preview-dimension">${setup.widthY}</text>
+
+                    <!-- Safe distance labels in XY view -->
+                    <text x="${xyOffsetX}" y="${xyOffsetY + wpD + xyClr + 14}" font-size="8" fill="#3b82f6">XY Clr: ${setup.clearanceXY} mm</text>
+                    <text x="${xyOffsetX}" y="${xyOffsetY + wpD + xyClr + 26}" font-size="8" fill="#059669">Safe Z: ${setup.safeZRapid} mm</text>
+                    <text x="${xyOffsetX}" y="${xyOffsetY + wpD + xyClr + 38}" font-size="8" fill="#f59e0b">Clear Z: ${setup.clearanceZ} mm</text>
 
                     <!-- SIDE VIEW (XZ) -->
-                    <text x="${sideOffsetX + 60}" y="15" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">XZ Side View</text>
+                    <text x="${sideOffsetX + 60}" y="12" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">XZ Side View</text>
 
                     <!-- Table -->
                     <rect x="${sideOffsetX}" y="${baseY}" width="130" height="6" fill="#94a3b8" stroke="#64748b" stroke-width="1"/>
@@ -1629,13 +1633,15 @@
                     <polygon points="${sideOffsetX + 60},${wpTop - safeZ - 6} ${sideOffsetX + 70},${wpTop - safeZ - 6} ${sideOffsetX + 65},${wpTop - safeZ}" fill="#374151"/>
                     <rect x="${sideOffsetX + 62}" y="${wpTop - safeZ - 16}" width="6" height="10" fill="#374151"/>
 
-                    <!-- Legend -->
-                    <rect x="30" y="132" width="8" height="3" fill="#059669"/>
-                    <text x="42" y="136" font-size="8" fill="#64748b">Safe Z (Rapid)</text>
-                    <rect x="110" y="132" width="8" height="3" fill="#f59e0b"/>
-                    <text x="122" y="136" font-size="8" fill="#64748b">Clearance Z</text>
-                    <rect x="200" y="132" width="8" height="3" fill="#3b82f6"/>
-                    <text x="212" y="136" font-size="8" fill="#64748b">XY Clearance</text>
+                    <!-- Legend at bottom -->
+                    <rect x="25" y="152" width="10" height="3" fill="#059669"/>
+                    <text x="38" y="156" font-size="8" fill="#64748b">Safe Z (Rapid)</text>
+                    <rect x="115" y="152" width="10" height="3" fill="#f59e0b"/>
+                    <text x="128" y="156" font-size="8" fill="#64748b">Clearance Z</text>
+                    <rect x="205" y="152" width="10" height="3" fill="#3b82f6"/>
+                    <text x="218" y="156" font-size="8" fill="#64748b">XY Clearance</text>
+                    <rect x="295" y="152" width="10" height="3" fill="#6366f1"/>
+                    <text x="308" y="156" font-size="8" fill="#64748b">Workpiece</text>
                 </svg>
             `;
             container.innerHTML = svg;
