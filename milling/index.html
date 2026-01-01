@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="description" content="Free online G-code generator for CNC milling. Supports 3-axis, 4th axis, and 5-axis machines with FANUC, Siemens, Haas, and Heidenhain controllers.">
+    <meta name="keywords" content="CNC, milling, G-code, FANUC, Siemens, Haas, Heidenhain, 5-axis, RTCP, TCPM, pocketing, drilling, VMC">
+    <link rel="manifest" href="../manifest.json">
+    <link rel="apple-touch-icon" href="../icon-192.svg">
+    <title>CNC Milling Program Builder | G-Code Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-primary: #F4F7F9;
+            --bg-card: #FFFFFF;
+            --bg-input: #FFFFFF;
+            --bg-code: #1e1e1e;
+            --text-primary: #4A4E69;
+            --text-secondary: #6B7280;
+            --accent: #8b5cf6;
+            --accent-hover: #7c3aed;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #D1D5DB;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .back-home {
+            display: inline-block;
+            padding: 10px 16px;
+            margin: 12px;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            transition: all 0.2s;
+        }
+
+        .back-home:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Config Bar */
+        .config-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 16px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .config-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .config-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .config-group select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .config-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+            background: var(--bg-card);
+            padding: 4px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: var(--bg-primary);
+        }
+
+        .tab.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Layout */
+        .layout {
+            display: grid;
+            gap: 16px;
+        }
+
+        @media (min-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .form-row.three {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-input);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-primary);
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        /* Operation Buttons Grid */
+        .op-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        @media (min-width: 600px) {
+            .op-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .op-btn {
+            padding: 12px 8px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .op-btn:hover {
+            border-color: var(--accent);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .op-btn.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .op-btn .icon {
+            font-size: 18px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Operation Categories */
+        .op-category {
+            margin-bottom: 16px;
+        }
+
+        .op-category-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Operation List */
+        .op-list {
+            min-height: 100px;
+        }
+
+        .op-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .op-number {
+            width: 28px;
+            height: 28px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .op-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .op-name {
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .op-params {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .op-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .op-actions button {
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-card);
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .op-actions button:hover {
+            background: var(--bg-primary);
+        }
+
+        .op-actions .delete-btn:hover {
+            background: #fef2f2;
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 32px;
+            color: var(--text-secondary);
+        }
+
+        /* Code Output */
+        .code-output {
+            background: var(--bg-code);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            color: #d4d4d4;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+
+        .code-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        /* Program Settings */
+        .program-settings {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+        }
+
+        /* Single Operation Mode */
+        .single-op-form {
+            display: none;
+        }
+
+        .single-op-form.active {
+            display: block;
+        }
+
+        /* Cycle Toggle */
+        .cycle-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .cycle-option {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-card);
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .cycle-option.active {
+            border-color: var(--accent);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .cycle-option h4 {
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .cycle-option p {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h3 {
+            font-size: 16px;
+        }
+
+        .modal-header .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .modal-body {
+            padding: 16px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 8px;
+            padding: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Tools Guide Styles */
+        .tools-guide-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .tools-guide-section h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .tools-guide-section h3 {
+            font-size: 17px;
+            font-weight: 600;
+            margin: 20px 0 12px 0;
+        }
+
+        .tools-guide-section p {
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 16px 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .table-wrapper table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .table-wrapper th {
+            background: #f1f5f9;
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .table-wrapper td {
+            padding: 8px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-wrapper tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .table-wrapper code {
+            background: #ede9fe;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 12px;
+            color: var(--accent);
+        }
+
+        .tip-box {
+            background: #f5f3ff;
+            border-left: 4px solid var(--accent);
+            padding: 12px 16px;
+            margin: 16px 0;
+            border-radius: 0 8px 8px 0;
+            font-size: 13px;
+        }
+
+        .nav-sections {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .nav-sections a {
+            padding: 8px 14px;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .nav-sections a:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        .tool-card {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .tool-card h4 {
+            margin: 0 0 8px 0;
+            color: var(--accent);
+            font-size: 14px;
+        }
+
+        .tool-card ul {
+            margin: 0 0 0 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .tool-card li {
+            margin-bottom: 4px;
+        }
+
+        /* 5-axis indicator */
+        .axis-indicator {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .axis-3 { background: #dbeafe; color: #1d4ed8; }
+        .axis-4 { background: #fef3c7; color: #b45309; }
+        .axis-5 { background: #ede9fe; color: #7c3aed; }
+    </style>
+</head>
+<body>
+    <a href="../" class="back-home">← Back to Home</a>
+    <div class="container">
+        <header>
+            <h1>🔩 CNC Milling Program Builder</h1>
+            <p>Build milling programs for 3-axis, 4th axis & 5-axis machines</p>
+        </header>
+
+        <!-- Config Bar -->
+        <div class="config-bar">
+            <div class="config-group">
+                <label>Controller:</label>
+                <select id="controller" onchange="updateController()">
+                    <option value="fanuc">FANUC</option>
+                    <option value="siemens">Siemens SINUMERIK</option>
+                    <option value="haas">Haas</option>
+                    <option value="heidenhain">Heidenhain (ISO)</option>
+                </select>
+            </div>
+            <div class="config-group">
+                <label>Machine:</label>
+                <select id="machineType" onchange="updateMachineType()">
+                    <option value="3axis">3-Axis VMC</option>
+                    <option value="4axis">4th Axis (Rotary)</option>
+                    <option value="5axis">5-Axis</option>
+                </select>
+            </div>
+            <div class="config-group">
+                <label>Units:</label>
+                <select id="units" onchange="updateUnits()">
+                    <option value="metric">Metric (mm)</option>
+                    <option value="inch">Inch</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Mode Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="single">Single Operation</button>
+            <button class="tab" data-tab="builder">Program Builder</button>
+            <button class="tab" data-tab="tools">Tools Guide</button>
+        </div>
+
+        <!-- Single Operation Tab -->
+        <div class="tab-content active" id="single-tab">
+            <div class="layout">
+                <div class="left-column">
+                    <div class="card">
+                        <div class="card-title">Select Operation</div>
+
+                        <!-- Drilling Operations -->
+                        <div class="op-category">
+                            <div class="op-category-title">Drilling</div>
+                            <div class="op-grid">
+                                <button class="op-btn" onclick="selectOp('spot-drill')">
+                                    <span class="icon">⊙</span>Spot Drill
+                                </button>
+                                <button class="op-btn" onclick="selectOp('drill')">
+                                    <span class="icon">◎</span>Drill
+                                </button>
+                                <button class="op-btn" onclick="selectOp('peck-drill')">
+                                    <span class="icon">⦿</span>Peck Drill
+                                </button>
+                                <button class="op-btn" onclick="selectOp('tap')">
+                                    <span class="icon">⊕</span>Tap
+                                </button>
+                                <button class="op-btn" onclick="selectOp('rigid-tap')">
+                                    <span class="icon">⊗</span>Rigid Tap
+                                </button>
+                                <button class="op-btn" onclick="selectOp('bore')">
+                                    <span class="icon">◉</span>Bore
+                                </button>
+                                <button class="op-btn" onclick="selectOp('ream')">
+                                    <span class="icon">⦾</span>Ream
+                                </button>
+                                <button class="op-btn" onclick="selectOp('back-bore')">
+                                    <span class="icon">⊖</span>Back Bore
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 2D Milling Operations -->
+                        <div class="op-category">
+                            <div class="op-category-title">2D Milling</div>
+                            <div class="op-grid">
+                                <button class="op-btn" onclick="selectOp('face-mill')">
+                                    <span class="icon">▭</span>Face Mill
+                                </button>
+                                <button class="op-btn" onclick="selectOp('pocket-rect')">
+                                    <span class="icon">▢</span>Pocket Rect
+                                </button>
+                                <button class="op-btn" onclick="selectOp('pocket-circ')">
+                                    <span class="icon">○</span>Pocket Circ
+                                </button>
+                                <button class="op-btn" onclick="selectOp('contour')">
+                                    <span class="icon">⌇</span>Contour
+                                </button>
+                                <button class="op-btn" onclick="selectOp('slot')">
+                                    <span class="icon">═</span>Slot
+                                </button>
+                                <button class="op-btn" onclick="selectOp('chamfer')">
+                                    <span class="icon">◿</span>Chamfer
+                                </button>
+                                <button class="op-btn" onclick="selectOp('thread-mill')">
+                                    <span class="icon">⟳</span>Thread Mill
+                                </button>
+                                <button class="op-btn" onclick="selectOp('helical-bore')">
+                                    <span class="icon">⟲</span>Helical Bore
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 4th Axis Operations -->
+                        <div class="op-category" id="axis4-ops">
+                            <div class="op-category-title">4th Axis <span class="axis-indicator axis-4">4-AXIS</span></div>
+                            <div class="op-grid">
+                                <button class="op-btn" onclick="selectOp('rotary-index')">
+                                    <span class="icon">↻</span>Rotary Index
+                                </button>
+                                <button class="op-btn" onclick="selectOp('wrap-mill')">
+                                    <span class="icon">⟳</span>Wrap Mill
+                                </button>
+                                <button class="op-btn" onclick="selectOp('polar-drill')">
+                                    <span class="icon">✳</span>Polar Drill
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 5-Axis Operations -->
+                        <div class="op-category" id="axis5-ops">
+                            <div class="op-category-title">5-Axis <span class="axis-indicator axis-5">5-AXIS</span></div>
+                            <div class="op-grid">
+                                <button class="op-btn" onclick="selectOp('tilted-plane')">
+                                    <span class="icon">◇</span>Tilted Plane
+                                </button>
+                                <button class="op-btn" onclick="selectOp('3plus2')">
+                                    <span class="icon">⬡</span>3+2 Position
+                                </button>
+                                <button class="op-btn" onclick="selectOp('tool-vector')">
+                                    <span class="icon">↗</span>Tool Vector
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Operation Parameters -->
+                    <div class="card" id="op-params-card" style="display: none;">
+                        <div class="card-title" id="op-params-title">Parameters</div>
+                        <div id="op-params-form"></div>
+                        <button class="btn btn-block" onclick="generateSingleOp()">Generate G-Code</button>
+                    </div>
+                </div>
+
+                <div class="right-column">
+                    <div class="card">
+                        <div class="card-title">Generated G-Code</div>
+                        <div class="code-output" id="singleCodeOutput">; Select an operation to generate G-code</div>
+                        <div class="code-actions">
+                            <button class="btn btn-sm" onclick="copyCode('single')">Copy</button>
+                            <button class="btn btn-sm btn-secondary" onclick="downloadCode('single')">Download</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Program Builder Tab -->
+        <div class="tab-content" id="builder-tab">
+            <div class="layout">
+                <div class="left-column">
+                    <div class="card">
+                        <div class="card-title">Program Settings</div>
+                        <div class="program-settings">
+                            <div class="form-group">
+                                <label>Program #</label>
+                                <input type="number" id="programNumber" value="1" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Work Offset</label>
+                                <select id="workOffset">
+                                    <option value="54">G54</option>
+                                    <option value="55">G55</option>
+                                    <option value="56">G56</option>
+                                    <option value="57">G57</option>
+                                    <option value="58">G58</option>
+                                    <option value="59">G59</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Safe Z</label>
+                                <input type="number" id="safeZ" value="50" step="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">Operations</div>
+                        <div class="op-list" id="opList">
+                            <div class="empty-state">Click an operation button to add it to your program</div>
+                        </div>
+                        <button class="btn btn-success btn-block" onclick="generateFullProgram()">Generate Full Program</button>
+                    </div>
+                </div>
+
+                <div class="right-column">
+                    <div class="card">
+                        <div class="card-title">Generated Program</div>
+                        <div class="code-output" id="builderCodeOutput">; Add operations to generate program</div>
+                        <div class="code-actions">
+                            <button class="btn btn-sm" onclick="copyCode('builder')">Copy</button>
+                            <button class="btn btn-sm btn-secondary" onclick="downloadCode('builder')">Download</button>
+                            <button class="btn btn-sm btn-secondary" onclick="clearProgram()">Clear All</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tools Guide Tab -->
+        <div class="tab-content" id="tools-tab">
+            <div class="nav-sections">
+                <a href="#mill-ops">Operations</a>
+                <a href="#end-mills">End Mills</a>
+                <a href="#drilling-tools">Drilling</a>
+                <a href="#speeds-feeds">Speeds & Feeds</a>
+                <a href="#workholding">Workholding</a>
+                <a href="#five-axis">5-Axis</a>
+            </div>
+
+            <!-- Milling Operations -->
+            <div class="tools-guide-section" id="mill-ops">
+                <h2>Milling Operations Overview</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr><th>Operation</th><th>G-Code</th><th>Description</th><th>Key Parameters</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>Spot Drill</strong></td><td><code>G81</code></td><td>Create starting point for drilling</td><td>Depth, Feed</td></tr>
+                            <tr><td><strong>Drill</strong></td><td><code>G81</code></td><td>Standard drilling cycle</td><td>Depth, Feed, Retract</td></tr>
+                            <tr><td><strong>Peck Drill</strong></td><td><code>G83</code></td><td>Deep hole drilling with retract</td><td>Total depth, Peck depth, Dwell</td></tr>
+                            <tr><td><strong>Tap</strong></td><td><code>G84</code></td><td>Threading with tap</td><td>Pitch, Depth, Speed sync</td></tr>
+                            <tr><td><strong>Rigid Tap</strong></td><td><code>G84.2</code></td><td>Synchronized spindle tapping</td><td>Pitch, Depth</td></tr>
+                            <tr><td><strong>Bore</strong></td><td><code>G85/G86</code></td><td>Precision boring cycle</td><td>Depth, Feed, Dwell</td></tr>
+                            <tr><td><strong>Ream</strong></td><td><code>G85</code></td><td>Hole finishing with reamer</td><td>Depth, Feed</td></tr>
+                            <tr><td><strong>Face Mill</strong></td><td><code>G01</code></td><td>Surface facing operation</td><td>Width, Stepover, Depth</td></tr>
+                            <tr><td><strong>Pocket</strong></td><td><code>G12/G13</code></td><td>Material removal from cavity</td><td>Dimensions, Depth, Stepover</td></tr>
+                            <tr><td><strong>Contour</strong></td><td><code>G41/G42</code></td><td>Profile milling with compensation</td><td>Profile path, Offset</td></tr>
+                            <tr><td><strong>Thread Mill</strong></td><td><code>G02/G03</code></td><td>Helical thread milling</td><td>Diameter, Pitch, Depth</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- End Mills -->
+            <div class="tools-guide-section" id="end-mills">
+                <h2>End Mill Types</h2>
+                <div class="cards-grid">
+                    <div class="tool-card">
+                        <h4>Square End Mill</h4>
+                        <ul>
+                            <li>Sharp 90° corners</li>
+                            <li>Slotting, profiling, pocketing</li>
+                            <li>2-4 flutes common</li>
+                        </ul>
+                    </div>
+                    <div class="tool-card">
+                        <h4>Ball Nose End Mill</h4>
+                        <ul>
+                            <li>Hemispherical tip</li>
+                            <li>3D contouring, finishing</li>
+                            <li>Scallop height control</li>
+                        </ul>
+                    </div>
+                    <div class="tool-card">
+                        <h4>Bull Nose (Corner Radius)</h4>
+                        <ul>
+                            <li>Rounded corners</li>
+                            <li>Stronger than square</li>
+                            <li>Better surface finish</li>
+                        </ul>
+                    </div>
+                    <div class="tool-card">
+                        <h4>Roughing End Mill</h4>
+                        <ul>
+                            <li>Serrated flutes</li>
+                            <li>High MRR</li>
+                            <li>Chip breaking geometry</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>End Mill Specifications</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr><th>Parameter</th><th>Description</th><th>Common Values</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>Diameter</strong></td><td>Cutting diameter</td><td>3mm - 50mm</td></tr>
+                            <tr><td><strong>Flutes</strong></td><td>Number of cutting edges</td><td>2, 3, 4, 6, 8</td></tr>
+                            <tr><td><strong>LOC</strong></td><td>Length of cut</td><td>1×D to 4×D</td></tr>
+                            <tr><td><strong>OAL</strong></td><td>Overall length</td><td>38mm - 150mm</td></tr>
+                            <tr><td><strong>Helix Angle</strong></td><td>Spiral angle of flutes</td><td>30°, 35°, 45°</td></tr>
+                            <tr><td><strong>Shank</strong></td><td>Holder interface</td><td>Weldon, ER collet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Drilling Tools -->
+            <div class="tools-guide-section" id="drilling-tools">
+                <h2>Drilling Tools</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr><th>Tool Type</th><th>Application</th><th>Speed Range</th><th>Notes</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>HSS Twist Drill</strong></td><td>General purpose</td><td>15-30 m/min</td><td>Lower cost, regrindable</td></tr>
+                            <tr><td><strong>Carbide Drill</strong></td><td>Production drilling</td><td>60-120 m/min</td><td>Higher speed, longer life</td></tr>
+                            <tr><td><strong>Indexable Drill</strong></td><td>Large holes, high MRR</td><td>80-150 m/min</td><td>Replaceable inserts</td></tr>
+                            <tr><td><strong>Center Drill</strong></td><td>Starting holes</td><td>20-40 m/min</td><td>60° or 90° point</td></tr>
+                            <tr><td><strong>Spot Drill</strong></td><td>Precise start point</td><td>30-50 m/min</td><td>90°, 120°, 142° points</td></tr>
+                            <tr><td><strong>Reamer</strong></td><td>Hole finishing</td><td>8-15 m/min</td><td>H7 tolerance capable</td></tr>
+                            <tr><td><strong>Tap (Cut)</strong></td><td>Thread cutting</td><td>5-15 m/min</td><td>Requires chip clearance</td></tr>
+                            <tr><td><strong>Tap (Form)</strong></td><td>Thread forming</td><td>10-25 m/min</td><td>No chips, stronger threads</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Speeds & Feeds -->
+            <div class="tools-guide-section" id="speeds-feeds">
+                <h2>Speeds & Feeds</h2>
+                <h3>Surface Speed by Material</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr><th>Material</th><th>HSS (m/min)</th><th>Carbide (m/min)</th><th>Feed/Tooth (mm)</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Aluminum 6061</td><td>150-300</td><td>300-1000</td><td>0.10-0.25</td></tr>
+                            <tr><td>Mild Steel</td><td>25-40</td><td>100-200</td><td>0.08-0.15</td></tr>
+                            <tr><td>Stainless 304</td><td>15-25</td><td>60-120</td><td>0.05-0.12</td></tr>
+                            <tr><td>Tool Steel</td><td>10-20</td><td>50-100</td><td>0.05-0.10</td></tr>
+                            <tr><td>Cast Iron</td><td>20-35</td><td>80-150</td><td>0.10-0.20</td></tr>
+                            <tr><td>Titanium</td><td>10-20</td><td>30-60</td><td>0.05-0.10</td></tr>
+                            <tr><td>Brass</td><td>80-150</td><td>200-400</td><td>0.10-0.20</td></tr>
+                            <tr><td>Plastic</td><td>100-300</td><td>200-500</td><td>0.15-0.30</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tip-box">
+                    <strong>RPM Formula:</strong> RPM = (SFM × 1000) / (π × D)<br>
+                    <strong>Feed Rate:</strong> F = RPM × Flutes × Feed/Tooth
+                </div>
+            </div>
+
+            <!-- Workholding -->
+            <div class="tools-guide-section" id="workholding">
+                <h2>Workholding</h2>
+                <div class="cards-grid">
+                    <div class="tool-card">
+                        <h4>Machine Vise</h4>
+                        <ul>
+                            <li>Standard 4", 6", 8" widths</li>
+                            <li>Precision ground jaws</li>
+                            <li>Kurt-style most common</li>
+                        </ul>
+                    </div>
+                    <div class="tool-card">
+                        <h4>Toe Clamps</h4>
+                        <ul>
+                            <li>Direct table clamping</li>
+                            <li>Flexible positioning</li>
+                            <li>For large/odd shapes</li>
+                        </ul>
+                    </div>
+                    <div class="tool-card">
+                        <h4>Rotary Table (4th Axis)</h4>
+                        <ul>
+                            <li>A-axis rotation</li>
+                            <li>Indexing or continuous</li>
+                            <li>Horizontal or tilting</li>
+                        </ul>
+                    </div>
+                    <div class="tool-card">
+                        <h4>5-Axis Workholding</h4>
+                        <ul>
+                            <li>Dovetail fixtures</li>
+                            <li>5-axis vises</li>
+                            <li>Minimal obstruction</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5-Axis Programming -->
+            <div class="tools-guide-section" id="five-axis">
+                <h2>5-Axis Programming</h2>
+
+                <h3>RTCP / TCPM</h3>
+                <p>Rotary Tool Center Point (RTCP) or Tool Center Point Management (TCPM) maintains the tool tip position as rotary axes move.</p>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr><th>Controller</th><th>RTCP/TCPM Code</th><th>Cancel Code</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>FANUC</td><td><code>G43.4 Hxx</code> or <code>G43.5 Hxx</code></td><td><code>G49</code></td></tr>
+                            <tr><td>Siemens</td><td><code>TRAORI</code> / <code>TCARR</code></td><td><code>TRAFOOF</code></td></tr>
+                            <tr><td>Haas</td><td><code>G234</code> (TCPC)</td><td><code>G49</code></td></tr>
+                            <tr><td>Heidenhain</td><td><code>M128</code></td><td><code>M129</code></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Tilted Work Plane (G68.2)</h3>
+                <p>G68.2 rotates the coordinate system to machine at an angle.</p>
+                <div class="tip-box">
+                    <strong>FANUC Format:</strong><br>
+                    <code>G68.2 X0 Y0 Z0 I_angle J_angle K_angle</code><br>
+                    Where I = rotation around X, J = around Y, K = around Z
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Edit Operation</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn" onclick="saveOperation()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let currentController = 'fanuc';
+        let currentMachineType = '3axis';
+        let currentUnits = 'metric';
+        let currentOp = null;
+        let operations = [];
+        let editingOpIndex = -1;
+
+        // Controller configurations
+        const controllerConfig = {
+            fanuc: {
+                name: 'FANUC',
+                programFormat: (num) => `O${String(num).padStart(4, '0')}`,
+                comment: (text) => `(${text})`,
+                safeStart: ['G17 G21 G40 G49 G80 G90'],
+                toolCall: (t) => `T${t} M06`,
+                spindleOn: (speed, dir = 'CW') => `S${speed} M0${dir === 'CW' ? '3' : '4'}`,
+                coolant: { on: 'M08', off: 'M09', through: 'M88' },
+                workOffset: (n) => `G${53 + n}`,
+                homeReturn: 'G91 G28 Z0\nG28 X0 Y0',
+                programEnd: 'M30',
+                rapid: 'G00',
+                linear: 'G01',
+                cwArc: 'G02',
+                ccwArc: 'G03',
+                cycles: {
+                    drill: 'G81',
+                    peck: 'G83',
+                    tap: 'G84',
+                    rigidTap: 'G84.2',
+                    bore: 'G85',
+                    boreDwell: 'G86',
+                    backBore: 'G87',
+                    ream: 'G85',
+                    cancel: 'G80'
+                },
+                fiveAxis: {
+                    rtcp: 'G43.4',
+                    tcpm: 'G43.5',
+                    plane: 'G68.2',
+                    cancel: 'G69',
+                    cancelTL: 'G49'
+                }
+            },
+            siemens: {
+                name: 'Siemens SINUMERIK',
+                programFormat: (num, name) => `; Program ${num}\n%_N_PROG${num}_MPF`,
+                comment: (text) => `; ${text}`,
+                safeStart: ['G17 G21 G40 G49 G80 G90'],
+                toolCall: (t) => `T${t}\nM6`,
+                spindleOn: (speed, dir = 'CW') => `S${speed} M${dir === 'CW' ? '3' : '4'}`,
+                coolant: { on: 'M8', off: 'M9', through: 'M88' },
+                workOffset: (n) => `G${53 + n}`,
+                homeReturn: 'SUPA G0 Z0\nG0 X0 Y0',
+                programEnd: 'M30',
+                rapid: 'G0',
+                linear: 'G1',
+                cwArc: 'G2',
+                ccwArc: 'G3',
+                cycles: {
+                    drill: 'CYCLE81',
+                    peck: 'CYCLE83',
+                    tap: 'CYCLE84',
+                    rigidTap: 'CYCLE840',
+                    bore: 'CYCLE85',
+                    boreDwell: 'CYCLE86',
+                    backBore: 'CYCLE87',
+                    ream: 'CYCLE85',
+                    pocket: 'POCKET3',
+                    cancel: ''
+                },
+                fiveAxis: {
+                    traori: 'TRAORI',
+                    plane: 'CYCLE800',
+                    cancel: 'TRAFOOF'
+                }
+            },
+            haas: {
+                name: 'Haas',
+                programFormat: (num) => `O${String(num).padStart(5, '0')}`,
+                comment: (text) => `(${text})`,
+                safeStart: ['G17 G20 G40 G49 G80 G90'],
+                toolCall: (t) => `T${t} M06`,
+                spindleOn: (speed, dir = 'CW') => `S${speed} M0${dir === 'CW' ? '3' : '4'}`,
+                coolant: { on: 'M08', off: 'M09', through: 'M88' },
+                workOffset: (n) => `G${53 + n}`,
+                homeReturn: 'G28 G91 Z0\nG28 X0 Y0',
+                programEnd: 'M30',
+                rapid: 'G00',
+                linear: 'G01',
+                cwArc: 'G02',
+                ccwArc: 'G03',
+                cycles: {
+                    drill: 'G81',
+                    peck: 'G83',
+                    tap: 'G84',
+                    rigidTap: 'G84',
+                    bore: 'G85',
+                    boreDwell: 'G86',
+                    backBore: 'G87',
+                    ream: 'G85',
+                    cancel: 'G80'
+                },
+                fiveAxis: {
+                    tcpc: 'G234',
+                    plane: 'G68.2',
+                    cancel: 'G69',
+                    cancelTL: 'G49'
+                }
+            },
+            heidenhain: {
+                name: 'Heidenhain (ISO)',
+                programFormat: (num) => `%${num}`,
+                comment: (text) => `; ${text}`,
+                safeStart: ['G17 G21 G40 G49 G80 G90'],
+                toolCall: (t) => `T${t} M6`,
+                spindleOn: (speed, dir = 'CW') => `S${speed} M${dir === 'CW' ? '3' : '4'}`,
+                coolant: { on: 'M8', off: 'M9' },
+                workOffset: (n) => `G${53 + n}`,
+                homeReturn: 'G53 G0 Z0\nG0 X0 Y0',
+                programEnd: 'M30',
+                rapid: 'G0',
+                linear: 'G1',
+                cwArc: 'G2',
+                ccwArc: 'G3',
+                cycles: {
+                    drill: 'G81',
+                    peck: 'G83',
+                    tap: 'G84',
+                    rigidTap: 'G84',
+                    bore: 'G85',
+                    boreDwell: 'G86',
+                    ream: 'G85',
+                    cancel: 'G80'
+                },
+                fiveAxis: {
+                    tcpm: 'M128',
+                    tcpmOff: 'M129',
+                    plane: 'PLANE SPATIAL'
+                }
+            }
+        };
+
+        // Operation definitions
+        const opDefinitions = {
+            'spot-drill': {
+                name: 'Spot Drill',
+                fields: [
+                    { id: 'tool', label: 'Tool #', type: 'number', default: 1 },
+                    { id: 'x', label: 'X Position', type: 'number', default: 0 },
+                    { id: 'y', label: 'Y Position', type: 'number', default: 0 },
+                    { id: 'depth', label: 'Depth', type: 'number', default: 3 },
+                    { id: 'speed', label: 'Spindle Speed', type: 'number', default: 2000 },
+                    { id: 'feed', label: 'Feed Rate', type: 'number', default: 100 }
+                ]
+            },
+            'drill': {
+                name: 'Drill',
+                fields: [
+                    { id: 'tool', label: 'Tool #', type: 'number', default: 2 },
+                    { id: 'x', label: 'X Position', type: 'number', default: 0 },
+                    { id: 'y', label: 'Y Position', type: 'number', default: 0 },
+                    { id: 'depth', label: 'Depth', type: 'number', default: 20 },
+                    { id: 'retract', label: 'Retract (R)', type: 'number', default: 2 },
+                    { id: 'speed', label: 'Spindle Speed', type: 'number', default: 1500 },
+                    { id: 'feed', label: 'Feed Rate', type: 'number', default: 150 }
+                ]
+            },
+            'peck-drill': {
+                name: 'Peck Drill',
+                fields: [
+                    { id: 'tool', label: 'Tool #', type: 'number', default: 2 },
+                    { id: 'x', label: 'X Position', type: 'number', default: 0 },
+                    { id: 'y', label: 'Y Position', type: 'number', default: 0 },
+                    { id: 'depth', label: 'Total Depth', type: 'number', default: 30 },
+                    { id: 'peck', label: 'Peck Depth (Q)', type: 'number', default: 5 },
+                    { id: 'retract', label: 'Retract (R)', type: 'number', default: 2 },
+                    { id: 'speed', label: 'Spindle Speed', type: 'number', default: 1200 },
+                    { id: 'feed', label: 'Feed Rate', type: 'number', default: 100 }
+                ]
+            },
+            'tap': {
+                name: 'Tap',
+                fields: [
+                    { id: 'tool', label: 'Tool #', type: 'number', default: 3 },
+                    { id: 'x', label: 'X Position', type: 'number', default: 0 },
+                    { id: 'y', label: 'Y Position', type: 'number', default: 0 },
+                    { id: 'depth', label: 'Depth', type: 'number', default: 15 },
+                    { id: 'pitch', label: 'Pitch', type: 'number', default: 1.5 },
+                    { id: 'retract', label: 'Retract (R)', type: 'number', default: 2 },
+                    { id: 'speed', label: 'Spindle Speed', type: 'number', default: 300 }
+                ]
+            },
+            'rigid-tap': {
+                name: 'Rigid Tap',
+                fields: [
+                    { id: 'tool', label: 'Tool #', type: 'number', default: 3 },
+                    { id: 'x', label: 'X Position', type: 'number', default: 0 },
+                    { id: 'y', label: 'Y Position', type: 'number', default: 0 },
+                    { id: 'depth', label: 'Depth', type: 'number', default: 15 },
+                    { id: 'pitch', label: 'Pitch', type: 'number', default: 1.5 },
+                    { id: 'retract', label: 'Retract (R)', type: 'number', default: 2 },
+                    { id: 'speed', label: 'Spindle Speed', type: 'number', default: 500 }
+                ]
+            },
+            'bore': {
+                name: 'Bore',
+                fields: [
+                    { id: 'tool', label: 'Tool #', type: 'number', default: 4 },
+                    { id: 'x', label: 'X Position', type: 'number', default: 0 },
+                    { id: 'y', label: 'Y Position', type: 'number', default: 0 },
+                    { id: 'depth', label: 'Depth', type: 'number', default: 20 },
+                    { id: 'retract', label: 'Retract (R)', type: 'number', default: 2 },
+                    { id: 'dwell', label: 'Dwell (sec)', type: 'number', default: 0.5 },
+                    { id: 'speed', label: 'Spindle Speed', type: 'number', default: 800 },
+                    { id: 'feed', label: 'Feed Rate', type: 'number', default: 50 }
+                ]
+            },
+            'ream': {
+                name: 'Ream',
+                fields: [
+                    { id: 'tool', label: 'Tool #', type: 'number', default: 5 },
+                    { id: 'x', label: 'X Position', type: 'number', default: 0 },
+                    { id: 'y', label: 'Y Position', type: 'number', default: 0 },
+                    { id: 'depth', label: 'Depth', type: 'number', default: 20 },
+                    { id: 'retract', label: 'Retract (R)', type: 'number', default: 2 },
+                    { id: 'speed', label: 'Spindle Speed', type: 'number', default: 600 },
+                    { id: 'feed', label: 'Feed Rate', type: 'number', default: 80 }
+                ]
+            },
+            'back-bore': {
+                name: 'Back Bore',
+                fields: [
+                    { id: 'tool', label: 'Tool #', type: 'number', default: 6 },
+                    { id: 'x', label: 'X Position', type: 'number', default: 0 },
+                    { id: 'y', label: 'Y Position', type: 'number', default: 0 },
+                    { id: 'depth', label: 'Depth', type: 'number', default: 10 },
+                    { id: 'retract', label: 'Retract (R)', type: 'number', default: 2 },
+                    { id: 'speed', label: 'Spindle Speed', type: 'number', default: 500 },
+                    { id: 'feed', label: 'Feed Rate', type: 'number', default: 30 }
+                ]
+            },
+            'face-mill': {
+                name: 'Face Mill',
+                fields: [
+                    { id: 'tool', label: 'Tool #', type: 'number', default: 1 },
+                    { id: 'toolDia', label: 'Tool Diameter', type: 'number', default: 50 },
+                    { id: 'width', label: 'Width (X)', type: 'number', default: 100 },
+                    { id: 'length', label: 'Length (Y)', type: 'number', default: 100 },
+                    { id: 'depth', label: 'Depth of Cut', type: 'number', default: 2 },
+                    { id: 'stepover', label: 'Stepover %', type: 'number', default: 70 },
+                    { id: 'speed', label: 'Spindle Speed', type: 'number', default: 2000 },
+                    { id: 'feed', label: 'Feed Rate', type: 'number', default: 500 }
+                ]
+            },
+            'pocket-rect': {
+                name: 'Rectangular Pocket',
+                fields: [
+                    { id: 'tool', label: 'Tool #', type: 'number', default: 2 },
+                    { id: 'toolDia', label: 'Tool Diameter', type: 'number', default: 10 },
+                    { id: 'width', label: 'Width (X)', type: 'number', default: 50 },
+                    { id: 'length', label: 'Length (Y)', type: 'number', default: 30 },
+                    { id: 'depth', label: 'Total Depth', type: 'number', default: 10 },
+                    { id: 'stepdown', label: 'Step Down', type: 'number', default: 2 },
+                    { id: 'stepover', label: 'Stepover %', type: 'number', default: 50 },
+                    { id: 'cornerR', label: 'Corner Radius', type: 'number', default: 5 },
+                    { id: 'speed', label: 'Spindle Speed', type: 'number', default: 3000 },
+                    { id: 'feed', label: 'Feed Rate', type: 'number', default: 400 }
+                ]
+            },
+            'pocket-circ': {
+                name: 'Circular Pocket',
+                fields: [
+                    { id: 'tool', label: 'Tool #', type: 'number', default: 2 },
+                    { id: 'toolDia', label: 'Tool Diameter', type: 'number', default: 10 },
+                    { id: 'diameter', label: 'Pocket Diameter', type: 'number', default: 40 },
+                    { id: 'depth', label: 'Total Depth', type: 'number', default: 10 },
+                    { id: 'stepdown', label: 'Step Down', type: 'number', default: 2 },
+                    { id: 'stepover', label: 'Stepover %', type: 'number', default: 50 },
+                    { id: 'speed', label: 'Spindle Speed', type: 'number', default: 3000 },
+                    { id: 'feed', label: 'Feed Rate', type: 'number', default: 400 }
+                ]
+            },
+            'contour': {
+                name: 'Contour',
+                fields: [
+                    { id: 'tool', label: 'Tool #', type: 'number', default: 3 },
+                    { id: 'toolDia', label: 'Tool Diameter', type: 'number', default: 10 },
+                    { id: 'depth', label: 'Depth', type: 'number', default: 10 },
+                    { id: 'stepdown', label: 'Step Down', type: 'number', default: 2 },
+                    { id: 'offset', label: 'Offset (+ = outside)', type: 'number', default: 0 },
+                    { id: 'compensation', label: 'Cutter Comp', type: 'select', options: ['None', 'Left (G41)', 'Right (G42)'], default: 'Left (G41)' },
+                    { id: 'speed', label: 'Spindle Speed', type: 'number', default: 3000 },
+                    { id: 'feed', label: 'Feed Rate', type: 'number', default: 300 }
+                ]
+            },
+            'slot': {
+                name: 'Slot',
+                fields: [
+                    { id: 'tool', label: 'Tool #', type: 'number', default: 4 },
+                    { id: 'toolDia', label: 'Tool Diameter', type: 'number', default: 8 },
+                    { id: 'length', label: 'Slot Length', type: 'number', default: 50 },
+                    { id: 'width', label: 'Slot Width', type: 'number', default: 8 },
+                    { id: 'depth', label: 'Depth', type: 'number', default: 5 },
+                    { id: 'stepdown', label: 'Step Down', type: 'number', default: 2 },
+                    { id: 'speed', label: 'Spindle Speed', type: 'number', default: 2500 },
+                    { id: 'feed', label: 'Feed Rate', type: 'number', default: 200 }
+                ]
+            },
+            'chamfer': {
+                name: 'Chamfer',
+                fields: [
+                    { id: 'tool', label: 'Tool #', type: 'number', default: 5 },
+                    { id: 'x', label: 'X Position', type: 'number', default: 0 },
+                    { id: 'y', label: 'Y Position', type: 'number', default: 0 },
+                    { id: 'diameter', label: 'Hole Diameter', type: 'number', default: 10 },
+                    { id: 'chamferWidth', label: 'Chamfer Width', type: 'number', default: 1 },
+                    { id: 'angle', label: 'Chamfer Angle', type: 'number', default: 45 },
+                    { id: 'speed', label: 'Spindle Speed', type: 'number', default: 2000 },
+                    { id: 'feed', label: 'Feed Rate', type: 'number', default: 150 }
+                ]
+            },
+            'thread-mill': {
+                name: 'Thread Mill',
+                fields: [
+                    { id: 'tool', label: 'Tool #', type: 'number', default: 6 },
+                    { id: 'x', label: 'X Position', type: 'number', default: 0 },
+                    { id: 'y', label: 'Y Position', type: 'number', default: 0 },
+                    { id: 'diameter', label: 'Major Diameter', type: 'number', default: 12 },
+                    { id: 'pitch', label: 'Pitch', type: 'number', default: 1.75 },
+                    { id: 'depth', label: 'Thread Depth', type: 'number', default: 15 },
+                    { id: 'threadType', label: 'Thread Type', type: 'select', options: ['Internal', 'External'], default: 'Internal' },
+                    { id: 'speed', label: 'Spindle Speed', type: 'number', default: 1500 },
+                    { id: 'feed', label: 'Feed Rate', type: 'number', default: 200 }
+                ]
+            },
+            'helical-bore': {
+                name: 'Helical Bore',
+                fields: [
+                    { id: 'tool', label: 'Tool #', type: 'number', default: 7 },
+                    { id: 'toolDia', label: 'Tool Diameter', type: 'number', default: 10 },
+                    { id: 'x', label: 'X Position', type: 'number', default: 0 },
+                    { id: 'y', label: 'Y Position', type: 'number', default: 0 },
+                    { id: 'diameter', label: 'Bore Diameter', type: 'number', default: 20 },
+                    { id: 'depth', label: 'Total Depth', type: 'number', default: 15 },
+                    { id: 'helixPitch', label: 'Helix Pitch', type: 'number', default: 2 },
+                    { id: 'speed', label: 'Spindle Speed', type: 'number', default: 2500 },
+                    { id: 'feed', label: 'Feed Rate', type: 'number', default: 300 }
+                ]
+            },
+            'rotary-index': {
+                name: 'Rotary Index',
+                axis: 4,
+                fields: [
+                    { id: 'angle', label: 'A-Axis Angle', type: 'number', default: 90 },
+                    { id: 'rapid', label: 'Rapid Move', type: 'select', options: ['Yes', 'No'], default: 'Yes' }
+                ]
+            },
+            'wrap-mill': {
+                name: 'Wrap Milling',
+                axis: 4,
+                fields: [
+                    { id: 'tool', label: 'Tool #', type: 'number', default: 1 },
+                    { id: 'startAngle', label: 'Start Angle', type: 'number', default: 0 },
+                    { id: 'endAngle', label: 'End Angle', type: 'number', default: 360 },
+                    { id: 'radius', label: 'Work Radius', type: 'number', default: 25 },
+                    { id: 'depth', label: 'Cut Depth', type: 'number', default: 2 },
+                    { id: 'speed', label: 'Spindle Speed', type: 'number', default: 2000 },
+                    { id: 'feed', label: 'Feed Rate', type: 'number', default: 200 }
+                ]
+            },
+            'polar-drill': {
+                name: 'Polar Drill Pattern',
+                axis: 4,
+                fields: [
+                    { id: 'tool', label: 'Tool #', type: 'number', default: 2 },
+                    { id: 'holeCount', label: 'Number of Holes', type: 'number', default: 6 },
+                    { id: 'startAngle', label: 'Start Angle', type: 'number', default: 0 },
+                    { id: 'radius', label: 'Pattern Radius', type: 'number', default: 30 },
+                    { id: 'depth', label: 'Hole Depth', type: 'number', default: 10 },
+                    { id: 'speed', label: 'Spindle Speed', type: 'number', default: 1500 },
+                    { id: 'feed', label: 'Feed Rate', type: 'number', default: 100 }
+                ]
+            },
+            'tilted-plane': {
+                name: 'Tilted Work Plane',
+                axis: 5,
+                fields: [
+                    { id: 'rotX', label: 'Rotation X (I)', type: 'number', default: 0 },
+                    { id: 'rotY', label: 'Rotation Y (J)', type: 'number', default: 30 },
+                    { id: 'rotZ', label: 'Rotation Z (K)', type: 'number', default: 0 },
+                    { id: 'pivotX', label: 'Pivot X', type: 'number', default: 0 },
+                    { id: 'pivotY', label: 'Pivot Y', type: 'number', default: 0 },
+                    { id: 'pivotZ', label: 'Pivot Z', type: 'number', default: 0 }
+                ]
+            },
+            '3plus2': {
+                name: '3+2 Positioning',
+                axis: 5,
+                fields: [
+                    { id: 'aAngle', label: 'A-Axis Angle', type: 'number', default: 45 },
+                    { id: 'cAngle', label: 'C-Axis Angle', type: 'number', default: 0 },
+                    { id: 'rtcp', label: 'Use RTCP', type: 'select', options: ['Yes', 'No'], default: 'Yes' }
+                ]
+            },
+            'tool-vector': {
+                name: 'Tool Vector',
+                axis: 5,
+                fields: [
+                    { id: 'i', label: 'Tool Vector I', type: 'number', default: 0 },
+                    { id: 'j', label: 'Tool Vector J', type: 'number', default: 0 },
+                    { id: 'k', label: 'Tool Vector K', type: 'number', default: 1 }
+                ]
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initTabs();
+            updateMachineType();
+        });
+
+        // Tab functionality
+        function initTabs() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab + '-tab').classList.add('active');
+                });
+            });
+        }
+
+        // Update functions
+        function updateController() {
+            currentController = document.getElementById('controller').value;
+            if (currentOp) generateSingleOp();
+        }
+
+        function updateMachineType() {
+            currentMachineType = document.getElementById('machineType').value;
+            const axis4Ops = document.getElementById('axis4-ops');
+            const axis5Ops = document.getElementById('axis5-ops');
+
+            if (currentMachineType === '3axis') {
+                axis4Ops.style.display = 'none';
+                axis5Ops.style.display = 'none';
+            } else if (currentMachineType === '4axis') {
+                axis4Ops.style.display = 'block';
+                axis5Ops.style.display = 'none';
+            } else {
+                axis4Ops.style.display = 'block';
+                axis5Ops.style.display = 'block';
+            }
+        }
+
+        function updateUnits() {
+            currentUnits = document.getElementById('units').value;
+        }
+
+        // Select operation
+        function selectOp(opType) {
+            currentOp = opType;
+            const def = opDefinitions[opType];
+            if (!def) return;
+
+            document.getElementById('op-params-card').style.display = 'block';
+            document.getElementById('op-params-title').textContent = def.name + ' Parameters';
+
+            let formHtml = '';
+            def.fields.forEach(field => {
+                if (field.type === 'select') {
+                    formHtml += `
+                        <div class="form-group">
+                            <label>${field.label}</label>
+                            <select id="param-${field.id}">
+                                ${field.options.map(opt => `<option value="${opt}" ${opt === field.default ? 'selected' : ''}>${opt}</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                } else {
+                    formHtml += `
+                        <div class="form-group">
+                            <label>${field.label}</label>
+                            <input type="${field.type}" id="param-${field.id}" value="${field.default}" step="any">
+                        </div>
+                    `;
+                }
+            });
+
+            document.getElementById('op-params-form').innerHTML = formHtml;
+        }
+
+        // Generate G-code for single operation
+        function generateSingleOp() {
+            if (!currentOp) return;
+
+            const def = opDefinitions[currentOp];
+            const params = {};
+            def.fields.forEach(field => {
+                const el = document.getElementById('param-' + field.id);
+                params[field.id] = field.type === 'number' ? parseFloat(el.value) : el.value;
+            });
+
+            const code = generateOperationCode(currentOp, params);
+            document.getElementById('singleCodeOutput').textContent = code.join('\n');
+        }
+
+        // Generate code for a specific operation
+        function generateOperationCode(opType, params) {
+            const cfg = controllerConfig[currentController];
+            const lines = [];
+
+            // Common header for tool operations
+            if (params.tool !== undefined) {
+                lines.push(cfg.comment(`${opDefinitions[opType].name}`));
+                lines.push(cfg.toolCall(params.tool));
+                if (params.speed) {
+                    lines.push(cfg.spindleOn(params.speed));
+                }
+                lines.push(cfg.coolant.on);
+            }
+
+            switch (opType) {
+                case 'spot-drill':
+                case 'drill':
+                    lines.push(`${cfg.rapid} X${params.x} Y${params.y}`);
+                    lines.push(`${cfg.rapid} Z${params.retract || 2}`);
+                    if (currentController === 'siemens') {
+                        lines.push(`CYCLE81(${params.retract || 2}, 0, 2, -${params.depth})`);
+                    } else {
+                        lines.push(`${cfg.cycles.drill} X${params.x} Y${params.y} Z-${params.depth} R${params.retract || 2} F${params.feed}`);
+                        lines.push(cfg.cycles.cancel);
+                    }
+                    break;
+
+                case 'peck-drill':
+                    lines.push(`${cfg.rapid} X${params.x} Y${params.y}`);
+                    lines.push(`${cfg.rapid} Z${params.retract}`);
+                    if (currentController === 'siemens') {
+                        lines.push(`CYCLE83(${params.retract}, 0, 2, -${params.depth}, , ${params.peck}, 0, , , , , , ${params.feed})`);
+                    } else {
+                        lines.push(`${cfg.cycles.peck} X${params.x} Y${params.y} Z-${params.depth} Q${params.peck} R${params.retract} F${params.feed}`);
+                        lines.push(cfg.cycles.cancel);
+                    }
+                    break;
+
+                case 'tap':
+                case 'rigid-tap':
+                    const tapFeed = params.speed * params.pitch;
+                    lines.push(`${cfg.rapid} X${params.x} Y${params.y}`);
+                    lines.push(`${cfg.rapid} Z${params.retract}`);
+                    if (currentController === 'siemens') {
+                        lines.push(`CYCLE84(${params.retract}, 0, 2, -${params.depth}, , 3, , , ${params.pitch}, )`);
+                    } else {
+                        const tapCycle = opType === 'rigid-tap' ? cfg.cycles.rigidTap : cfg.cycles.tap;
+                        lines.push(`${tapCycle} X${params.x} Y${params.y} Z-${params.depth} R${params.retract} F${tapFeed}`);
+                        lines.push(cfg.cycles.cancel);
+                    }
+                    break;
+
+                case 'bore':
+                    lines.push(`${cfg.rapid} X${params.x} Y${params.y}`);
+                    lines.push(`${cfg.rapid} Z${params.retract}`);
+                    if (currentController === 'siemens') {
+                        lines.push(`CYCLE86(${params.retract}, 0, 2, -${params.depth}, , ${params.dwell * 1000})`);
+                    } else {
+                        lines.push(`${cfg.cycles.boreDwell} X${params.x} Y${params.y} Z-${params.depth} R${params.retract} P${params.dwell * 1000} F${params.feed}`);
+                        lines.push(cfg.cycles.cancel);
+                    }
+                    break;
+
+                case 'ream':
+                    lines.push(`${cfg.rapid} X${params.x} Y${params.y}`);
+                    lines.push(`${cfg.rapid} Z${params.retract}`);
+                    if (currentController === 'siemens') {
+                        lines.push(`CYCLE85(${params.retract}, 0, 2, -${params.depth}, , ${params.feed})`);
+                    } else {
+                        lines.push(`${cfg.cycles.ream} X${params.x} Y${params.y} Z-${params.depth} R${params.retract} F${params.feed}`);
+                        lines.push(cfg.cycles.cancel);
+                    }
+                    break;
+
+                case 'face-mill':
+                    const stepover = params.toolDia * (params.stepover / 100);
+                    const passes = Math.ceil(params.length / stepover);
+                    lines.push(`${cfg.rapid} X-${params.toolDia / 2} Y-${stepover / 2}`);
+                    lines.push(`${cfg.rapid} Z2`);
+                    lines.push(`${cfg.linear} Z-${params.depth} F${params.feed / 3}`);
+                    for (let i = 0; i < passes; i++) {
+                        const y = (i * stepover) - (stepover / 2);
+                        if (i % 2 === 0) {
+                            lines.push(`${cfg.linear} X${params.width + params.toolDia / 2} Y${y} F${params.feed}`);
+                        } else {
+                            lines.push(`${cfg.linear} X-${params.toolDia / 2} Y${y} F${params.feed}`);
+                        }
+                    }
+                    lines.push(`${cfg.rapid} Z50`);
+                    break;
+
+                case 'pocket-rect':
+                    const so = params.toolDia * (params.stepover / 100);
+                    const numZPasses = Math.ceil(params.depth / params.stepdown);
+                    lines.push(cfg.comment('Rectangular Pocket'));
+                    lines.push(`${cfg.rapid} X0 Y0`);
+                    lines.push(`${cfg.rapid} Z5`);
+                    for (let z = 1; z <= numZPasses; z++) {
+                        const zDepth = Math.min(z * params.stepdown, params.depth);
+                        lines.push(`${cfg.linear} Z-${zDepth} F${params.feed / 3}`);
+                        // Simple zig-zag pattern
+                        let currentY = so / 2;
+                        let dir = 1;
+                        while (currentY < params.length - so / 2) {
+                            if (dir === 1) {
+                                lines.push(`${cfg.linear} X${params.width - so} Y${currentY} F${params.feed}`);
+                            } else {
+                                lines.push(`${cfg.linear} X${so} Y${currentY} F${params.feed}`);
+                            }
+                            currentY += so;
+                            lines.push(`${cfg.linear} Y${Math.min(currentY, params.length - so / 2)}`);
+                            dir *= -1;
+                        }
+                    }
+                    lines.push(`${cfg.rapid} Z50`);
+                    break;
+
+                case 'pocket-circ':
+                    const stepoverCirc = params.toolDia * (params.stepover / 100);
+                    const maxRadius = (params.diameter - params.toolDia) / 2;
+                    lines.push(cfg.comment('Circular Pocket'));
+                    lines.push(`${cfg.rapid} X0 Y0`);
+                    lines.push(`${cfg.rapid} Z5`);
+                    const zPasses = Math.ceil(params.depth / params.stepdown);
+                    for (let z = 1; z <= zPasses; z++) {
+                        const zDepth = Math.min(z * params.stepdown, params.depth);
+                        lines.push(`${cfg.linear} Z-${zDepth} F${params.feed / 3}`);
+                        // Spiral out
+                        for (let r = stepoverCirc; r <= maxRadius; r += stepoverCirc) {
+                            lines.push(`${cfg.linear} X${r} Y0 F${params.feed}`);
+                            lines.push(`${cfg.cwArc} X${r} Y0 I-${r} J0`);
+                        }
+                        lines.push(`${cfg.rapid} X0 Y0`);
+                    }
+                    lines.push(`${cfg.rapid} Z50`);
+                    break;
+
+                case 'thread-mill':
+                    const threadRadius = params.diameter / 2;
+                    const helixZ = params.pitch;
+                    const numPasses = Math.ceil(params.depth / params.pitch);
+                    lines.push(cfg.comment(`Thread Mill - ${params.threadType}`));
+                    lines.push(`${cfg.rapid} X0 Y0`);
+                    lines.push(`${cfg.rapid} Z5`);
+                    lines.push(`${cfg.linear} Z-${params.depth + 2} F${params.feed}`);
+                    lines.push(`${cfg.linear} X${threadRadius} F${params.feed / 2}`);
+                    // Helical interpolation
+                    for (let i = 0; i < numPasses; i++) {
+                        const startZ = -params.depth - 2 + (i * params.pitch);
+                        const endZ = startZ + params.pitch;
+                        if (params.threadType === 'Internal') {
+                            lines.push(`${cfg.ccwArc} X${threadRadius} Y0 Z${endZ} I-${threadRadius} J0 F${params.feed}`);
+                        } else {
+                            lines.push(`${cfg.cwArc} X${threadRadius} Y0 Z${endZ} I-${threadRadius} J0 F${params.feed}`);
+                        }
+                    }
+                    lines.push(`${cfg.linear} X0`);
+                    lines.push(`${cfg.rapid} Z50`);
+                    break;
+
+                case 'rotary-index':
+                    const moveType = params.rapid === 'Yes' ? cfg.rapid : cfg.linear;
+                    lines.push(cfg.comment(`Rotary Index to ${params.angle}°`));
+                    lines.push(`${moveType} A${params.angle}`);
+                    break;
+
+                case 'tilted-plane':
+                    lines.push(cfg.comment('Tilted Work Plane'));
+                    if (currentController === 'fanuc' || currentController === 'haas') {
+                        lines.push(`G68.2 X${params.pivotX} Y${params.pivotY} Z${params.pivotZ} I${params.rotX} J${params.rotY} K${params.rotZ}`);
+                    } else if (currentController === 'siemens') {
+                        lines.push(`CYCLE800(0, "", 0, 57, ${params.rotX}, ${params.rotY}, ${params.rotZ}, 0, 0, 0, 0, 0, 1)`);
+                    } else {
+                        lines.push(`; PLANE SPATIAL SPA${params.rotX} SPB${params.rotY} SPC${params.rotZ} STAY`);
+                    }
+                    break;
+
+                case '3plus2':
+                    lines.push(cfg.comment('3+2 Positioning'));
+                    if (params.rtcp === 'Yes') {
+                        if (currentController === 'fanuc') {
+                            lines.push(`${cfg.fiveAxis.rtcp} H${params.tool || 1}`);
+                        } else if (currentController === 'haas') {
+                            lines.push(cfg.fiveAxis.tcpc);
+                        } else if (currentController === 'siemens') {
+                            lines.push(cfg.fiveAxis.traori);
+                        } else {
+                            lines.push(cfg.fiveAxis.tcpm);
+                        }
+                    }
+                    lines.push(`${cfg.rapid} A${params.aAngle} C${params.cAngle}`);
+                    break;
+
+                case 'tool-vector':
+                    lines.push(cfg.comment('Tool Vector Programming'));
+                    lines.push(`; Tool axis: I${params.i} J${params.j} K${params.k}`);
+                    break;
+
+                default:
+                    lines.push(cfg.comment(`${opType} - Not yet implemented`));
+            }
+
+            // Common footer
+            if (params.tool !== undefined) {
+                lines.push(cfg.coolant.off);
+            }
+
+            return lines;
+        }
+
+        // Generate full program
+        function generateFullProgram() {
+            const cfg = controllerConfig[currentController];
+            const programNum = document.getElementById('programNumber').value;
+            const workOffset = document.getElementById('workOffset').value;
+            const safeZ = document.getElementById('safeZ').value;
+
+            const lines = [];
+            lines.push(cfg.programFormat(programNum));
+            lines.push(cfg.comment('CNC Milling Program'));
+            lines.push(cfg.comment(`Generated by gcodegen.in`));
+            lines.push('');
+            cfg.safeStart.forEach(s => lines.push(s));
+            lines.push(`G${workOffset}`);
+            lines.push('');
+
+            operations.forEach((op, i) => {
+                lines.push(cfg.comment(`Operation ${i + 1}: ${opDefinitions[op.type].name}`));
+                const opCode = generateOperationCode(op.type, op.params);
+                lines.push(...opCode);
+                lines.push('');
+            });
+
+            lines.push(cfg.comment('End of program'));
+            lines.push(cfg.coolant.off);
+            lines.push('M05');
+            lines.push(cfg.homeReturn);
+            lines.push(cfg.programEnd);
+
+            document.getElementById('builderCodeOutput').textContent = lines.join('\n');
+        }
+
+        // Copy code
+        function copyCode(mode) {
+            const codeEl = mode === 'single' ? document.getElementById('singleCodeOutput') : document.getElementById('builderCodeOutput');
+            navigator.clipboard.writeText(codeEl.textContent);
+        }
+
+        // Download code
+        function downloadCode(mode) {
+            const codeEl = mode === 'single' ? document.getElementById('singleCodeOutput') : document.getElementById('builderCodeOutput');
+            const blob = new Blob([codeEl.textContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `program_${Date.now()}.nc`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Clear program
+        function clearProgram() {
+            operations = [];
+            renderOpList();
+            document.getElementById('builderCodeOutput').textContent = '; Add operations to generate program';
+        }
+
+        // Render operation list
+        function renderOpList() {
+            const list = document.getElementById('opList');
+            if (operations.length === 0) {
+                list.innerHTML = '<div class="empty-state">Click an operation button to add it to your program</div>';
+                return;
+            }
+
+            list.innerHTML = operations.map((op, i) => `
+                <div class="op-item">
+                    <div class="op-number">${i + 1}</div>
+                    <div class="op-details">
+                        <div class="op-name">${opDefinitions[op.type].name}</div>
+                        <div class="op-params">T${op.params.tool || '-'} | ${Object.entries(op.params).slice(0, 3).map(([k, v]) => `${k}:${v}`).join(' ')}</div>
+                    </div>
+                    <div class="op-actions">
+                        <button onclick="editOp(${i})">Edit</button>
+                        <button class="delete-btn" onclick="deleteOp(${i})">×</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Edit operation
+        function editOp(index) {
+            editingOpIndex = index;
+            const op = operations[index];
+            const def = opDefinitions[op.type];
+
+            document.getElementById('modalTitle').textContent = `Edit ${def.name}`;
+
+            let formHtml = '';
+            def.fields.forEach(field => {
+                const value = op.params[field.id] !== undefined ? op.params[field.id] : field.default;
+                if (field.type === 'select') {
+                    formHtml += `
+                        <div class="form-group">
+                            <label>${field.label}</label>
+                            <select id="modal-${field.id}">
+                                ${field.options.map(opt => `<option value="${opt}" ${opt === value ? 'selected' : ''}>${opt}</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                } else {
+                    formHtml += `
+                        <div class="form-group">
+                            <label>${field.label}</label>
+                            <input type="${field.type}" id="modal-${field.id}" value="${value}" step="any">
+                        </div>
+                    `;
+                }
+            });
+
+            document.getElementById('modalBody').innerHTML = formHtml;
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        // Save operation from modal
+        function saveOperation() {
+            if (editingOpIndex < 0) return;
+
+            const op = operations[editingOpIndex];
+            const def = opDefinitions[op.type];
+
+            def.fields.forEach(field => {
+                const el = document.getElementById('modal-' + field.id);
+                op.params[field.id] = field.type === 'number' ? parseFloat(el.value) : el.value;
+            });
+
+            closeModal();
+            renderOpList();
+        }
+
+        // Delete operation
+        function deleteOp(index) {
+            operations.splice(index, 1);
+            renderOpList();
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('active');
+            editingOpIndex = -1;
+        }
+
+        // Add operation to program (from Single Op tab)
+        function addToProgram() {
+            if (!currentOp) return;
+
+            const def = opDefinitions[currentOp];
+            const params = {};
+            def.fields.forEach(field => {
+                const el = document.getElementById('param-' + field.id);
+                params[field.id] = field.type === 'number' ? parseFloat(el.value) : el.value;
+            });
+
+            operations.push({ type: currentOp, params });
+            renderOpList();
+
+            // Switch to builder tab
+            document.querySelector('[data-tab="builder"]').click();
+        }
+    </script>
+</body>
+</html>
