@@ -907,7 +907,6 @@
                                 <input type="number" id="wpHeightZ" value="25" step="1" oninput="updateAllPreviews()">
                             </div>
                         </div>
-                        <div class="dimension-preview" id="dimensionPreview"></div>
                     </div>
 
                     <!-- Origin Reference -->
@@ -1460,57 +1459,8 @@
         }
 
         function updateAllPreviews() {
-            updateDimensionPreview();
             updateOriginPreview();
             updateSafeDistancePreview();
-        }
-
-        function updateDimensionPreview() {
-            const setup = getWorkpieceSetup();
-            const container = document.getElementById('dimensionPreview');
-
-            // Scale factor for display (fit in ~280px width)
-            const maxDim = Math.max(setup.lengthX, setup.widthY, setup.heightZ * 2);
-            const scale = 180 / maxDim;
-            const wpW = setup.lengthX * scale;
-            const wpD = setup.widthY * scale * 0.5; // Perspective depth
-            const wpH = setup.heightZ * scale;
-
-            // 3D isometric view
-            const svg = `
-                <svg viewBox="0 0 300 160" width="300" height="160">
-                    <!-- Workpiece 3D box -->
-                    <!-- Top face -->
-                    <polygon points="${50},${60} ${50 + wpW},${60 - wpD/2} ${50 + wpW + wpD},${60} ${50 + wpD},${60 + wpD/2}"
-                             fill="#c7d2fe" stroke="#6366f1" stroke-width="1.5"/>
-                    <!-- Front face -->
-                    <polygon points="${50},${60} ${50 + wpD},${60 + wpD/2} ${50 + wpD},${60 + wpD/2 + wpH} ${50},${60 + wpH}"
-                             fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5"/>
-                    <!-- Right face -->
-                    <polygon points="${50 + wpD},${60 + wpD/2} ${50 + wpW + wpD},${60} ${50 + wpW + wpD},${60 + wpH} ${50 + wpD},${60 + wpD/2 + wpH}"
-                             fill="#a5b4fc" stroke="#6366f1" stroke-width="1.5"/>
-
-                    <!-- X dimension (length) -->
-                    <line x1="50" y1="${65 + wpH + wpD/2 + 15}" x2="${50 + wpW}" y2="${65 + wpH + 15}" stroke="#1e40af" stroke-width="1.5"/>
-                    <line x1="50" y1="${60 + wpH + wpD/2 + 10}" x2="50" y2="${70 + wpH + wpD/2 + 20}" stroke="#1e40af" stroke-width="1"/>
-                    <line x1="${50 + wpW}" y1="${60 + wpH + 10}" x2="${50 + wpW}" y2="${70 + wpH + 20}" stroke="#1e40af" stroke-width="1"/>
-                    <text x="${50 + wpW/2}" y="${75 + wpH + wpD/4 + 20}" text-anchor="middle" class="preview-dimension">X = ${setup.lengthX} mm</text>
-
-                    <!-- Y dimension (width) -->
-                    <line x1="${55 + wpW + wpD}" y1="${60}" x2="${55 + wpW + wpD + 20}" y2="${60 - 10}" stroke="#1e40af" stroke-width="1.5"/>
-                    <text x="${60 + wpW + wpD + 25}" y="${60 - 5}" class="preview-dimension">Y = ${setup.widthY} mm</text>
-
-                    <!-- Z dimension (height) -->
-                    <line x1="35" y1="${60}" x2="35" y2="${60 + wpH}" stroke="#1e40af" stroke-width="1.5"/>
-                    <line x1="30" y1="${60}" x2="40" y2="${60}" stroke="#1e40af" stroke-width="1"/>
-                    <line x1="30" y1="${60 + wpH}" x2="40" y2="${60 + wpH}" stroke="#1e40af" stroke-width="1"/>
-                    <text x="25" y="${60 + wpH/2 + 4}" text-anchor="end" class="preview-dimension">Z = ${setup.heightZ} mm</text>
-
-                    <!-- Axis labels -->
-                    <text x="15" y="155" class="preview-label">Isometric View</text>
-                </svg>
-            `;
-            container.innerHTML = svg;
         }
 
         function updateOriginPreview() {
