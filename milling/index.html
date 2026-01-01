@@ -1723,7 +1723,7 @@
                     const passes = Math.ceil(params.length / stepover);
                     lines.push(`${cfg.rapid} X-${params.toolDia / 2} Y-${stepover / 2}`);
                     lines.push(`${cfg.rapid} Z2`);
-                    lines.push(`${cfg.linear} Z-${params.depth} F${params.feed / 3}`);
+                    lines.push(`${cfg.linear} Z-${params.depth} F${Math.ceil(params.feed / 3)}`);
                     for (let i = 0; i < passes; i++) {
                         const y = (i * stepover) - (stepover / 2);
                         if (i % 2 === 0) {
@@ -1743,7 +1743,7 @@
                     lines.push(`${cfg.rapid} Z5`);
                     for (let z = 1; z <= numZPasses; z++) {
                         const zDepth = Math.min(z * params.stepdown, params.depth);
-                        lines.push(`${cfg.linear} Z-${zDepth} F${params.feed / 3}`);
+                        lines.push(`${cfg.linear} Z-${zDepth} F${Math.ceil(params.feed / 3)}`);
                         // Simple zig-zag pattern
                         let currentY = so / 2;
                         let dir = 1;
@@ -1770,7 +1770,7 @@
                     const zPasses = Math.ceil(params.depth / params.stepdown);
                     for (let z = 1; z <= zPasses; z++) {
                         const zDepth = Math.min(z * params.stepdown, params.depth);
-                        lines.push(`${cfg.linear} Z-${zDepth} F${params.feed / 3}`);
+                        lines.push(`${cfg.linear} Z-${zDepth} F${Math.ceil(params.feed / 3)}`);
                         // Spiral out
                         for (let r = stepoverCirc; r <= maxRadius; r += stepoverCirc) {
                             lines.push(`${cfg.linear} X${r} Y0 F${params.feed}`);
@@ -1789,7 +1789,7 @@
                     lines.push(`${cfg.rapid} X0 Y0`);
                     lines.push(`${cfg.rapid} Z5`);
                     lines.push(`${cfg.linear} Z-${params.depth + 2} F${params.feed}`);
-                    lines.push(`${cfg.linear} X${threadRadius} F${params.feed / 2}`);
+                    lines.push(`${cfg.linear} X${threadRadius} F${Math.ceil(params.feed / 2)}`);
                     // Helical interpolation
                     for (let i = 0; i < numPasses; i++) {
                         const startZ = -params.depth - 2 + (i * params.pitch);

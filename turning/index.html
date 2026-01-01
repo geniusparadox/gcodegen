@@ -2646,7 +2646,7 @@
             // SPD = plunge position, SPL = retract position, WIDG = groove width
             // DIESSION = grooving direction, CRD = corner radius
             const peckDepth = Math.min(op.doc || 0.5, grooveDepth);
-            code.push(`CYCLE93(${grooveBottom.toFixed(1)},${(outerDia + 1).toFixed(1)},${grooveWidth.toFixed(1)},1,0,${(op.roughFeed / 2).toFixed(3)},${(op.roughFeed).toFixed(3)},1,3,0,${peckDepth.toFixed(1)},1)`);
+            code.push(`CYCLE93(${grooveBottom.toFixed(1)},${(outerDia + 1).toFixed(1)},${grooveWidth.toFixed(1)},1,0,${Math.ceil(op.roughFeed / 2)},${Math.ceil(op.roughFeed)},1,3,0,${peckDepth.toFixed(1)},1)`);
 
             return code;
         }
@@ -4273,14 +4273,14 @@
 
                         // Plunge groove with corner blend
                         code.push(makeComment('GROOVE PLUNGE', ctrl));
-                        code.push(`${G1} X${grooveX.toFixed(3)} F${(op.roughFeed / 2).toFixed(3)}`);
+                        code.push(`${G1} X${grooveX.toFixed(3)} F${Math.ceil(op.roughFeed / 2)}`);
                         code.push(cfg.dwell(200)); // Dwell for chip breaking
 
                         // Move along groove width
-                        code.push(`${G1} Z${(grooveZ - reliefWidth).toFixed(1)} F${(op.roughFeed / 2).toFixed(3)}`);
+                        code.push(`${G1} Z${(grooveZ - reliefWidth).toFixed(1)} F${Math.ceil(op.roughFeed / 2)}`);
 
                         // Retract from groove
-                        code.push(`${G1} X${p.outerDia.toFixed(1)} F${(op.roughFeed / 2).toFixed(3)}`);
+                        code.push(`${G1} X${p.outerDia.toFixed(1)} F${Math.ceil(op.roughFeed / 2)}`);
 
                         // Safe G1 retract
                         code.push(makeComment('SAFE RETRACT - G1', ctrl));
@@ -4304,14 +4304,14 @@
                         code.push(makeComment(`GROOVE: WIDTH ${p.grooveWidth.toFixed(1)}mm x DEPTH ${p.grooveDepth.toFixed(1)}mm AT Z${p.zPos.toFixed(1)}`, ctrl));
                         code.push(`${G0} X${(p.outerDia + 2).toFixed(1)} Z${p.zPos.toFixed(1)}`);
                         code.push('G75 R0.5');
-                        code.push(`G75 X${grooveBottom.toFixed(1)} Z${grooveEndZ.toFixed(1)} P${peckDepth.toFixed(0)} Q${axialStep.toFixed(0)} F${(op.roughFeed / 2).toFixed(3)}`);
+                        code.push(`G75 X${grooveBottom.toFixed(1)} Z${grooveEndZ.toFixed(1)} P${peckDepth.toFixed(0)} Q${axialStep.toFixed(0)} F${Math.ceil(op.roughFeed / 2)}`);
                     }
                     break;
 
                 case 'parting':
                     code.push(makeComment('PARTING OFF', ctrl));
                     code.push(`${G0} X${(p.outerDia + 2).toFixed(1)} Z${p.zPos.toFixed(1)}`);
-                    code.push(`${G1} X${p.innerDia.toFixed(1)} F${(op.roughFeed / 3).toFixed(3)}`);
+                    code.push(`${G1} X${p.innerDia.toFixed(1)} F${Math.ceil(op.roughFeed / 3)}`);
                     if (p.innerDia <= 0) code.push(cfg.dwell(500));
                     code.push(`${G0} X${(p.outerDia + 5).toFixed(1)}`);
                     break;
