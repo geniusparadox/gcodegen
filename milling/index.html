@@ -928,19 +928,25 @@
                     <!-- Safe Distances -->
                     <div class="setup-group">
                         <div class="setup-title">Step 3: Safe Distances (from Origin)</div>
-                        <p class="setup-hint">Define safe clearance heights relative to the origin. Tools will rapid to Safe Z before moving, then approach at Clearance Z.</p>
+                        <p class="setup-hint">Define safe clearance distances. Safe Z is rapid height, clearances define approach distances from workpiece edges.</p>
                         <div class="setup-row">
                             <div class="form-group">
                                 <label>Safe Z - Rapid Height (mm)</label>
                                 <input type="number" id="safeZRapid" value="50" step="1" oninput="updateAllPreviews()">
                             </div>
                             <div class="form-group">
-                                <label>Clearance Z - Approach (mm)</label>
-                                <input type="number" id="clearanceZ" value="5" step="0.5" oninput="updateAllPreviews()">
+                                <label>X Clearance (mm)</label>
+                                <input type="number" id="clearanceX" value="10" step="1" oninput="updateAllPreviews()">
+                            </div>
+                        </div>
+                        <div class="setup-row">
+                            <div class="form-group">
+                                <label>Y Clearance (mm)</label>
+                                <input type="number" id="clearanceY" value="10" step="1" oninput="updateAllPreviews()">
                             </div>
                             <div class="form-group">
-                                <label>XY Clearance (mm)</label>
-                                <input type="number" id="clearanceXY" value="10" step="1" oninput="updateAllPreviews()">
+                                <label>Z Clearance - Approach (mm)</label>
+                                <input type="number" id="clearanceZ" value="5" step="0.5" oninput="updateAllPreviews()">
                             </div>
                         </div>
                         <div class="safe-distance-preview" id="safeDistancePreview"></div>
@@ -1452,8 +1458,9 @@
                 heightZ: parseFloat(document.getElementById('wpHeightZ').value) || 25,
                 origin: document.getElementById('originLocation').value,
                 safeZRapid: parseFloat(document.getElementById('safeZRapid').value) || 50,
+                clearanceX: parseFloat(document.getElementById('clearanceX').value) || 10,
+                clearanceY: parseFloat(document.getElementById('clearanceY').value) || 10,
                 clearanceZ: parseFloat(document.getElementById('clearanceZ').value) || 5,
-                clearanceXY: parseFloat(document.getElementById('clearanceXY').value) || 10,
                 material: document.getElementById('material').value
             };
         }
@@ -1552,37 +1559,46 @@
             const container = document.getElementById('safeDistancePreview');
 
             // Calculate scales for XY view
-            const maxDimXY = Math.max(setup.lengthX, setup.widthY);
-            const scaleXY = Math.min(80 / maxDimXY, 1.0);
+            const maxDimXY = Math.max(setup.lengthX + setup.clearanceX * 2, setup.widthY + setup.clearanceY * 2);
+            const scaleXY = Math.min(75 / maxDimXY, 0.9);
             const wpW = setup.lengthX * scaleXY;
             const wpD = setup.widthY * scaleXY;
-            const xyClr = setup.clearanceXY * scaleXY * 0.4;
+            const clrX = setup.clearanceX * scaleXY;
+            const clrY = setup.clearanceY * scaleXY;
 
             // Calculate scales for XZ view
             const maxH = Math.max(setup.safeZRapid + 10, setup.heightZ + setup.safeZRapid);
-            const scaleZ = 70 / maxH;
+            const scaleZ = 65 / maxH;
             const wpH = setup.heightZ * scaleZ;
             const safeZ = setup.safeZRapid * scaleZ;
             const clearZ = setup.clearanceZ * scaleZ;
 
-            // XY View positioning
-            const xyOffsetX = 25;
-            const xyOffsetY = 28;
+            // XY View positioning - account for clearance margins
+            const xyOffsetX = 25 + clrX;
+            const xyOffsetY = 25 + clrY;
             const pos = getOriginPosition(setup, wpW, wpD, xyOffsetX, xyOffsetY);
 
             // Side view positioning
-            const sideOffsetX = 190;
-            const baseY = 108;
+            const sideOffsetX = 195;
+            const baseY = 105;
             const wpTop = baseY - wpH;
 
             const svg = `
-                <svg viewBox="0 0 380 165" width="380" height="165">
+                <svg viewBox="0 0 380 168" width="380" height="168">
                     <!-- XY TOP VIEW -->
                     <text x="${xyOffsetX + wpW/2}" y="12" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">XY Top View</text>
 
-                    <!-- XY Clearance box around workpiece -->
-                    <rect x="${xyOffsetX - xyClr}" y="${xyOffsetY - xyClr}" width="${wpW + xyClr*2}" height="${wpD + xyClr*2}"
-                          fill="#dbeafe" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3,2"/>
+                    <!-- X Clearance zones (left and right) -->
+                    <rect x="${xyOffsetX - clrX}" y="${xyOffsetY}" width="${clrX}" height="${wpD}"
+                          fill="#fef3c7" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3,2"/>
+                    <rect x="${xyOffsetX + wpW}" y="${xyOffsetY}" width="${clrX}" height="${wpD}"
+                          fill="#fef3c7" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3,2"/>
+
+                    <!-- Y Clearance zones (top and bottom) -->
+                    <rect x="${xyOffsetX}" y="${xyOffsetY - clrY}" width="${wpW}" height="${clrY}"
+                          fill="#dcfce7" stroke="#059669" stroke-width="1" stroke-dasharray="3,2"/>
+                    <rect x="${xyOffsetX}" y="${xyOffsetY + wpD}" width="${wpW}" height="${clrY}"
+                          fill="#dcfce7" stroke="#059669" stroke-width="1" stroke-dasharray="3,2"/>
 
                     <!-- Workpiece top view -->
                     <rect x="${xyOffsetX}" y="${xyOffsetY}" width="${wpW}" height="${wpD}" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5"/>
@@ -1592,14 +1608,20 @@
                     <line x1="${pos.originX - 7}" y1="${pos.originY}" x2="${pos.originX + 7}" y2="${pos.originY}" stroke="#7c3aed" stroke-width="1"/>
                     <line x1="${pos.originX}" y1="${pos.originY - 7}" x2="${pos.originX}" y2="${pos.originY + 7}" stroke="#7c3aed" stroke-width="1"/>
 
-                    <!-- Dimensions on XY -->
-                    <text x="${xyOffsetX + wpW/2}" y="${xyOffsetY - xyClr - 4}" text-anchor="middle" class="preview-dimension">${setup.lengthX}</text>
-                    <text x="${xyOffsetX + wpW + xyClr + 8}" y="${xyOffsetY + wpD/2 + 3}" class="preview-dimension">${setup.widthY}</text>
+                    <!-- Dimension labels -->
+                    <text x="${xyOffsetX + wpW/2}" y="${xyOffsetY - clrY - 4}" text-anchor="middle" class="preview-dimension">${setup.lengthX}</text>
+                    <text x="${xyOffsetX + wpW + clrX + 8}" y="${xyOffsetY + wpD/2 + 3}" class="preview-dimension">${setup.widthY}</text>
 
-                    <!-- Safe distance labels in XY view -->
-                    <text x="${xyOffsetX}" y="${xyOffsetY + wpD + xyClr + 14}" font-size="8" fill="#3b82f6">XY Clr: ${setup.clearanceXY} mm</text>
-                    <text x="${xyOffsetX}" y="${xyOffsetY + wpD + xyClr + 26}" font-size="8" fill="#059669">Safe Z: ${setup.safeZRapid} mm</text>
-                    <text x="${xyOffsetX}" y="${xyOffsetY + wpD + xyClr + 38}" font-size="8" fill="#f59e0b">Clear Z: ${setup.clearanceZ} mm</text>
+                    <!-- X Clearance label -->
+                    <text x="${xyOffsetX - clrX/2}" y="${xyOffsetY + wpD + 12}" text-anchor="middle" font-size="7" fill="#f59e0b">X:${setup.clearanceX}</text>
+
+                    <!-- Y Clearance label -->
+                    <text x="${xyOffsetX + wpW + clrX + 5}" y="${xyOffsetY - clrY/2 + 3}" font-size="7" fill="#059669">Y:${setup.clearanceY}</text>
+
+                    <!-- Safe distance summary below XY view -->
+                    <text x="${xyOffsetX - clrX}" y="${xyOffsetY + wpD + clrY + 14}" font-size="8" fill="#f59e0b">X Clr: ${setup.clearanceX} mm</text>
+                    <text x="${xyOffsetX - clrX}" y="${xyOffsetY + wpD + clrY + 26}" font-size="8" fill="#059669">Y Clr: ${setup.clearanceY} mm</text>
+                    <text x="${xyOffsetX - clrX}" y="${xyOffsetY + wpD + clrY + 38}" font-size="8" fill="#3b82f6">Z Clr: ${setup.clearanceZ} mm</text>
 
                     <!-- SIDE VIEW (XZ) -->
                     <text x="${sideOffsetX + 60}" y="12" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">XZ Side View</text>
@@ -1616,9 +1638,9 @@
                     <text x="${sideOffsetX + 140}" y="${wpTop + 4}" class="preview-origin">Z=0</text>
 
                     <!-- Clearance Z level -->
-                    <line x1="${sideOffsetX + 10}" y1="${wpTop - clearZ}" x2="${sideOffsetX + 125}" y2="${wpTop - clearZ}" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,2"/>
-                    <circle cx="${sideOffsetX + 130}" cy="${wpTop - clearZ}" r="3" fill="#f59e0b"/>
-                    <text x="${sideOffsetX + 140}" y="${wpTop - clearZ + 4}" class="preview-safe" fill="#f59e0b">Z=${setup.clearanceZ}</text>
+                    <line x1="${sideOffsetX + 10}" y1="${wpTop - clearZ}" x2="${sideOffsetX + 125}" y2="${wpTop - clearZ}" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4,2"/>
+                    <circle cx="${sideOffsetX + 130}" cy="${wpTop - clearZ}" r="3" fill="#3b82f6"/>
+                    <text x="${sideOffsetX + 140}" y="${wpTop - clearZ + 4}" class="preview-safe" fill="#3b82f6">Z=${setup.clearanceZ}</text>
 
                     <!-- Safe Z level -->
                     <line x1="${sideOffsetX + 10}" y1="${wpTop - safeZ}" x2="${sideOffsetX + 125}" y2="${wpTop - safeZ}" stroke="#059669" stroke-width="2"/>
@@ -1634,14 +1656,16 @@
                     <rect x="${sideOffsetX + 62}" y="${wpTop - safeZ - 16}" width="6" height="10" fill="#374151"/>
 
                     <!-- Legend at bottom -->
-                    <rect x="25" y="152" width="10" height="3" fill="#059669"/>
-                    <text x="38" y="156" font-size="8" fill="#64748b">Safe Z (Rapid)</text>
-                    <rect x="115" y="152" width="10" height="3" fill="#f59e0b"/>
-                    <text x="128" y="156" font-size="8" fill="#64748b">Clearance Z</text>
-                    <rect x="205" y="152" width="10" height="3" fill="#3b82f6"/>
-                    <text x="218" y="156" font-size="8" fill="#64748b">XY Clearance</text>
-                    <rect x="295" y="152" width="10" height="3" fill="#6366f1"/>
-                    <text x="308" y="156" font-size="8" fill="#64748b">Workpiece</text>
+                    <rect x="20" y="155" width="10" height="3" fill="#059669"/>
+                    <text x="33" y="159" font-size="8" fill="#64748b">Safe Z</text>
+                    <rect x="70" y="155" width="10" height="3" fill="#f59e0b"/>
+                    <text x="83" y="159" font-size="8" fill="#64748b">X Clr</text>
+                    <rect x="115" y="155" width="10" height="3" fill="#059669"/>
+                    <text x="128" y="159" font-size="8" fill="#64748b">Y Clr</text>
+                    <rect x="160" y="155" width="10" height="3" fill="#3b82f6"/>
+                    <text x="173" y="159" font-size="8" fill="#64748b">Z Clr</text>
+                    <rect x="205" y="155" width="10" height="3" fill="#6366f1"/>
+                    <text x="218" y="159" font-size="8" fill="#64748b">Workpiece</text>
                 </svg>
             `;
             container.innerHTML = svg;
