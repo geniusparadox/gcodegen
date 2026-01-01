@@ -1201,6 +1201,62 @@
         .material-params strong {
             color: var(--text-primary);
         }
+
+        /* Preview illustrations */
+        .dimension-preview,
+        .origin-preview,
+        .safe-distance-preview {
+            margin-top: 12px;
+            padding: 16px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dimension-preview svg,
+        .origin-preview svg,
+        .safe-distance-preview svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .preview-label {
+            font-size: 9px;
+            fill: #64748b;
+            font-weight: 500;
+        }
+
+        .preview-dimension {
+            font-size: 10px;
+            fill: #1e40af;
+            font-weight: 600;
+        }
+
+        .preview-origin {
+            font-size: 9px;
+            fill: #2563eb;
+            font-weight: 600;
+        }
+
+        .preview-safe {
+            font-size: 9px;
+            fill: #059669;
+            font-weight: 600;
+        }
+
+        .preview-stock {
+            fill: #e0e7ff;
+            stroke: #6366f1;
+        }
+
+        .preview-finished {
+            fill: #dbeafe;
+            stroke: #3b82f6;
+            stroke-dasharray: 4,2;
+        }
     </style>
 </head>
 <body>
@@ -1228,73 +1284,64 @@
                 <div class="setup-grid">
                     <!-- Workpiece Dimensions -->
                     <div class="setup-group">
-                        <div class="setup-title">Stock Dimensions</div>
+                        <div class="setup-title">Step 1: Stock Dimensions</div>
+                        <p class="setup-hint">Enter the stock material dimensions and target finished dimensions.</p>
                         <div class="setup-row">
                             <div class="form-group">
                                 <label>Stock Diameter (mm)</label>
-                                <input type="number" id="wpStockDia" value="50" step="1">
+                                <input type="number" id="wpStockDia" value="50" step="1" oninput="updateAllPreviews()">
                             </div>
                             <div class="form-group">
                                 <label>Stock Length (mm)</label>
-                                <input type="number" id="wpStockLength" value="100" step="1">
+                                <input type="number" id="wpStockLength" value="100" step="1" oninput="updateAllPreviews()">
                             </div>
                         </div>
                         <div class="setup-row" style="margin-top: 10px;">
                             <div class="form-group">
                                 <label>Finished Diameter (mm)</label>
-                                <input type="number" id="wpFinishDia" value="40" step="0.1">
+                                <input type="number" id="wpFinishDia" value="40" step="0.1" oninput="updateAllPreviews()">
                             </div>
                             <div class="form-group">
                                 <label>Finished Length (mm)</label>
-                                <input type="number" id="wpFinishLength" value="95" step="0.1">
+                                <input type="number" id="wpFinishLength" value="95" step="0.1" oninput="updateAllPreviews()">
                             </div>
                         </div>
+                        <div class="dimension-preview" id="dimensionPreview"></div>
                     </div>
 
                     <!-- Origin Reference -->
                     <div class="setup-group">
-                        <div class="setup-title">Origin Reference (Home Position)</div>
-                        <p class="setup-hint">All tools will rapid to this home position first, then move to operation locations.</p>
+                        <div class="setup-title">Step 2: Origin Reference (Work Zero)</div>
+                        <p class="setup-hint">Select where Z=0 is located. X=0 is always at the spindle centerline. All tool movements are relative to this origin.</p>
                         <div class="form-group">
-                            <label>Z Origin Location</label>
-                            <select id="originLocation" onchange="updateOriginPreview()">
-                                <option value="chuck-face" selected>Chuck Face (Z0 at face)</option>
-                                <option value="part-end">Part End (Z0 at end of part)</option>
+                            <label>Z Origin Location on Workpiece</label>
+                            <select id="originLocation" onchange="updateAllPreviews()">
+                                <option value="chuck-face" selected>Chuck Face (Z0 at chuck face, Z- towards tailstock)</option>
+                                <option value="part-end">Part End (Z0 at part end, Z+ towards chuck)</option>
                             </select>
                         </div>
-                        <div class="origin-preview" id="originPreview">
-                            <svg viewBox="0 0 160 60" width="160" height="60">
-                                <!-- Chuck -->
-                                <rect x="0" y="10" width="20" height="40" fill="#94a3b8" stroke="#64748b" stroke-width="1"/>
-                                <text x="10" y="55" text-anchor="middle" font-size="7" fill="#64748b">Chuck</text>
-                                <!-- Stock -->
-                                <rect x="20" y="15" width="100" height="30" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1"/>
-                                <!-- Origin marker -->
-                                <line id="originLine" x1="20" y1="5" x2="20" y2="55" stroke="#2563eb" stroke-width="2" stroke-dasharray="3,2"/>
-                                <circle id="originDot" cx="20" cy="30" r="4" fill="#2563eb"/>
-                                <text id="originLabel" x="20" y="3" text-anchor="middle" font-size="7" fill="#2563eb">Z0</text>
-                            </svg>
-                        </div>
+                        <div class="origin-preview" id="originPreview"></div>
                     </div>
 
                     <!-- Safe Distances -->
                     <div class="setup-group">
-                        <div class="setup-title">Safe Distances</div>
-                        <p class="setup-hint">Clearance positions for tool movements.</p>
+                        <div class="setup-title">Step 3: Safe Distances (from Origin)</div>
+                        <p class="setup-hint">Define safe clearance positions relative to the origin. Tools will rapid to Safe X/Z before approaching the workpiece.</p>
                         <div class="setup-row three">
                             <div class="form-group">
-                                <label>Safe X (G0 Rapid)</label>
-                                <input type="number" id="safeXRapid" value="100" step="1">
+                                <label>Safe X - Rapid (mm diameter)</label>
+                                <input type="number" id="safeXRapid" value="100" step="1" oninput="updateAllPreviews()">
                             </div>
                             <div class="form-group">
-                                <label>Safe Z (G0 Rapid)</label>
-                                <input type="number" id="safeZRapid" value="10" step="1">
+                                <label>Safe Z - Rapid (mm)</label>
+                                <input type="number" id="safeZRapid" value="10" step="1" oninput="updateAllPreviews()">
                             </div>
                             <div class="form-group">
-                                <label>Clearance X (Approach)</label>
-                                <input type="number" id="clearanceX" value="2" step="0.5">
+                                <label>Clearance X (mm above stock)</label>
+                                <input type="number" id="clearanceX" value="2" step="0.5" oninput="updateAllPreviews()">
                             </div>
                         </div>
+                        <div class="safe-distance-preview" id="safeDistancePreview"></div>
                     </div>
 
                     <!-- Material Selection -->
@@ -2327,35 +2374,6 @@
             toggle.classList.toggle('collapsed');
         }
 
-        function updateOriginPreview() {
-            const origin = document.getElementById('originLocation').value;
-            const line = document.getElementById('originLine');
-            const dot = document.getElementById('originDot');
-            const label = document.getElementById('originLabel');
-
-            if (origin === 'chuck-face') {
-                line.setAttribute('x1', 20);
-                line.setAttribute('x2', 20);
-                dot.setAttribute('cx', 20);
-                label.setAttribute('x', 20);
-            } else {
-                line.setAttribute('x1', 120);
-                line.setAttribute('x2', 120);
-                dot.setAttribute('cx', 120);
-                label.setAttribute('x', 120);
-            }
-        }
-
-        function applyMaterialPreset() {
-            const materialKey = document.getElementById('material').value;
-            const preset = materialPresets[materialKey];
-            if (preset) {
-                document.getElementById('matSFM').textContent = preset.sfm;
-                document.getElementById('matFeed').textContent = preset.feed;
-                document.getElementById('matDOC').textContent = preset.doc;
-            }
-        }
-
         function getWorkpieceSetup() {
             return {
                 stockDia: parseFloat(document.getElementById('wpStockDia').value) || 50,
@@ -2370,10 +2388,246 @@
             };
         }
 
+        function updateAllPreviews() {
+            updateDimensionPreview();
+            updateOriginPreview();
+            updateSafeDistancePreview();
+        }
+
+        function updateDimensionPreview() {
+            const setup = getWorkpieceSetup();
+            const container = document.getElementById('dimensionPreview');
+
+            // Scale for display
+            const maxLen = Math.max(setup.stockLength, 150);
+            const maxDia = Math.max(setup.stockDia, 60);
+            const scaleL = 180 / maxLen;
+            const scaleD = 60 / maxDia;
+            const scale = Math.min(scaleL, scaleD);
+
+            const stockL = setup.stockLength * scale;
+            const stockR = (setup.stockDia / 2) * scale;
+            const finishL = setup.finishLength * scale;
+            const finishR = (setup.finishDia / 2) * scale;
+
+            const centerY = 70;
+            const chuckX = 40;
+
+            const svg = `
+                <svg viewBox="0 0 320 140" width="320" height="140">
+                    <!-- Chuck -->
+                    <rect x="10" y="${centerY - 35}" width="30" height="70" fill="#94a3b8" stroke="#64748b" stroke-width="1"/>
+                    <text x="25" y="${centerY + 50}" text-anchor="middle" class="preview-label">Chuck</text>
+
+                    <!-- Stock outline (full rectangle showing raw material) -->
+                    <rect x="${chuckX}" y="${centerY - stockR}" width="${stockL}" height="${stockR * 2}"
+                          class="preview-stock" stroke-width="1.5"/>
+
+                    <!-- Finished profile (dashed) -->
+                    <rect x="${chuckX}" y="${centerY - finishR}" width="${finishL}" height="${finishR * 2}"
+                          class="preview-finished" stroke-width="1.5"/>
+
+                    <!-- Centerline -->
+                    <line x1="${chuckX - 5}" y1="${centerY}" x2="${chuckX + stockL + 20}" y2="${centerY}"
+                          stroke="#94a3b8" stroke-width="0.5" stroke-dasharray="8,4"/>
+                    <text x="${chuckX + stockL + 25}" y="${centerY + 4}" class="preview-label">CL</text>
+
+                    <!-- Stock diameter dimension -->
+                    <line x1="${chuckX + stockL + 10}" y1="${centerY - stockR}" x2="${chuckX + stockL + 10}" y2="${centerY + stockR}"
+                          stroke="#6366f1" stroke-width="1.5"/>
+                    <line x1="${chuckX + stockL + 5}" y1="${centerY - stockR}" x2="${chuckX + stockL + 15}" y2="${centerY - stockR}"
+                          stroke="#6366f1" stroke-width="1"/>
+                    <line x1="${chuckX + stockL + 5}" y1="${centerY + stockR}" x2="${chuckX + stockL + 15}" y2="${centerY + stockR}"
+                          stroke="#6366f1" stroke-width="1"/>
+                    <text x="${chuckX + stockL + 20}" y="${centerY}" class="preview-dimension" transform="rotate(-90, ${chuckX + stockL + 20}, ${centerY})">Ø${setup.stockDia}</text>
+
+                    <!-- Stock length dimension -->
+                    <line x1="${chuckX}" y1="${centerY + stockR + 15}" x2="${chuckX + stockL}" y2="${centerY + stockR + 15}"
+                          stroke="#6366f1" stroke-width="1.5"/>
+                    <line x1="${chuckX}" y1="${centerY + stockR + 10}" x2="${chuckX}" y2="${centerY + stockR + 20}"
+                          stroke="#6366f1" stroke-width="1"/>
+                    <line x1="${chuckX + stockL}" y1="${centerY + stockR + 10}" x2="${chuckX + stockL}" y2="${centerY + stockR + 20}"
+                          stroke="#6366f1" stroke-width="1"/>
+                    <text x="${chuckX + stockL/2}" y="${centerY + stockR + 28}" text-anchor="middle" class="preview-dimension">L = ${setup.stockLength} mm (Stock)</text>
+
+                    <!-- Finished diameter label -->
+                    <text x="${chuckX + finishL/2}" y="${centerY - finishR - 5}" text-anchor="middle" class="preview-dimension" fill="#3b82f6">Ø${setup.finishDia} x ${setup.finishLength} (Finished)</text>
+
+                    <!-- Legend -->
+                    <rect x="10" y="125" width="12" height="8" class="preview-stock" stroke-width="1"/>
+                    <text x="25" y="132" class="preview-label">Stock</text>
+                    <rect x="80" y="125" width="12" height="8" class="preview-finished" stroke-width="1"/>
+                    <text x="95" y="132" class="preview-label">Finished</text>
+                </svg>
+            `;
+            container.innerHTML = svg;
+        }
+
+        function updateOriginPreview() {
+            const setup = getWorkpieceSetup();
+            const origin = setup.origin;
+            const container = document.getElementById('originPreview');
+
+            // Scale for display
+            const maxLen = Math.max(setup.stockLength, 150);
+            const scale = 160 / maxLen;
+            const stockL = setup.stockLength * scale;
+            const stockR = Math.min((setup.stockDia / 2) * scale * 0.6, 25);
+
+            const centerY = 55;
+            const chuckX = 50;
+
+            // Origin position
+            const originX = origin === 'chuck-face' ? chuckX : chuckX + stockL;
+            const zDirection = origin === 'chuck-face' ? '+' : '-';
+            const zRange = origin === 'chuck-face'
+                ? `Z: 0 to -${setup.stockLength} (towards tailstock)`
+                : `Z: 0 to +${setup.stockLength} (towards chuck)`;
+
+            const svg = `
+                <svg viewBox="0 0 340 130" width="340" height="130">
+                    <!-- Chuck -->
+                    <rect x="20" y="${centerY - 30}" width="30" height="60" fill="#94a3b8" stroke="#64748b" stroke-width="1"/>
+                    <text x="35" y="${centerY + 40}" text-anchor="middle" class="preview-label">Chuck</text>
+
+                    <!-- Stock -->
+                    <rect x="${chuckX}" y="${centerY - stockR}" width="${stockL}" height="${stockR * 2}"
+                          class="preview-stock" stroke-width="1.5"/>
+
+                    <!-- Dimension labels on stock -->
+                    <text x="${chuckX + stockL/2}" y="${centerY}" text-anchor="middle" class="preview-dimension">Ø${setup.stockDia} x ${setup.stockLength}</text>
+
+                    <!-- Origin marker line -->
+                    <line x1="${originX}" y1="${centerY - stockR - 20}" x2="${originX}" y2="${centerY + stockR + 5}"
+                          stroke="#2563eb" stroke-width="2" stroke-dasharray="4,2"/>
+
+                    <!-- Origin dot -->
+                    <circle cx="${originX}" cy="${centerY}" r="5" fill="#2563eb" stroke="white" stroke-width="2"/>
+
+                    <!-- Origin label -->
+                    <text x="${originX}" y="${centerY - stockR - 25}" text-anchor="middle" class="preview-origin">ORIGIN (Z=0, X=0)</text>
+
+                    <!-- X axis (vertical for lathe) -->
+                    <defs>
+                        <marker id="arrowheadBlue" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                            <polygon points="0 0, 6 3, 0 6" fill="#2563eb"/>
+                        </marker>
+                    </defs>
+                    <line x1="${originX}" y1="${centerY - stockR - 5}" x2="${originX}" y2="${centerY - stockR - 35}"
+                          stroke="#2563eb" stroke-width="1.5" marker-end="url(#arrowheadBlue)"/>
+                    <text x="${originX + 8}" y="${centerY - stockR - 30}" class="preview-origin">+X</text>
+
+                    <!-- Z axis -->
+                    <line x1="${originX + 10}" y1="${centerY}" x2="${originX + (origin === 'chuck-face' ? -50 : 50)}" y2="${centerY}"
+                          stroke="#2563eb" stroke-width="1.5" marker-end="url(#arrowheadBlue)"/>
+                    <text x="${originX + (origin === 'chuck-face' ? -55 : 55)}" y="${centerY + 4}" class="preview-origin">${origin === 'chuck-face' ? '-Z' : '+Z'}</text>
+
+                    <!-- Range info -->
+                    <text x="20" y="${centerY + 55}" class="preview-label">X: 0 at centerline, +X towards operator (diameter values)</text>
+                    <text x="20" y="${centerY + 67}" class="preview-label">${zRange}</text>
+
+                    <text x="260" y="125" class="preview-label">Side View</text>
+                </svg>
+            `;
+            container.innerHTML = svg;
+        }
+
+        function updateSafeDistancePreview() {
+            const setup = getWorkpieceSetup();
+            const container = document.getElementById('safeDistancePreview');
+
+            // Scale for display
+            const maxDim = Math.max(setup.safeXRapid, setup.stockDia + 40, 120);
+            const scaleX = 100 / maxDim;
+            const maxLen = Math.max(setup.stockLength + setup.safeZRapid + 20, 150);
+            const scaleZ = 180 / maxLen;
+            const scale = Math.min(scaleX, scaleZ);
+
+            const stockL = setup.stockLength * scale;
+            const stockR = (setup.stockDia / 2) * scale;
+            const safeX = (setup.safeXRapid / 2) * scale;
+            const safeZ = setup.safeZRapid * scale;
+            const clearX = setup.clearanceX * scale;
+
+            const centerY = 75;
+            const chuckX = 60;
+            const origin = setup.origin;
+            const originX = origin === 'chuck-face' ? chuckX : chuckX + stockL;
+
+            const svg = `
+                <svg viewBox="0 0 360 150" width="360" height="150">
+                    <!-- Chuck -->
+                    <rect x="30" y="${centerY - 35}" width="30" height="70" fill="#94a3b8" stroke="#64748b" stroke-width="1"/>
+
+                    <!-- Stock -->
+                    <rect x="${chuckX}" y="${centerY - stockR}" width="${stockL}" height="${stockR * 2}"
+                          class="preview-stock" stroke-width="1.5"/>
+                    <text x="${chuckX + stockL/2}" y="${centerY + 4}" text-anchor="middle" class="preview-label">Ø${setup.stockDia} x ${setup.stockLength}</text>
+
+                    <!-- Centerline -->
+                    <line x1="${chuckX - 5}" y1="${centerY}" x2="${chuckX + stockL + safeZ + 30}" y2="${centerY}"
+                          stroke="#94a3b8" stroke-width="0.5" stroke-dasharray="6,3"/>
+
+                    <!-- Origin marker -->
+                    <circle cx="${originX}" cy="${centerY}" r="4" fill="#2563eb"/>
+                    <text x="${originX}" y="${centerY + stockR + 12}" text-anchor="middle" class="preview-origin">Z=0</text>
+
+                    <!-- Safe X level (diameter line above stock) -->
+                    <line x1="${chuckX - 10}" y1="${centerY - safeX}" x2="${chuckX + stockL + safeZ + 20}" y2="${centerY - safeX}"
+                          stroke="#059669" stroke-width="2"/>
+                    <text x="${chuckX + stockL + safeZ + 25}" y="${centerY - safeX + 4}" class="preview-safe">X${setup.safeXRapid} (Safe)</text>
+
+                    <!-- Clearance X level -->
+                    <line x1="${chuckX - 5}" y1="${centerY - stockR - clearX}" x2="${chuckX + stockL + 10}" y2="${centerY - stockR - clearX}"
+                          stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,2"/>
+                    <text x="${chuckX + stockL + 15}" y="${centerY - stockR - clearX + 4}" class="preview-safe" fill="#f59e0b">+${setup.clearanceX} clearance</text>
+
+                    <!-- Safe Z position -->
+                    ${origin === 'chuck-face' ? `
+                    <line x1="${originX}" y1="${centerY - safeX - 5}" x2="${originX}" y2="${centerY + 20}" stroke="#059669" stroke-width="1" stroke-dasharray="3,2"/>
+                    <circle cx="${originX}" cy="${centerY - safeX}" r="3" fill="#059669"/>
+                    ` : `
+                    <line x1="${originX + safeZ}" y1="${centerY - safeX - 5}" x2="${originX + safeZ}" y2="${centerY + 20}" stroke="#059669" stroke-width="2"/>
+                    <circle cx="${originX + safeZ}" cy="${centerY - safeX}" r="3" fill="#059669"/>
+                    <text x="${originX + safeZ}" y="${centerY + 28}" text-anchor="middle" class="preview-safe">Z+${setup.safeZRapid}</text>
+                    `}
+
+                    <!-- Tool path illustration -->
+                    <path d="M ${originX + (origin === 'chuck-face' ? 0 : safeZ)} ${centerY - safeX}
+                             L ${chuckX + stockL/2} ${centerY - safeX}
+                             L ${chuckX + stockL/2} ${centerY - stockR - clearX}
+                             L ${chuckX + stockL/2} ${centerY - stockR + 2}"
+                          stroke="#059669" stroke-width="1.5" fill="none" stroke-dasharray="5,3"/>
+
+                    <!-- Tool symbol -->
+                    <polygon points="${chuckX + stockL/2 - 8},${centerY - safeX - 5} ${chuckX + stockL/2 + 8},${centerY - safeX - 5} ${chuckX + stockL/2},${centerY - safeX + 5}" fill="#374151"/>
+
+                    <!-- Legend -->
+                    <text x="15" y="145" class="preview-label">Side View - Tool approaches via Safe X (${setup.safeXRapid}), then to clearance (+${setup.clearanceX} above stock)</text>
+                </svg>
+            `;
+            container.innerHTML = svg;
+        }
+
+        function applyMaterialPreset() {
+            const materialKey = document.getElementById('material').value;
+            const preset = materialPresets[materialKey];
+            if (preset) {
+                document.getElementById('matSFM').textContent = preset.sfm;
+                document.getElementById('matFeed').textContent = preset.feed;
+                document.getElementById('matDOC').textContent = preset.doc;
+            }
+        }
+
         function getMaterialSuggestions() {
             const materialKey = document.getElementById('material').value;
             return materialPresets[materialKey] || materialPresets['alu-6061'];
         }
+
+        // Initialize previews on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateAllPreviews();
+        });
 
         // Standard Thread Data Tables
         // Thread depth = 0.6134 * pitch (for 60° threads)

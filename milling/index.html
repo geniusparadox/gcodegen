@@ -798,6 +798,51 @@
         .material-params strong {
             color: var(--text-primary);
         }
+
+        /* Preview illustrations */
+        .dimension-preview,
+        .origin-preview,
+        .safe-distance-preview {
+            margin-top: 12px;
+            padding: 16px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dimension-preview svg,
+        .origin-preview svg,
+        .safe-distance-preview svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .preview-label {
+            font-size: 9px;
+            fill: #64748b;
+            font-weight: 500;
+        }
+
+        .preview-dimension {
+            font-size: 10px;
+            fill: #1e40af;
+            font-weight: 600;
+        }
+
+        .preview-origin {
+            font-size: 9px;
+            fill: #7c3aed;
+            font-weight: 600;
+        }
+
+        .preview-safe {
+            font-size: 9px;
+            fill: #059669;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -846,65 +891,60 @@
                 <div class="setup-grid">
                     <!-- Workpiece Dimensions -->
                     <div class="setup-group">
-                        <div class="setup-title">Workpiece Dimensions</div>
+                        <div class="setup-title">Step 1: Workpiece Dimensions</div>
+                        <p class="setup-hint">Enter the dimensions of your workpiece stock material.</p>
                         <div class="setup-row">
                             <div class="form-group">
                                 <label>Length X (mm)</label>
-                                <input type="number" id="wpLengthX" value="100" step="1">
+                                <input type="number" id="wpLengthX" value="100" step="1" oninput="updateAllPreviews()">
                             </div>
                             <div class="form-group">
                                 <label>Width Y (mm)</label>
-                                <input type="number" id="wpWidthY" value="100" step="1">
+                                <input type="number" id="wpWidthY" value="80" step="1" oninput="updateAllPreviews()">
                             </div>
                             <div class="form-group">
                                 <label>Height Z (mm)</label>
-                                <input type="number" id="wpHeightZ" value="25" step="1">
+                                <input type="number" id="wpHeightZ" value="25" step="1" oninput="updateAllPreviews()">
                             </div>
                         </div>
+                        <div class="dimension-preview" id="dimensionPreview"></div>
                     </div>
 
                     <!-- Origin Reference -->
                     <div class="setup-group">
-                        <div class="setup-title">Origin Reference (Home Position)</div>
-                        <p class="setup-hint">All tools will rapid to this home position first, then move to operation locations.</p>
-                        <div class="setup-row">
-                            <div class="form-group">
-                                <label>Origin Location</label>
-                                <select id="originLocation" onchange="updateOriginPreview()">
-                                    <option value="top-left">Top Surface - Left Front Corner</option>
-                                    <option value="top-center" selected>Top Surface - Center</option>
-                                    <option value="top-right">Top Surface - Right Front Corner</option>
-                                    <option value="bottom-center">Bottom Surface - Center</option>
-                                </select>
-                            </div>
+                        <div class="setup-title">Step 2: Origin Reference (Work Zero)</div>
+                        <p class="setup-hint">Select where the machine origin (X0, Y0, Z0) is located on the workpiece. All tool movements are relative to this point.</p>
+                        <div class="form-group">
+                            <label>Origin Location on Workpiece</label>
+                            <select id="originLocation" onchange="updateAllPreviews()">
+                                <option value="top-left">Top Surface - Left Front Corner (X0 Y0 at corner)</option>
+                                <option value="top-center" selected>Top Surface - Center (X0 Y0 at center)</option>
+                                <option value="top-right">Top Surface - Right Front Corner</option>
+                                <option value="bottom-center">Bottom Surface - Center</option>
+                            </select>
                         </div>
-                        <div class="origin-preview" id="originPreview">
-                            <svg viewBox="0 0 120 80" width="120" height="80">
-                                <rect x="20" y="20" width="80" height="50" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1"/>
-                                <circle id="originDot" cx="60" cy="20" r="4" fill="#8b5cf6"/>
-                                <text x="60" y="12" text-anchor="middle" font-size="8" fill="#8b5cf6">Origin</text>
-                            </svg>
-                        </div>
+                        <div class="origin-preview" id="originPreview"></div>
                     </div>
 
                     <!-- Safe Distances -->
                     <div class="setup-group">
-                        <div class="setup-title">Safe Distances</div>
-                        <p class="setup-hint">Clearance heights for tool movements.</p>
+                        <div class="setup-title">Step 3: Safe Distances (from Origin)</div>
+                        <p class="setup-hint">Define safe clearance heights relative to the origin. Tools will rapid to Safe Z before moving, then approach at Clearance Z.</p>
                         <div class="setup-row">
                             <div class="form-group">
-                                <label>Safe Z (G0 Rapid)</label>
-                                <input type="number" id="safeZRapid" value="50" step="1">
+                                <label>Safe Z - Rapid Height (mm)</label>
+                                <input type="number" id="safeZRapid" value="50" step="1" oninput="updateAllPreviews()">
                             </div>
                             <div class="form-group">
-                                <label>Clearance Z (G01 Approach)</label>
-                                <input type="number" id="clearanceZ" value="5" step="0.5">
+                                <label>Clearance Z - Approach (mm)</label>
+                                <input type="number" id="clearanceZ" value="5" step="0.5" oninput="updateAllPreviews()">
                             </div>
                             <div class="form-group">
-                                <label>XY Clearance</label>
-                                <input type="number" id="clearanceXY" value="10" step="1">
+                                <label>XY Clearance (mm)</label>
+                                <input type="number" id="clearanceXY" value="10" step="1" oninput="updateAllPreviews()">
                             </div>
                         </div>
+                        <div class="safe-distance-preview" id="safeDistancePreview"></div>
                     </div>
 
                     <!-- Material Selection -->
@@ -1406,18 +1446,211 @@
             toggle.classList.toggle('collapsed');
         }
 
-        function updateOriginPreview() {
-            const origin = document.getElementById('originLocation').value;
-            const dot = document.getElementById('originDot');
-            const positions = {
-                'top-left': { cx: 20, cy: 20 },
-                'top-center': { cx: 60, cy: 20 },
-                'top-right': { cx: 100, cy: 20 },
-                'bottom-center': { cx: 60, cy: 70 }
+        function getWorkpieceSetup() {
+            return {
+                lengthX: parseFloat(document.getElementById('wpLengthX').value) || 100,
+                widthY: parseFloat(document.getElementById('wpWidthY').value) || 80,
+                heightZ: parseFloat(document.getElementById('wpHeightZ').value) || 25,
+                origin: document.getElementById('originLocation').value,
+                safeZRapid: parseFloat(document.getElementById('safeZRapid').value) || 50,
+                clearanceZ: parseFloat(document.getElementById('clearanceZ').value) || 5,
+                clearanceXY: parseFloat(document.getElementById('clearanceXY').value) || 10,
+                material: document.getElementById('material').value
             };
-            const pos = positions[origin] || positions['top-center'];
-            dot.setAttribute('cx', pos.cx);
-            dot.setAttribute('cy', pos.cy);
+        }
+
+        function updateAllPreviews() {
+            updateDimensionPreview();
+            updateOriginPreview();
+            updateSafeDistancePreview();
+        }
+
+        function updateDimensionPreview() {
+            const setup = getWorkpieceSetup();
+            const container = document.getElementById('dimensionPreview');
+
+            // Scale factor for display (fit in ~280px width)
+            const maxDim = Math.max(setup.lengthX, setup.widthY, setup.heightZ * 2);
+            const scale = 180 / maxDim;
+            const wpW = setup.lengthX * scale;
+            const wpD = setup.widthY * scale * 0.5; // Perspective depth
+            const wpH = setup.heightZ * scale;
+
+            // 3D isometric view
+            const svg = `
+                <svg viewBox="0 0 300 160" width="300" height="160">
+                    <!-- Workpiece 3D box -->
+                    <!-- Top face -->
+                    <polygon points="${50},${60} ${50 + wpW},${60 - wpD/2} ${50 + wpW + wpD},${60} ${50 + wpD},${60 + wpD/2}"
+                             fill="#c7d2fe" stroke="#6366f1" stroke-width="1.5"/>
+                    <!-- Front face -->
+                    <polygon points="${50},${60} ${50 + wpD},${60 + wpD/2} ${50 + wpD},${60 + wpD/2 + wpH} ${50},${60 + wpH}"
+                             fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5"/>
+                    <!-- Right face -->
+                    <polygon points="${50 + wpD},${60 + wpD/2} ${50 + wpW + wpD},${60} ${50 + wpW + wpD},${60 + wpH} ${50 + wpD},${60 + wpD/2 + wpH}"
+                             fill="#a5b4fc" stroke="#6366f1" stroke-width="1.5"/>
+
+                    <!-- X dimension (length) -->
+                    <line x1="50" y1="${65 + wpH + wpD/2 + 15}" x2="${50 + wpW}" y2="${65 + wpH + 15}" stroke="#1e40af" stroke-width="1.5"/>
+                    <line x1="50" y1="${60 + wpH + wpD/2 + 10}" x2="50" y2="${70 + wpH + wpD/2 + 20}" stroke="#1e40af" stroke-width="1"/>
+                    <line x1="${50 + wpW}" y1="${60 + wpH + 10}" x2="${50 + wpW}" y2="${70 + wpH + 20}" stroke="#1e40af" stroke-width="1"/>
+                    <text x="${50 + wpW/2}" y="${75 + wpH + wpD/4 + 20}" text-anchor="middle" class="preview-dimension">X = ${setup.lengthX} mm</text>
+
+                    <!-- Y dimension (width) -->
+                    <line x1="${55 + wpW + wpD}" y1="${60}" x2="${55 + wpW + wpD + 20}" y2="${60 - 10}" stroke="#1e40af" stroke-width="1.5"/>
+                    <text x="${60 + wpW + wpD + 25}" y="${60 - 5}" class="preview-dimension">Y = ${setup.widthY} mm</text>
+
+                    <!-- Z dimension (height) -->
+                    <line x1="35" y1="${60}" x2="35" y2="${60 + wpH}" stroke="#1e40af" stroke-width="1.5"/>
+                    <line x1="30" y1="${60}" x2="40" y2="${60}" stroke="#1e40af" stroke-width="1"/>
+                    <line x1="30" y1="${60 + wpH}" x2="40" y2="${60 + wpH}" stroke="#1e40af" stroke-width="1"/>
+                    <text x="25" y="${60 + wpH/2 + 4}" text-anchor="end" class="preview-dimension">Z = ${setup.heightZ} mm</text>
+
+                    <!-- Axis labels -->
+                    <text x="15" y="155" class="preview-label">Isometric View</text>
+                </svg>
+            `;
+            container.innerHTML = svg;
+        }
+
+        function updateOriginPreview() {
+            const setup = getWorkpieceSetup();
+            const origin = setup.origin;
+            const container = document.getElementById('originPreview');
+
+            // Scale for display
+            const maxDim = Math.max(setup.lengthX, setup.widthY);
+            const scale = 160 / maxDim;
+            const wpW = setup.lengthX * scale;
+            const wpD = setup.widthY * scale;
+
+            // Origin position
+            let originX, originY, originLabel, xRange, yRange;
+            switch(origin) {
+                case 'top-left':
+                    originX = 60; originY = 40;
+                    xRange = `X: 0 to +${setup.lengthX}`;
+                    yRange = `Y: 0 to +${setup.widthY}`;
+                    break;
+                case 'top-center':
+                    originX = 60 + wpW/2; originY = 40 + wpD/2;
+                    xRange = `X: -${setup.lengthX/2} to +${setup.lengthX/2}`;
+                    yRange = `Y: -${setup.widthY/2} to +${setup.widthY/2}`;
+                    break;
+                case 'top-right':
+                    originX = 60 + wpW; originY = 40;
+                    xRange = `X: -${setup.lengthX} to 0`;
+                    yRange = `Y: 0 to +${setup.widthY}`;
+                    break;
+                case 'bottom-center':
+                    originX = 60 + wpW/2; originY = 40 + wpD/2;
+                    xRange = `X: -${setup.lengthX/2} to +${setup.lengthX/2}`;
+                    yRange = `Y: -${setup.widthY/2} to +${setup.widthY/2}`;
+                    break;
+            }
+
+            const svg = `
+                <svg viewBox="0 0 320 140" width="320" height="140">
+                    <!-- Top view of workpiece -->
+                    <rect x="60" y="40" width="${wpW}" height="${wpD}" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5"/>
+
+                    <!-- Dimension labels -->
+                    <text x="${60 + wpW/2}" y="30" text-anchor="middle" class="preview-dimension">${setup.lengthX} mm</text>
+                    <text x="${65 + wpW + 5}" y="${40 + wpD/2 + 4}" class="preview-dimension">${setup.widthY} mm</text>
+
+                    <!-- Origin marker -->
+                    <circle cx="${originX}" cy="${originY}" r="6" fill="#7c3aed" stroke="white" stroke-width="2"/>
+                    <line x1="${originX}" y1="${originY - 15}" x2="${originX}" y2="${originY + 15}" stroke="#7c3aed" stroke-width="1.5"/>
+                    <line x1="${originX - 15}" y1="${originY}" x2="${originX + 15}" y2="${originY}" stroke="#7c3aed" stroke-width="1.5"/>
+
+                    <!-- Origin label -->
+                    <text x="${originX}" y="${originY - 20}" text-anchor="middle" class="preview-origin">ORIGIN (X0, Y0)</text>
+
+                    <!-- Axis arrows from origin -->
+                    <defs>
+                        <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                            <polygon points="0 0, 6 3, 0 6" fill="#7c3aed"/>
+                        </marker>
+                    </defs>
+                    <line x1="${originX + 20}" y1="${originY}" x2="${originX + 45}" y2="${originY}" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+                    <text x="${originX + 50}" y="${originY + 4}" class="preview-origin">+X</text>
+                    <line x1="${originX}" y1="${originY + 20}" x2="${originX}" y2="${originY + 45}" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+                    <text x="${originX + 5}" y="${originY + 55}" class="preview-origin">+Y</text>
+
+                    <!-- Range info -->
+                    <text x="60" y="${50 + wpD + 20}" class="preview-label">${xRange}</text>
+                    <text x="60" y="${50 + wpD + 32}" class="preview-label">${yRange}</text>
+                    <text x="60" y="${50 + wpD + 44}" class="preview-label">Z: 0 at top surface${origin === 'bottom-center' ? ' (bottom)' : ''}</text>
+
+                    <text x="15" y="130" class="preview-label">Top View</text>
+                </svg>
+            `;
+            container.innerHTML = svg;
+        }
+
+        function updateSafeDistancePreview() {
+            const setup = getWorkpieceSetup();
+            const container = document.getElementById('safeDistancePreview');
+
+            // Side view (XZ plane)
+            const maxH = setup.safeZRapid + 20;
+            const scale = 100 / maxH;
+            const wpW = Math.min(setup.lengthX * 0.8, 120);
+            const wpH = setup.heightZ * scale;
+            const safeZ = setup.safeZRapid * scale;
+            const clearZ = setup.clearanceZ * scale;
+            const xyClr = setup.clearanceXY * 0.5;
+
+            const baseY = 110;
+            const wpTop = baseY - wpH;
+
+            const svg = `
+                <svg viewBox="0 0 340 150" width="340" height="150">
+                    <!-- Table/fixture -->
+                    <rect x="40" y="${baseY}" width="${wpW + 40}" height="8" fill="#94a3b8" stroke="#64748b" stroke-width="1"/>
+
+                    <!-- Workpiece side view -->
+                    <rect x="60" y="${wpTop}" width="${wpW}" height="${wpH}" fill="#c7d2fe" stroke="#6366f1" stroke-width="1.5"/>
+                    <text x="${60 + wpW/2}" y="${wpTop + wpH/2 + 4}" text-anchor="middle" class="preview-label">Workpiece</text>
+
+                    <!-- Workpiece dimensions -->
+                    <text x="${60 + wpW/2}" y="${baseY + 20}" text-anchor="middle" class="preview-dimension">${setup.lengthX} x ${setup.widthY} x ${setup.heightZ} mm</text>
+
+                    <!-- Z axis line -->
+                    <line x1="${60 + wpW + 30}" y1="${wpTop}" x2="${60 + wpW + 30}" y2="${wpTop - safeZ - 15}" stroke="#64748b" stroke-width="1" stroke-dasharray="3,2"/>
+
+                    <!-- Origin at top surface -->
+                    <circle cx="${60 + wpW + 30}" cy="${wpTop}" r="4" fill="#7c3aed"/>
+                    <text x="${60 + wpW + 40}" y="${wpTop + 4}" class="preview-origin">Z = 0 (Origin)</text>
+
+                    <!-- Clearance Z level -->
+                    <line x1="55" y1="${wpTop - clearZ}" x2="${60 + wpW + 25}" y2="${wpTop - clearZ}" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,2"/>
+                    <circle cx="${60 + wpW + 30}" cy="${wpTop - clearZ}" r="3" fill="#f59e0b"/>
+                    <text x="${60 + wpW + 40}" y="${wpTop - clearZ + 4}" class="preview-safe" fill="#f59e0b">Z = ${setup.clearanceZ} (Clearance)</text>
+
+                    <!-- Safe Z level -->
+                    <line x1="55" y1="${wpTop - safeZ}" x2="${60 + wpW + 25}" y2="${wpTop - safeZ}" stroke="#059669" stroke-width="2"/>
+                    <circle cx="${60 + wpW + 30}" cy="${wpTop - safeZ}" r="3" fill="#059669"/>
+                    <text x="${60 + wpW + 40}" y="${wpTop - safeZ + 4}" class="preview-safe">Z = ${setup.safeZRapid} (Safe/Rapid)</text>
+
+                    <!-- Tool path illustration -->
+                    <path d="M ${60 + wpW/2} ${wpTop - safeZ} L ${60 + wpW/2} ${wpTop - clearZ} L ${60 + wpW/2} ${wpTop - 5}"
+                          stroke="#059669" stroke-width="1.5" fill="none" stroke-dasharray="5,3"/>
+
+                    <!-- Tool symbol -->
+                    <polygon points="${60 + wpW/2 - 5},${wpTop - safeZ - 8} ${60 + wpW/2 + 5},${wpTop - safeZ - 8} ${60 + wpW/2},${wpTop - safeZ}" fill="#374151"/>
+                    <rect x="${60 + wpW/2 - 3}" y="${wpTop - safeZ - 20}" width="6" height="12" fill="#374151"/>
+
+                    <!-- XY Clearance indicator -->
+                    <line x1="${55 - xyClr}" y1="${wpTop - 10}" x2="55" y2="${wpTop - 10}" stroke="#3b82f6" stroke-width="1.5"/>
+                    <line x1="${55 - xyClr}" y1="${wpTop - 15}" x2="${55 - xyClr}" y2="${wpTop - 5}" stroke="#3b82f6" stroke-width="1"/>
+                    <text x="${50 - xyClr}" y="${wpTop - 5}" text-anchor="end" font-size="8" fill="#3b82f6">${setup.clearanceXY}</text>
+
+                    <!-- Legend -->
+                    <text x="15" y="145" class="preview-label">Side View (XZ Plane)</text>
+                </svg>
+            `;
+            container.innerHTML = svg;
         }
 
         function applyMaterialPreset() {
@@ -1430,23 +1663,15 @@
             }
         }
 
-        function getWorkpieceSetup() {
-            return {
-                lengthX: parseFloat(document.getElementById('wpLengthX').value) || 100,
-                widthY: parseFloat(document.getElementById('wpWidthY').value) || 100,
-                heightZ: parseFloat(document.getElementById('wpHeightZ').value) || 25,
-                origin: document.getElementById('originLocation').value,
-                safeZRapid: parseFloat(document.getElementById('safeZRapid').value) || 50,
-                clearanceZ: parseFloat(document.getElementById('clearanceZ').value) || 5,
-                clearanceXY: parseFloat(document.getElementById('clearanceXY').value) || 10,
-                material: document.getElementById('material').value
-            };
-        }
-
         function getMaterialSuggestions() {
             const materialKey = document.getElementById('material').value;
             return materialPresets[materialKey] || materialPresets['alu-6061'];
         }
+
+        // Initialize previews on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateAllPreviews();
+        });
 
         // Controller configurations
         const controllerConfig = {
