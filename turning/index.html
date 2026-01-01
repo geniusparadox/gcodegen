@@ -2392,70 +2392,111 @@
             updateSafeDistancePreview();
         }
 
+        // Helper to get origin position for turning (XZ coordinates)
+        function getTurningOriginPosition(setup, chuckX, stockL, centerY) {
+            const origin = setup.origin;
+            let originX, zRange;
+
+            if (origin === 'chuck-face') {
+                originX = chuckX;
+                zRange = `Z: 0 to -${setup.stockLength} (towards tailstock)`;
+            } else {
+                originX = chuckX + stockL;
+                zRange = `Z: 0 to +${setup.stockLength} (towards chuck)`;
+            }
+
+            return { originX, zRange };
+        }
+
         function updateOriginPreview() {
             const setup = getWorkpieceSetup();
             const origin = setup.origin;
             const container = document.getElementById('originPreview');
 
-            // Scale for display
+            // Scale for side view
             const maxLen = Math.max(setup.stockLength, 150);
-            const scale = 160 / maxLen;
+            const scale = 120 / maxLen;
             const stockL = setup.stockLength * scale;
-            const stockR = Math.min((setup.stockDia / 2) * scale * 0.6, 25);
+            const stockR = Math.min((setup.stockDia / 2) * scale * 0.6, 22);
 
-            const centerY = 55;
-            const chuckX = 50;
+            const centerY = 60;
+            const chuckX = 45;
 
-            // Origin position
-            const originX = origin === 'chuck-face' ? chuckX : chuckX + stockL;
-            const zDirection = origin === 'chuck-face' ? '+' : '-';
-            const zRange = origin === 'chuck-face'
-                ? `Z: 0 to -${setup.stockLength} (towards tailstock)`
-                : `Z: 0 to +${setup.stockLength} (towards chuck)`;
+            const pos = getTurningOriginPosition(setup, chuckX, stockL, centerY);
+
+            // End view parameters
+            const endViewCenterX = 280;
+            const endViewCenterY = 65;
+            const endViewR = Math.min(setup.stockDia * 0.4, 35);
 
             const svg = `
-                <svg viewBox="0 0 340 130" width="340" height="130">
+                <svg viewBox="0 0 360 130" width="360" height="130">
+                    <!-- SIDE VIEW (XZ) -->
+                    <text x="${chuckX + stockL/2}" y="12" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">XZ Side View</text>
+
                     <!-- Chuck -->
-                    <rect x="20" y="${centerY - 30}" width="30" height="60" fill="#94a3b8" stroke="#64748b" stroke-width="1"/>
-                    <text x="35" y="${centerY + 40}" text-anchor="middle" class="preview-label">Chuck</text>
+                    <rect x="15" y="${centerY - 28}" width="30" height="56" fill="#94a3b8" stroke="#64748b" stroke-width="1"/>
+                    <text x="30" y="${centerY + 38}" text-anchor="middle" class="preview-label">Chuck</text>
 
                     <!-- Stock -->
                     <rect x="${chuckX}" y="${centerY - stockR}" width="${stockL}" height="${stockR * 2}"
                           class="preview-stock" stroke-width="1.5"/>
 
+                    <!-- Centerline -->
+                    <line x1="${chuckX - 5}" y1="${centerY}" x2="${chuckX + stockL + 25}" y2="${centerY}"
+                          stroke="#94a3b8" stroke-width="0.5" stroke-dasharray="4,2"/>
+
                     <!-- Dimension labels on stock -->
-                    <text x="${chuckX + stockL/2}" y="${centerY}" text-anchor="middle" class="preview-dimension">Ø${setup.stockDia} x ${setup.stockLength}</text>
+                    <text x="${chuckX + stockL/2}" y="${centerY - stockR - 5}" text-anchor="middle" class="preview-dimension">${setup.stockLength} mm</text>
+                    <text x="${chuckX + stockL + 8}" y="${centerY + 4}" class="preview-dimension">Ø${setup.stockDia}</text>
 
                     <!-- Origin marker line -->
-                    <line x1="${originX}" y1="${centerY - stockR - 20}" x2="${originX}" y2="${centerY + stockR + 5}"
+                    <line x1="${pos.originX}" y1="${centerY - stockR - 15}" x2="${pos.originX}" y2="${centerY + stockR + 5}"
                           stroke="#2563eb" stroke-width="2" stroke-dasharray="4,2"/>
 
                     <!-- Origin dot -->
-                    <circle cx="${originX}" cy="${centerY}" r="5" fill="#2563eb" stroke="white" stroke-width="2"/>
+                    <circle cx="${pos.originX}" cy="${centerY}" r="5" fill="#2563eb" stroke="white" stroke-width="2"/>
 
                     <!-- Origin label -->
-                    <text x="${originX}" y="${centerY - stockR - 25}" text-anchor="middle" class="preview-origin">ORIGIN (Z=0, X=0)</text>
+                    <text x="${pos.originX}" y="${centerY - stockR - 20}" text-anchor="middle" class="preview-origin">Z=0, X=0</text>
 
-                    <!-- X axis (vertical for lathe) -->
+                    <!-- Axis arrows from origin -->
                     <defs>
                         <marker id="arrowheadBlue" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
                             <polygon points="0 0, 6 3, 0 6" fill="#2563eb"/>
                         </marker>
                     </defs>
-                    <line x1="${originX}" y1="${centerY - stockR - 5}" x2="${originX}" y2="${centerY - stockR - 35}"
-                          stroke="#2563eb" stroke-width="1.5" marker-end="url(#arrowheadBlue)"/>
-                    <text x="${originX + 8}" y="${centerY - stockR - 30}" class="preview-origin">+X</text>
 
-                    <!-- Z axis -->
-                    <line x1="${originX + 10}" y1="${centerY}" x2="${originX + (origin === 'chuck-face' ? -50 : 50)}" y2="${centerY}"
+                    <!-- +X axis (up from centerline) -->
+                    <line x1="${pos.originX}" y1="${centerY - stockR - 3}" x2="${pos.originX}" y2="${centerY - stockR - 25}"
                           stroke="#2563eb" stroke-width="1.5" marker-end="url(#arrowheadBlue)"/>
-                    <text x="${originX + (origin === 'chuck-face' ? -55 : 55)}" y="${centerY + 4}" class="preview-origin">${origin === 'chuck-face' ? '-Z' : '+Z'}</text>
+                    <text x="${pos.originX + 8}" y="${centerY - stockR - 20}" class="preview-origin">+X</text>
+
+                    <!-- Z axis direction -->
+                    <line x1="${pos.originX + 10}" y1="${centerY}" x2="${pos.originX + (origin === 'chuck-face' ? -35 : 35)}" y2="${centerY}"
+                          stroke="#2563eb" stroke-width="1.5" marker-end="url(#arrowheadBlue)"/>
+                    <text x="${pos.originX + (origin === 'chuck-face' ? -42 : 42)}" y="${centerY + 4}" class="preview-origin">${origin === 'chuck-face' ? '-Z' : '+Z'}</text>
+
+                    <!-- END VIEW (looking from tailstock) -->
+                    <text x="${endViewCenterX}" y="12" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">End View</text>
+
+                    <!-- Circular stock cross-section -->
+                    <circle cx="${endViewCenterX}" cy="${endViewCenterY}" r="${endViewR}" fill="#c7d2fe" stroke="#6366f1" stroke-width="1.5"/>
+
+                    <!-- Centerline crosshair (X=0) -->
+                    <line x1="${endViewCenterX - endViewR - 10}" y1="${endViewCenterY}" x2="${endViewCenterX + endViewR + 10}" y2="${endViewCenterY}"
+                          stroke="#94a3b8" stroke-width="0.5" stroke-dasharray="3,2"/>
+                    <line x1="${endViewCenterX}" y1="${endViewCenterY - endViewR - 10}" x2="${endViewCenterX}" y2="${endViewCenterY + endViewR + 10}"
+                          stroke="#94a3b8" stroke-width="0.5" stroke-dasharray="3,2"/>
+
+                    <!-- Origin at center -->
+                    <circle cx="${endViewCenterX}" cy="${endViewCenterY}" r="4" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+                    <text x="${endViewCenterX + endViewR + 5}" y="${endViewCenterY + 4}" class="preview-origin">X=0</text>
+                    <text x="${endViewCenterX}" y="${endViewCenterY + endViewR + 15}" text-anchor="middle" class="preview-origin">Centerline</text>
 
                     <!-- Range info -->
-                    <text x="20" y="${centerY + 55}" class="preview-label">X: 0 at centerline, +X towards operator (diameter values)</text>
-                    <text x="20" y="${centerY + 67}" class="preview-label">${zRange}</text>
-
-                    <text x="260" y="125" class="preview-label">Side View</text>
+                    <text x="15" y="118" class="preview-label">X: 0 at centerline (diameter programming)</text>
+                    <text x="15" y="128" class="preview-label">${pos.zRange}</text>
                 </svg>
             `;
             container.innerHTML = svg;
@@ -2463,13 +2504,14 @@
 
         function updateSafeDistancePreview() {
             const setup = getWorkpieceSetup();
+            const origin = setup.origin;
             const container = document.getElementById('safeDistancePreview');
 
-            // Scale for display
+            // Scale for side view display
             const maxDim = Math.max(setup.safeXRapid, setup.stockDia + 40, 120);
-            const scaleX = 100 / maxDim;
+            const scaleX = 80 / maxDim;
             const maxLen = Math.max(setup.stockLength + setup.safeZRapid + 20, 150);
-            const scaleZ = 180 / maxLen;
+            const scaleZ = 140 / maxLen;
             const scale = Math.min(scaleX, scaleZ);
 
             const stockL = setup.stockLength * scale;
@@ -2478,15 +2520,25 @@
             const safeZ = setup.safeZRapid * scale;
             const clearX = setup.clearanceX * scale;
 
-            const centerY = 75;
-            const chuckX = 60;
-            const origin = setup.origin;
-            const originX = origin === 'chuck-face' ? chuckX : chuckX + stockL;
+            const centerY = 70;
+            const chuckX = 55;
+
+            const pos = getTurningOriginPosition(setup, chuckX, stockL, centerY);
+
+            // End view parameters
+            const endViewCenterX = 300;
+            const endViewCenterY = 70;
+            const endViewStockR = Math.min(setup.stockDia * 0.3, 25);
+            const endViewSafeR = Math.min(setup.safeXRapid * 0.3, 40);
+            const endViewClearR = endViewStockR + (setup.clearanceX * 0.3);
 
             const svg = `
-                <svg viewBox="0 0 360 150" width="360" height="150">
+                <svg viewBox="0 0 380 150" width="380" height="150">
+                    <!-- SIDE VIEW (XZ) -->
+                    <text x="${chuckX + stockL/2}" y="12" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">XZ Side View</text>
+
                     <!-- Chuck -->
-                    <rect x="30" y="${centerY - 35}" width="30" height="70" fill="#94a3b8" stroke="#64748b" stroke-width="1"/>
+                    <rect x="25" y="${centerY - 32}" width="30" height="64" fill="#94a3b8" stroke="#64748b" stroke-width="1"/>
 
                     <!-- Stock -->
                     <rect x="${chuckX}" y="${centerY - stockR}" width="${stockL}" height="${stockR * 2}"
@@ -2494,45 +2546,69 @@
                     <text x="${chuckX + stockL/2}" y="${centerY + 4}" text-anchor="middle" class="preview-label">Ø${setup.stockDia} x ${setup.stockLength}</text>
 
                     <!-- Centerline -->
-                    <line x1="${chuckX - 5}" y1="${centerY}" x2="${chuckX + stockL + safeZ + 30}" y2="${centerY}"
+                    <line x1="${chuckX - 5}" y1="${centerY}" x2="${chuckX + stockL + safeZ + 25}" y2="${centerY}"
                           stroke="#94a3b8" stroke-width="0.5" stroke-dasharray="6,3"/>
 
-                    <!-- Origin marker -->
-                    <circle cx="${originX}" cy="${centerY}" r="4" fill="#2563eb"/>
-                    <text x="${originX}" y="${centerY + stockR + 12}" text-anchor="middle" class="preview-origin">Z=0</text>
+                    <!-- Origin marker - synced with origin selection -->
+                    <circle cx="${pos.originX}" cy="${centerY}" r="4" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+                    <line x1="${pos.originX}" y1="${centerY - stockR - 8}" x2="${pos.originX}" y2="${centerY + stockR + 3}"
+                          stroke="#2563eb" stroke-width="1.5" stroke-dasharray="3,2"/>
+                    <text x="${pos.originX}" y="${centerY + stockR + 14}" text-anchor="middle" class="preview-origin">Z=0</text>
 
                     <!-- Safe X level (diameter line above stock) -->
                     <line x1="${chuckX - 10}" y1="${centerY - safeX}" x2="${chuckX + stockL + safeZ + 20}" y2="${centerY - safeX}"
                           stroke="#059669" stroke-width="2"/>
-                    <text x="${chuckX + stockL + safeZ + 25}" y="${centerY - safeX + 4}" class="preview-safe">X${setup.safeXRapid} (Safe)</text>
+                    <text x="${chuckX + stockL + safeZ + 25}" y="${centerY - safeX + 4}" class="preview-safe">X${setup.safeXRapid}</text>
 
                     <!-- Clearance X level -->
                     <line x1="${chuckX - 5}" y1="${centerY - stockR - clearX}" x2="${chuckX + stockL + 10}" y2="${centerY - stockR - clearX}"
                           stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,2"/>
-                    <text x="${chuckX + stockL + 15}" y="${centerY - stockR - clearX + 4}" class="preview-safe" fill="#f59e0b">+${setup.clearanceX} clearance</text>
+                    <text x="${chuckX + stockL + 15}" y="${centerY - stockR - clearX + 4}" class="preview-safe" fill="#f59e0b">+${setup.clearanceX}</text>
 
                     <!-- Safe Z position -->
                     ${origin === 'chuck-face' ? `
-                    <line x1="${originX}" y1="${centerY - safeX - 5}" x2="${originX}" y2="${centerY + 20}" stroke="#059669" stroke-width="1" stroke-dasharray="3,2"/>
-                    <circle cx="${originX}" cy="${centerY - safeX}" r="3" fill="#059669"/>
+                    <line x1="${pos.originX}" y1="${centerY - safeX - 5}" x2="${pos.originX}" y2="${centerY + 15}" stroke="#059669" stroke-width="1" stroke-dasharray="3,2"/>
+                    <circle cx="${pos.originX}" cy="${centerY - safeX}" r="3" fill="#059669"/>
                     ` : `
-                    <line x1="${originX + safeZ}" y1="${centerY - safeX - 5}" x2="${originX + safeZ}" y2="${centerY + 20}" stroke="#059669" stroke-width="2"/>
-                    <circle cx="${originX + safeZ}" cy="${centerY - safeX}" r="3" fill="#059669"/>
-                    <text x="${originX + safeZ}" y="${centerY + 28}" text-anchor="middle" class="preview-safe">Z+${setup.safeZRapid}</text>
+                    <line x1="${pos.originX + safeZ}" y1="${centerY - safeX - 5}" x2="${pos.originX + safeZ}" y2="${centerY + 15}" stroke="#059669" stroke-width="2"/>
+                    <circle cx="${pos.originX + safeZ}" cy="${centerY - safeX}" r="3" fill="#059669"/>
+                    <text x="${pos.originX + safeZ}" y="${centerY + 25}" text-anchor="middle" class="preview-safe">Z+${setup.safeZRapid}</text>
                     `}
 
                     <!-- Tool path illustration -->
-                    <path d="M ${originX + (origin === 'chuck-face' ? 0 : safeZ)} ${centerY - safeX}
+                    <path d="M ${pos.originX + (origin === 'chuck-face' ? 0 : safeZ)} ${centerY - safeX}
                              L ${chuckX + stockL/2} ${centerY - safeX}
                              L ${chuckX + stockL/2} ${centerY - stockR - clearX}
                              L ${chuckX + stockL/2} ${centerY - stockR + 2}"
                           stroke="#059669" stroke-width="1.5" fill="none" stroke-dasharray="5,3"/>
 
                     <!-- Tool symbol -->
-                    <polygon points="${chuckX + stockL/2 - 8},${centerY - safeX - 5} ${chuckX + stockL/2 + 8},${centerY - safeX - 5} ${chuckX + stockL/2},${centerY - safeX + 5}" fill="#374151"/>
+                    <polygon points="${chuckX + stockL/2 - 6},${centerY - safeX - 4} ${chuckX + stockL/2 + 6},${centerY - safeX - 4} ${chuckX + stockL/2},${centerY - safeX + 4}" fill="#374151"/>
+
+                    <!-- END VIEW -->
+                    <text x="${endViewCenterX}" y="12" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">End View</text>
+
+                    <!-- Safe X circle (outer) -->
+                    <circle cx="${endViewCenterX}" cy="${endViewCenterY}" r="${endViewSafeR}" fill="none" stroke="#059669" stroke-width="2"/>
+                    <text x="${endViewCenterX + endViewSafeR + 5}" y="${endViewCenterY - 8}" class="preview-safe">X${setup.safeXRapid}</text>
+
+                    <!-- Clearance circle -->
+                    <circle cx="${endViewCenterX}" cy="${endViewCenterY}" r="${endViewClearR}" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3,2"/>
+
+                    <!-- Stock circle -->
+                    <circle cx="${endViewCenterX}" cy="${endViewCenterY}" r="${endViewStockR}" fill="#c7d2fe" stroke="#6366f1" stroke-width="1.5"/>
+                    <text x="${endViewCenterX}" y="${endViewCenterY + 4}" text-anchor="middle" class="preview-dimension">Ø${setup.stockDia}</text>
+
+                    <!-- Origin at center -->
+                    <circle cx="${endViewCenterX}" cy="${endViewCenterY}" r="3" fill="#2563eb"/>
 
                     <!-- Legend -->
-                    <text x="15" y="145" class="preview-label">Side View - Tool approaches via Safe X (${setup.safeXRapid}), then to clearance (+${setup.clearanceX} above stock)</text>
+                    <rect x="15" y="138" width="10" height="3" fill="#059669"/>
+                    <text x="28" y="142" font-size="8" fill="#64748b">Safe X</text>
+                    <rect x="70" y="138" width="10" height="3" fill="#f59e0b"/>
+                    <text x="83" y="142" font-size="8" fill="#64748b">Clearance</text>
+                    <rect x="135" y="138" width="10" height="3" fill="#6366f1"/>
+                    <text x="148" y="142" font-size="8" fill="#64748b">Stock</text>
                 </svg>
             `;
             container.innerHTML = svg;

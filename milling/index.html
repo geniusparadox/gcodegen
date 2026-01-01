@@ -1463,6 +1463,34 @@
             updateSafeDistancePreview();
         }
 
+        function getOriginPosition(setup, wpW, wpD, offsetX, offsetY) {
+            const origin = setup.origin;
+            let originX, originY, xRange, yRange;
+            switch(origin) {
+                case 'top-left':
+                    originX = offsetX; originY = offsetY;
+                    xRange = `X: 0 to +${setup.lengthX}`;
+                    yRange = `Y: 0 to +${setup.widthY}`;
+                    break;
+                case 'top-center':
+                    originX = offsetX + wpW/2; originY = offsetY + wpD/2;
+                    xRange = `X: -${setup.lengthX/2} to +${setup.lengthX/2}`;
+                    yRange = `Y: -${setup.widthY/2} to +${setup.widthY/2}`;
+                    break;
+                case 'top-right':
+                    originX = offsetX + wpW; originY = offsetY;
+                    xRange = `X: -${setup.lengthX} to 0`;
+                    yRange = `Y: 0 to +${setup.widthY}`;
+                    break;
+                case 'bottom-center':
+                    originX = offsetX + wpW/2; originY = offsetY + wpD/2;
+                    xRange = `X: -${setup.lengthX/2} to +${setup.lengthX/2}`;
+                    yRange = `Y: -${setup.widthY/2} to +${setup.widthY/2}`;
+                    break;
+            }
+            return { originX, originY, xRange, yRange };
+        }
+
         function updateOriginPreview() {
             const setup = getWorkpieceSetup();
             const origin = setup.origin;
@@ -1470,51 +1498,30 @@
 
             // Scale for display
             const maxDim = Math.max(setup.lengthX, setup.widthY);
-            const scale = 160 / maxDim;
+            const scale = Math.min(140 / maxDim, 1.5);
             const wpW = setup.lengthX * scale;
             const wpD = setup.widthY * scale;
+            const offsetX = 60;
+            const offsetY = 35;
 
-            // Origin position
-            let originX, originY, originLabel, xRange, yRange;
-            switch(origin) {
-                case 'top-left':
-                    originX = 60; originY = 40;
-                    xRange = `X: 0 to +${setup.lengthX}`;
-                    yRange = `Y: 0 to +${setup.widthY}`;
-                    break;
-                case 'top-center':
-                    originX = 60 + wpW/2; originY = 40 + wpD/2;
-                    xRange = `X: -${setup.lengthX/2} to +${setup.lengthX/2}`;
-                    yRange = `Y: -${setup.widthY/2} to +${setup.widthY/2}`;
-                    break;
-                case 'top-right':
-                    originX = 60 + wpW; originY = 40;
-                    xRange = `X: -${setup.lengthX} to 0`;
-                    yRange = `Y: 0 to +${setup.widthY}`;
-                    break;
-                case 'bottom-center':
-                    originX = 60 + wpW/2; originY = 40 + wpD/2;
-                    xRange = `X: -${setup.lengthX/2} to +${setup.lengthX/2}`;
-                    yRange = `Y: -${setup.widthY/2} to +${setup.widthY/2}`;
-                    break;
-            }
+            const pos = getOriginPosition(setup, wpW, wpD, offsetX, offsetY);
 
             const svg = `
-                <svg viewBox="0 0 320 140" width="320" height="140">
+                <svg viewBox="0 0 320 130" width="320" height="130">
+                    <!-- Title -->
+                    <text x="160" y="15" text-anchor="middle" font-size="11" font-weight="600" fill="#374151">XY Top View - Origin Location</text>
+
                     <!-- Top view of workpiece -->
-                    <rect x="60" y="40" width="${wpW}" height="${wpD}" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5"/>
+                    <rect x="${offsetX}" y="${offsetY}" width="${wpW}" height="${wpD}" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5"/>
 
                     <!-- Dimension labels -->
-                    <text x="${60 + wpW/2}" y="30" text-anchor="middle" class="preview-dimension">${setup.lengthX} mm</text>
-                    <text x="${65 + wpW + 5}" y="${40 + wpD/2 + 4}" class="preview-dimension">${setup.widthY} mm</text>
+                    <text x="${offsetX + wpW/2}" y="${offsetY - 5}" text-anchor="middle" class="preview-dimension">${setup.lengthX} mm</text>
+                    <text x="${offsetX + wpW + 8}" y="${offsetY + wpD/2 + 4}" class="preview-dimension">${setup.widthY} mm</text>
 
                     <!-- Origin marker -->
-                    <circle cx="${originX}" cy="${originY}" r="6" fill="#7c3aed" stroke="white" stroke-width="2"/>
-                    <line x1="${originX}" y1="${originY - 15}" x2="${originX}" y2="${originY + 15}" stroke="#7c3aed" stroke-width="1.5"/>
-                    <line x1="${originX - 15}" y1="${originY}" x2="${originX + 15}" y2="${originY}" stroke="#7c3aed" stroke-width="1.5"/>
-
-                    <!-- Origin label -->
-                    <text x="${originX}" y="${originY - 20}" text-anchor="middle" class="preview-origin">ORIGIN (X0, Y0)</text>
+                    <circle cx="${pos.originX}" cy="${pos.originY}" r="6" fill="#7c3aed" stroke="white" stroke-width="2"/>
+                    <line x1="${pos.originX}" y1="${pos.originY - 12}" x2="${pos.originX}" y2="${pos.originY + 12}" stroke="#7c3aed" stroke-width="1.5"/>
+                    <line x1="${pos.originX - 12}" y1="${pos.originY}" x2="${pos.originX + 12}" y2="${pos.originY}" stroke="#7c3aed" stroke-width="1.5"/>
 
                     <!-- Axis arrows from origin -->
                     <defs>
@@ -1522,17 +1529,18 @@
                             <polygon points="0 0, 6 3, 0 6" fill="#7c3aed"/>
                         </marker>
                     </defs>
-                    <line x1="${originX + 20}" y1="${originY}" x2="${originX + 45}" y2="${originY}" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-                    <text x="${originX + 50}" y="${originY + 4}" class="preview-origin">+X</text>
-                    <line x1="${originX}" y1="${originY + 20}" x2="${originX}" y2="${originY + 45}" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-                    <text x="${originX + 5}" y="${originY + 55}" class="preview-origin">+Y</text>
+                    <line x1="${pos.originX + 15}" y1="${pos.originY}" x2="${pos.originX + 35}" y2="${pos.originY}" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+                    <text x="${pos.originX + 40}" y="${pos.originY + 4}" class="preview-origin">+X</text>
+                    <line x1="${pos.originX}" y1="${pos.originY + 15}" x2="${pos.originX}" y2="${pos.originY + 35}" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+                    <text x="${pos.originX + 5}" y="${pos.originY + 45}" class="preview-origin">+Y</text>
+
+                    <!-- Origin label -->
+                    <text x="${pos.originX}" y="${pos.originY - 18}" text-anchor="middle" class="preview-origin">X0, Y0</text>
 
                     <!-- Range info -->
-                    <text x="60" y="${50 + wpD + 20}" class="preview-label">${xRange}</text>
-                    <text x="60" y="${50 + wpD + 32}" class="preview-label">${yRange}</text>
-                    <text x="60" y="${50 + wpD + 44}" class="preview-label">Z: 0 at top surface${origin === 'bottom-center' ? ' (bottom)' : ''}</text>
-
-                    <text x="15" y="130" class="preview-label">Top View</text>
+                    <text x="${offsetX}" y="${offsetY + wpD + 18}" class="preview-label">${pos.xRange}</text>
+                    <text x="${offsetX}" y="${offsetY + wpD + 30}" class="preview-label">${pos.yRange}</text>
+                    <text x="${offsetX}" y="${offsetY + wpD + 42}" class="preview-label">Z=0 at ${origin === 'bottom-center' ? 'bottom' : 'top'} surface</text>
                 </svg>
             `;
             container.innerHTML = svg;
@@ -1540,64 +1548,94 @@
 
         function updateSafeDistancePreview() {
             const setup = getWorkpieceSetup();
+            const origin = setup.origin;
             const container = document.getElementById('safeDistancePreview');
 
-            // Side view (XZ plane)
-            const maxH = setup.safeZRapid + 20;
-            const scale = 100 / maxH;
-            const wpW = Math.min(setup.lengthX * 0.8, 120);
-            const wpH = setup.heightZ * scale;
-            const safeZ = setup.safeZRapid * scale;
-            const clearZ = setup.clearanceZ * scale;
-            const xyClr = setup.clearanceXY * 0.5;
+            // Calculate scales
+            const maxDimXY = Math.max(setup.lengthX, setup.widthY);
+            const scaleXY = Math.min(100 / maxDimXY, 1.2);
+            const wpW = setup.lengthX * scaleXY;
+            const wpD = setup.widthY * scaleXY;
 
-            const baseY = 110;
+            const maxH = Math.max(setup.safeZRapid + 10, setup.heightZ + setup.safeZRapid);
+            const scaleZ = 80 / maxH;
+            const wpH = setup.heightZ * scaleZ;
+            const safeZ = setup.safeZRapid * scaleZ;
+            const clearZ = setup.clearanceZ * scaleZ;
+            const xyClr = setup.clearanceXY * scaleXY * 0.3;
+
+            // XY View positioning
+            const xyOffsetX = 30;
+            const xyOffsetY = 40;
+            const pos = getOriginPosition(setup, wpW, wpD, xyOffsetX, xyOffsetY);
+
+            // Side view positioning
+            const sideOffsetX = 180;
+            const baseY = 115;
             const wpTop = baseY - wpH;
 
             const svg = `
-                <svg viewBox="0 0 340 150" width="340" height="150">
-                    <!-- Table/fixture -->
-                    <rect x="40" y="${baseY}" width="${wpW + 40}" height="8" fill="#94a3b8" stroke="#64748b" stroke-width="1"/>
+                <svg viewBox="0 0 380 145" width="380" height="145">
+                    <!-- XY TOP VIEW -->
+                    <text x="${xyOffsetX + wpW/2}" y="15" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">XY Top View</text>
+
+                    <!-- Workpiece top view -->
+                    <rect x="${xyOffsetX}" y="${xyOffsetY}" width="${wpW}" height="${wpD}" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.5"/>
+
+                    <!-- XY Clearance box around workpiece -->
+                    <rect x="${xyOffsetX - xyClr}" y="${xyOffsetY - xyClr}" width="${wpW + xyClr*2}" height="${wpD + xyClr*2}"
+                          fill="none" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3,2"/>
+                    <text x="${xyOffsetX - xyClr/2}" y="${xyOffsetY + wpD + xyClr + 12}" class="preview-safe" fill="#3b82f6">XY Clr: ${setup.clearanceXY}</text>
+
+                    <!-- Origin marker on XY view -->
+                    <circle cx="${pos.originX}" cy="${pos.originY}" r="5" fill="#7c3aed" stroke="white" stroke-width="1.5"/>
+                    <line x1="${pos.originX - 8}" y1="${pos.originY}" x2="${pos.originX + 8}" y2="${pos.originY}" stroke="#7c3aed" stroke-width="1"/>
+                    <line x1="${pos.originX}" y1="${pos.originY - 8}" x2="${pos.originX}" y2="${pos.originY + 8}" stroke="#7c3aed" stroke-width="1"/>
+                    <text x="${pos.originX}" y="${pos.originY - 12}" text-anchor="middle" font-size="8" fill="#7c3aed">Origin</text>
+
+                    <!-- Dimensions on XY -->
+                    <text x="${xyOffsetX + wpW/2}" y="${xyOffsetY - 8}" text-anchor="middle" class="preview-dimension">${setup.lengthX}</text>
+                    <text x="${xyOffsetX + wpW + 10}" y="${xyOffsetY + wpD/2 + 3}" class="preview-dimension">${setup.widthY}</text>
+
+                    <!-- SIDE VIEW (XZ) -->
+                    <text x="${sideOffsetX + 60}" y="15" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">XZ Side View</text>
+
+                    <!-- Table -->
+                    <rect x="${sideOffsetX}" y="${baseY}" width="130" height="6" fill="#94a3b8" stroke="#64748b" stroke-width="1"/>
 
                     <!-- Workpiece side view -->
-                    <rect x="60" y="${wpTop}" width="${wpW}" height="${wpH}" fill="#c7d2fe" stroke="#6366f1" stroke-width="1.5"/>
-                    <text x="${60 + wpW/2}" y="${wpTop + wpH/2 + 4}" text-anchor="middle" class="preview-label">Workpiece</text>
-
-                    <!-- Workpiece dimensions -->
-                    <text x="${60 + wpW/2}" y="${baseY + 20}" text-anchor="middle" class="preview-dimension">${setup.lengthX} x ${setup.widthY} x ${setup.heightZ} mm</text>
-
-                    <!-- Z axis line -->
-                    <line x1="${60 + wpW + 30}" y1="${wpTop}" x2="${60 + wpW + 30}" y2="${wpTop - safeZ - 15}" stroke="#64748b" stroke-width="1" stroke-dasharray="3,2"/>
+                    <rect x="${sideOffsetX + 15}" y="${wpTop}" width="100" height="${wpH}" fill="#c7d2fe" stroke="#6366f1" stroke-width="1.5"/>
+                    <text x="${sideOffsetX + 65}" y="${wpTop + wpH/2 + 3}" text-anchor="middle" font-size="8" fill="#64748b">Z=${setup.heightZ}</text>
 
                     <!-- Origin at top surface -->
-                    <circle cx="${60 + wpW + 30}" cy="${wpTop}" r="4" fill="#7c3aed"/>
-                    <text x="${60 + wpW + 40}" y="${wpTop + 4}" class="preview-origin">Z = 0 (Origin)</text>
+                    <circle cx="${sideOffsetX + 130}" cy="${wpTop}" r="4" fill="#7c3aed"/>
+                    <text x="${sideOffsetX + 140}" y="${wpTop + 4}" class="preview-origin">Z=0</text>
 
                     <!-- Clearance Z level -->
-                    <line x1="55" y1="${wpTop - clearZ}" x2="${60 + wpW + 25}" y2="${wpTop - clearZ}" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,2"/>
-                    <circle cx="${60 + wpW + 30}" cy="${wpTop - clearZ}" r="3" fill="#f59e0b"/>
-                    <text x="${60 + wpW + 40}" y="${wpTop - clearZ + 4}" class="preview-safe" fill="#f59e0b">Z = ${setup.clearanceZ} (Clearance)</text>
+                    <line x1="${sideOffsetX + 10}" y1="${wpTop - clearZ}" x2="${sideOffsetX + 125}" y2="${wpTop - clearZ}" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,2"/>
+                    <circle cx="${sideOffsetX + 130}" cy="${wpTop - clearZ}" r="3" fill="#f59e0b"/>
+                    <text x="${sideOffsetX + 140}" y="${wpTop - clearZ + 4}" class="preview-safe" fill="#f59e0b">Z=${setup.clearanceZ}</text>
 
                     <!-- Safe Z level -->
-                    <line x1="55" y1="${wpTop - safeZ}" x2="${60 + wpW + 25}" y2="${wpTop - safeZ}" stroke="#059669" stroke-width="2"/>
-                    <circle cx="${60 + wpW + 30}" cy="${wpTop - safeZ}" r="3" fill="#059669"/>
-                    <text x="${60 + wpW + 40}" y="${wpTop - safeZ + 4}" class="preview-safe">Z = ${setup.safeZRapid} (Safe/Rapid)</text>
+                    <line x1="${sideOffsetX + 10}" y1="${wpTop - safeZ}" x2="${sideOffsetX + 125}" y2="${wpTop - safeZ}" stroke="#059669" stroke-width="2"/>
+                    <circle cx="${sideOffsetX + 130}" cy="${wpTop - safeZ}" r="3" fill="#059669"/>
+                    <text x="${sideOffsetX + 140}" y="${wpTop - safeZ + 4}" class="preview-safe">Z=${setup.safeZRapid}</text>
 
-                    <!-- Tool path illustration -->
-                    <path d="M ${60 + wpW/2} ${wpTop - safeZ} L ${60 + wpW/2} ${wpTop - clearZ} L ${60 + wpW/2} ${wpTop - 5}"
-                          stroke="#059669" stroke-width="1.5" fill="none" stroke-dasharray="5,3"/>
+                    <!-- Tool path -->
+                    <path d="M ${sideOffsetX + 65} ${wpTop - safeZ} L ${sideOffsetX + 65} ${wpTop - clearZ} L ${sideOffsetX + 65} ${wpTop - 3}"
+                          stroke="#059669" stroke-width="1.5" fill="none" stroke-dasharray="4,2"/>
 
-                    <!-- Tool symbol -->
-                    <polygon points="${60 + wpW/2 - 5},${wpTop - safeZ - 8} ${60 + wpW/2 + 5},${wpTop - safeZ - 8} ${60 + wpW/2},${wpTop - safeZ}" fill="#374151"/>
-                    <rect x="${60 + wpW/2 - 3}" y="${wpTop - safeZ - 20}" width="6" height="12" fill="#374151"/>
-
-                    <!-- XY Clearance indicator -->
-                    <line x1="${55 - xyClr}" y1="${wpTop - 10}" x2="55" y2="${wpTop - 10}" stroke="#3b82f6" stroke-width="1.5"/>
-                    <line x1="${55 - xyClr}" y1="${wpTop - 15}" x2="${55 - xyClr}" y2="${wpTop - 5}" stroke="#3b82f6" stroke-width="1"/>
-                    <text x="${50 - xyClr}" y="${wpTop - 5}" text-anchor="end" font-size="8" fill="#3b82f6">${setup.clearanceXY}</text>
+                    <!-- Tool -->
+                    <polygon points="${sideOffsetX + 60},${wpTop - safeZ - 6} ${sideOffsetX + 70},${wpTop - safeZ - 6} ${sideOffsetX + 65},${wpTop - safeZ}" fill="#374151"/>
+                    <rect x="${sideOffsetX + 62}" y="${wpTop - safeZ - 16}" width="6" height="10" fill="#374151"/>
 
                     <!-- Legend -->
-                    <text x="15" y="145" class="preview-label">Side View (XZ Plane)</text>
+                    <rect x="30" y="132" width="8" height="3" fill="#059669"/>
+                    <text x="42" y="136" font-size="8" fill="#64748b">Safe Z (Rapid)</text>
+                    <rect x="110" y="132" width="8" height="3" fill="#f59e0b"/>
+                    <text x="122" y="136" font-size="8" fill="#64748b">Clearance Z</text>
+                    <rect x="200" y="132" width="8" height="3" fill="#3b82f6"/>
+                    <text x="212" y="136" font-size="8" fill="#64748b">XY Clearance</text>
                 </svg>
             `;
             container.innerHTML = svg;
