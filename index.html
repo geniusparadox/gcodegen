@@ -432,6 +432,7 @@
             background: #1e1e2e;
             border-radius: 10px;
             padding: 12px;
+            margin-top: 16px;
             margin-bottom: 12px;
         }
 
@@ -996,6 +997,13 @@
 
                 <div class="right-column">
                     <div class="card" style="position: sticky; top: 16px;">
+                        <div class="card-title">Generated G-Code</div>
+                        <div class="code-output" id="builderOutput">; Add operations and click Generate
+; Complete program will appear here</div>
+                        <div class="output-actions">
+                            <button class="btn btn-secondary" onclick="copyCode('builderOutput')">📋 Copy</button>
+                            <button class="btn btn-secondary" onclick="downloadCode('builderOutput')">💾 Download</button>
+                        </div>
                         <div class="simulation-container" id="builderSimulation" style="display:none;">
                             <div class="simulation-header">
                                 <span class="simulation-title">2D TOOLPATH SIMULATION</span>
@@ -1007,13 +1015,6 @@
                             </div>
                             <div class="simulation-canvas" id="builderCanvas" onclick="expandSimulation('builder')"></div>
                             <div class="expand-hint">Click to expand</div>
-                        </div>
-                        <div class="card-title">Generated G-Code</div>
-                        <div class="code-output" id="builderOutput">; Add operations and click Generate
-; Complete program will appear here</div>
-                        <div class="output-actions">
-                            <button class="btn btn-secondary" onclick="copyCode('builderOutput')">📋 Copy</button>
-                            <button class="btn btn-secondary" onclick="downloadCode('builderOutput')">💾 Download</button>
                         </div>
                     </div>
                 </div>
@@ -1212,6 +1213,13 @@
 
                 <div class="right-column">
                     <div class="card" style="position: sticky; top: 16px;">
+                        <div class="card-title">Generated G-Code</div>
+                        <div class="code-output" id="singleOutput">; Select operation and parameters
+; G-Code will appear here</div>
+                        <div class="output-actions">
+                            <button class="btn btn-secondary" onclick="copyCode('singleOutput')">📋 Copy</button>
+                            <button class="btn btn-secondary" onclick="downloadCode('singleOutput')">💾 Download</button>
+                        </div>
                         <div class="simulation-container" id="singleSimulation" style="display:none;">
                             <div class="simulation-header">
                                 <span class="simulation-title">2D TOOLPATH SIMULATION</span>
@@ -1223,13 +1231,6 @@
                             </div>
                             <div class="simulation-canvas" id="singleCanvas" onclick="expandSimulation('single')"></div>
                             <div class="expand-hint">Click to expand</div>
-                        </div>
-                        <div class="card-title">Generated G-Code</div>
-                        <div class="code-output" id="singleOutput">; Select operation and parameters
-; G-Code will appear here</div>
-                        <div class="output-actions">
-                            <button class="btn btn-secondary" onclick="copyCode('singleOutput')">📋 Copy</button>
-                            <button class="btn btn-secondary" onclick="downloadCode('singleOutput')">💾 Download</button>
                         </div>
                     </div>
                 </div>
@@ -3477,36 +3478,61 @@
             let currentZ = safeZ || 5;
             let rapidMode = true;
 
-            // G71 cycle detection
-            let g71Doc = 2; // Default depth of cut
-            let g71Active = false;
-            let g71Profile = [];
-            let g71StartLine = -1;
-            let g71EndLine = -1;
-            let g71FinishU = 0.3;
+            // Cycle detection
+            let cycleDoc = 2; // Default depth of cut
+            let cycleActive = false;
+            let cycleType = null; // 'G71', 'G72', etc.
+            let cycleProfile = [];
+            let cycleStartLine = -1;
+            let cycleEndLine = -1;
+            let cycleFinishU = 0.3;
+            let isIDOperation = false; // For boring operations
             let inProfile = false;
             stockLen = stockLen || 50; // Default stock length
 
-            // First pass: find G71 parameters and profile
+            // First pass: find cycle parameters and profile
             for (let i = 0; i < lines.length; i++) {
                 const trimmed = lines[i].trim();
                 if (!trimmed || trimmed.startsWith('(') || trimmed.startsWith(';')) continue;
 
-                // Detect G71 cycle parameters
+                // Detect G71 (longitudinal) cycle parameters
                 if (trimmed.includes('G71')) {
-                    const uMatch = trimmed.match(/U(\d+\.?\d*)/);
+                    cycleType = 'G71';
+                    const uMatch = trimmed.match(/U(-?\d+\.?\d*)/);
                     const pMatch = trimmed.match(/P(\d+)/);
                     const qMatch = trimmed.match(/Q(\d+)/);
 
                     if (uMatch && !pMatch) {
-                        g71Doc = parseFloat(uMatch[1]);
+                        cycleDoc = Math.abs(parseFloat(uMatch[1]));
                     }
                     if (pMatch && qMatch) {
-                        g71StartLine = parseInt(pMatch[1]);
-                        g71EndLine = parseInt(qMatch[1]);
-                        g71Active = true;
-                        const finishU = trimmed.match(/U(\d+\.?\d*)/);
-                        if (finishU) g71FinishU = parseFloat(finishU[1]);
+                        cycleStartLine = parseInt(pMatch[1]);
+                        cycleEndLine = parseInt(qMatch[1]);
+                        cycleActive = true;
+                        const finishU = trimmed.match(/U(-?\d+\.?\d*)/);
+                        if (finishU) {
+                            const uVal = parseFloat(finishU[1]);
+                            cycleFinishU = Math.abs(uVal);
+                            // Negative U indicates ID operation
+                            if (uVal < 0) isIDOperation = true;
+                        }
+                    }
+                }
+
+                // Detect G72 (facing) cycle parameters
+                if (trimmed.includes('G72')) {
+                    cycleType = 'G72';
+                    const wMatch = trimmed.match(/W(-?\d+\.?\d*)/);
+                    const pMatch = trimmed.match(/P(\d+)/);
+                    const qMatch = trimmed.match(/Q(\d+)/);
+
+                    if (wMatch && !pMatch) {
+                        cycleDoc = Math.abs(parseFloat(wMatch[1]));
+                    }
+                    if (pMatch && qMatch) {
+                        cycleStartLine = parseInt(pMatch[1]);
+                        cycleEndLine = parseInt(qMatch[1]);
+                        cycleActive = true;
                     }
                 }
 
@@ -3514,19 +3540,19 @@
                 const nMatch = trimmed.match(/^N(\d+)/);
                 if (nMatch) {
                     const lineNum = parseInt(nMatch[1]);
-                    if (lineNum === g71StartLine) inProfile = true;
-                    if (lineNum === g71EndLine) {
-                        g71Profile.push(trimmed);
+                    if (lineNum === cycleStartLine) inProfile = true;
+                    if (lineNum === cycleEndLine) {
+                        cycleProfile.push(trimmed);
                         inProfile = false;
                     }
                 }
                 // Capture ALL lines while inside profile block (not just N-lines)
                 if (inProfile && trimmed) {
-                    g71Profile.push(trimmed);
+                    cycleProfile.push(trimmed);
                 }
             }
 
-            // Second pass: generate toolpath with roughing simulation
+            // Second pass: generate toolpath with cycle simulation
             let firstMove = true;
             rapidMode = true;
 
@@ -3534,11 +3560,11 @@
                 const trimmed = line.trim();
                 if (!trimmed || trimmed.startsWith('(') || trimmed.startsWith(';')) continue;
 
-                // Skip G71 lines themselves (we'll simulate the passes)
-                if (trimmed.includes('G71') || trimmed.includes('G70')) continue;
+                // Skip cycle lines themselves (we'll simulate the passes)
+                if (trimmed.includes('G71') || trimmed.includes('G72') || trimmed.includes('G70')) continue;
 
                 // Skip profile definition lines (N100-N200) - we handle them separately
-                if (/^N\d+/.test(trimmed) && g71Active) continue;
+                if (/^N\d+/.test(trimmed) && cycleActive) continue;
 
                 // Check for G-code mode
                 if (trimmed.includes('G00') || trimmed.includes('G0 ')) rapidMode = true;
@@ -3589,18 +3615,26 @@
             }
 
             // If G71 cycle was detected, simulate the roughing passes
-            if (g71Active && g71Profile.length > 0) {
-                const roughingPasses = simulateG71Passes(g71Profile, stockDia, g71Doc, g71FinishU, safeZ, stockLen);
+            if (cycleActive && cycleProfile.length > 0 && cycleType === 'G71') {
+                const roughingPasses = simulateG71Passes(cycleProfile, stockDia, cycleDoc, cycleFinishU, safeZ, stockLen, isIDOperation);
                 // Insert roughing passes at the beginning (after initial rapid)
                 const initialMoves = toolpath.filter(m => m.type === 'rapid').slice(0, 2);
                 const endMoves = toolpath.filter(m => m.type === 'rapid').slice(-2);
                 return [...initialMoves, ...roughingPasses, ...endMoves];
             }
 
+            // If G72 cycle was detected, simulate the facing passes
+            if (cycleActive && cycleProfile.length > 0 && cycleType === 'G72') {
+                const facingPasses = simulateG72Passes(cycleProfile, stockDia, cycleDoc, cycleFinishU, safeZ, stockLen);
+                const initialMoves = toolpath.filter(m => m.type === 'rapid').slice(0, 2);
+                const endMoves = toolpath.filter(m => m.type === 'rapid').slice(-2);
+                return [...initialMoves, ...facingPasses, ...endMoves];
+            }
+
             return toolpath;
         }
 
-        function simulateG71Passes(profileLines, stockDia, doc, finishU, safeZ, stockLen) {
+        function simulateG71Passes(profileLines, stockDia, doc, finishU, safeZ, stockLen, isIDOperation = false) {
             const passes = [];
 
             // Parse profile to get target diameters and Z positions
@@ -3622,13 +3656,17 @@
 
             if (profilePoints.length === 0) return passes;
 
-            // Find the minimum diameter in the profile (deepest cut)
+            // Find the target diameter in the profile
             const minDia = Math.min(...profilePoints.map(p => p.x));
+            const maxDia = Math.max(...profilePoints.map(p => p.x));
+
+            // For ID operations, finish diameter is the max; for OD, it's the min
+            const finishDia = isIDOperation ? maxDia : minDia;
+            const startDia = isIDOperation ? minDia : stockDia;
 
             // Separate cutting profile from retract moves
-            // For OD turning: cutting ends when X increases beyond the finish diameter toward stock
             let cuttingProfile = [];
-            let foundMinDia = false;
+            let foundFinishDia = false;
             for (const pt of profilePoints) {
                 // Skip duplicate points
                 if (cuttingProfile.length > 0) {
@@ -3636,20 +3674,24 @@
                     if (lastPt.x === pt.x && lastPt.z === pt.z) continue;
                 }
 
-                // For OD turning: once we reach the minimum diameter and X starts increasing,
-                // that's the retract - stop collecting cutting points
-                if (pt.x === minDia) foundMinDia = true;
-                if (foundMinDia && pt.x > minDia + 1) break; // +1 for tolerance
-
-                // Only include points that are within or near the stock
-                if (pt.x <= stockDia + 1) {
+                if (isIDOperation) {
+                    // For ID: cutting ends when X decreases (retracts inward)
+                    if (pt.x === maxDia) foundFinishDia = true;
+                    if (foundFinishDia && pt.x < maxDia - 1) break;
                     cuttingProfile.push(pt);
+                } else {
+                    // For OD: cutting ends when X increases beyond finish diameter
+                    if (pt.x === minDia) foundFinishDia = true;
+                    if (foundFinishDia && pt.x > minDia + 1) break;
+                    if (pt.x <= stockDia + 1) {
+                        cuttingProfile.push(pt);
+                    }
                 }
             }
 
             // If no cutting profile found, use all profile points as fallback
             if (cuttingProfile.length === 0) {
-                cuttingProfile = profilePoints.filter(p => p.x <= stockDia);
+                cuttingProfile = profilePoints;
             }
 
             // Use the actual Z extent from the cutting profile (not retract moves)
@@ -3657,18 +3699,28 @@
             const startZ = 1; // Start cutting just before Z0
 
             // Calculate number of passes needed
-            const totalDepth = (stockDia - minDia) / 2; // Radius difference
+            const totalDepth = isIDOperation
+                ? (maxDia - minDia) / 2  // ID: expand outward
+                : (stockDia - minDia) / 2; // OD: cut inward
             const numPasses = Math.max(1, Math.ceil(totalDepth / doc)); // At least 1 pass
 
             // Retract position
-            let retractX = stockDia + 2;
+            let retractX = isIDOperation ? minDia - 2 : stockDia + 2;
             let lastX = retractX;
             let lastZ = safeZ;
 
             // Generate each roughing pass - cut full Z length each time
             for (let pass = 1; pass <= numPasses; pass++) {
-                let passX = stockDia - (pass * doc * 2); // Diameter reduction
-                if (passX < minDia + finishU) passX = minDia + finishU;
+                let passX;
+                if (isIDOperation) {
+                    // ID: start from bore diameter and work outward
+                    passX = minDia + (pass * doc * 2); // Diameter increase
+                    if (passX > maxDia - finishU) passX = maxDia - finishU;
+                } else {
+                    // OD: start from stock diameter and work inward
+                    passX = stockDia - (pass * doc * 2); // Diameter reduction
+                    if (passX < minDia + finishU) passX = minDia + finishU;
+                }
 
                 // Rapid positioning to safe Z (yellow)
                 if (lastZ !== safeZ) {
@@ -3787,6 +3839,150 @@
                     toX: retractX,
                     toZ: safeZ,
                     type: 'rapid'
+                });
+            }
+
+            return passes;
+        }
+
+        function simulateG72Passes(profileLines, stockDia, doc, finishW, safeZ, stockLen) {
+            const passes = [];
+
+            // Parse profile to get target positions
+            let profilePoints = [];
+            let currentX = stockDia;
+            let currentZ = 0;
+
+            for (const line of profileLines) {
+                const xMatch = line.match(/X(-?\d+\.?\d*)/);
+                const zMatch = line.match(/Z(-?\d+\.?\d*)/);
+
+                if (xMatch) currentX = parseFloat(xMatch[1]);
+                if (zMatch) currentZ = parseFloat(zMatch[1]);
+
+                if (xMatch || zMatch) {
+                    profilePoints.push({ x: currentX, z: currentZ });
+                }
+            }
+
+            if (profilePoints.length === 0) return passes;
+
+            // For facing, we need to find the face depth and diameter range
+            const minX = Math.min(...profilePoints.map(p => p.x));
+            const maxX = Math.max(...profilePoints.map(p => p.x));
+            const faceZ = 0; // Face is at Z0
+
+            // Calculate number of passes needed (based on Z depth per pass)
+            const totalFaceDepth = doc * 5; // Rough estimate for facing depth
+            const numPasses = Math.max(1, Math.ceil(totalFaceDepth / doc));
+
+            // Retract position
+            let retractZ = safeZ;
+            let lastX = stockDia + 2;
+            let lastZ = safeZ;
+
+            // Generate facing passes - each pass moves across the face in X
+            for (let pass = 1; pass <= numPasses; pass++) {
+                let passZ = -(pass * doc); // Step down in Z
+                if (passZ < -totalFaceDepth) passZ = -totalFaceDepth;
+
+                // Rapid to safe position
+                if (lastZ !== safeZ) {
+                    passes.push({
+                        fromX: lastX,
+                        fromZ: lastZ,
+                        toX: lastX,
+                        toZ: safeZ,
+                        type: 'rapid'
+                    });
+                    lastZ = safeZ;
+                }
+
+                // Rapid to start X position (outside stock)
+                passes.push({
+                    fromX: lastX,
+                    fromZ: safeZ,
+                    toX: stockDia + 2,
+                    toZ: safeZ,
+                    type: 'rapid'
+                });
+                lastX = stockDia + 2;
+
+                // Approach to Z position (blue)
+                passes.push({
+                    fromX: stockDia + 2,
+                    fromZ: safeZ,
+                    toX: stockDia + 2,
+                    toZ: passZ,
+                    type: 'approach'
+                });
+                lastZ = passZ;
+
+                // FACING PASS - Feed across face in X (green)
+                passes.push({
+                    fromX: stockDia + 2,
+                    fromZ: passZ,
+                    toX: minX,
+                    toZ: passZ,
+                    type: 'feed'
+                });
+                lastX = minX;
+
+                // Retract in Z (blue)
+                passes.push({
+                    fromX: minX,
+                    fromZ: passZ,
+                    toX: minX,
+                    toZ: safeZ,
+                    type: 'approach'
+                });
+                lastZ = safeZ;
+            }
+
+            // Finish pass along profile if available
+            if (profilePoints.length > 0) {
+                const startX = profilePoints[0].x;
+
+                // Rapid to start position
+                passes.push({
+                    fromX: lastX,
+                    fromZ: safeZ,
+                    toX: startX,
+                    toZ: safeZ,
+                    type: 'rapid'
+                });
+
+                // Approach to Z0
+                passes.push({
+                    fromX: startX,
+                    fromZ: safeZ,
+                    toX: startX,
+                    toZ: 0,
+                    type: 'approach'
+                });
+
+                // Follow profile
+                let prevPt = { x: startX, z: 0 };
+                for (const pt of profilePoints) {
+                    if (prevPt.x !== pt.x || prevPt.z !== pt.z) {
+                        passes.push({
+                            fromX: prevPt.x,
+                            fromZ: prevPt.z,
+                            toX: pt.x,
+                            toZ: pt.z,
+                            type: 'feed'
+                        });
+                        prevPt = pt;
+                    }
+                }
+
+                // Retract
+                passes.push({
+                    fromX: prevPt.x,
+                    fromZ: prevPt.z,
+                    toX: prevPt.x,
+                    toZ: safeZ,
+                    type: 'approach'
                 });
             }
 
