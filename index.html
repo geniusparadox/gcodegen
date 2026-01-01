@@ -2871,10 +2871,11 @@
                     break;
 
                 case 'od-taper':
-                    // Calculate end diameter from angle if specified
+                    // Calculate end diameter from angle ONLY if end diameter not explicitly specified
                     // startDia = small (at face/Z0), endDia = large (at chuck/Z-length)
                     let odTaperEndDia = p.endDia;
-                    if (p.taperAngle > 0) {
+                    // Only calculate from angle if endDia equals startDia (user didn't specify different end)
+                    if (p.taperAngle > 0 && (!p.endDia || p.endDia === p.startDia)) {
                         // Taper per side = length * tan(angle)
                         const taperPerSide = p.length * Math.tan(p.taperAngle * Math.PI / 180);
                         odTaperEndDia = p.startDia + (taperPerSide * 2); // Gets larger toward chuck
@@ -2975,10 +2976,11 @@
                     break;
 
                 case 'id-taper':
-                    // Calculate end diameter from angle if specified
+                    // Calculate end diameter from angle ONLY if end diameter not explicitly specified
                     // startDia = large (at face/Z0), endDia = small (at depth/Z-depth)
                     let idTaperEndDia = p.endDia;
-                    if (p.taperAngle > 0) {
+                    // Only calculate from angle if endDia equals startDia (user didn't specify different end)
+                    if (p.taperAngle > 0 && (!p.endDia || p.endDia === p.startDia)) {
                         // Taper per side = depth * tan(angle)
                         const taperPerSide = p.depth * Math.tan(p.taperAngle * Math.PI / 180);
                         idTaperEndDia = p.startDia - (taperPerSide * 2); // Gets smaller toward depth
