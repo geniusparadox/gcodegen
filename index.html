@@ -68,25 +68,6 @@
             font-size: 14px;
         }
 
-        .header-link {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 8px 16px;
-            background: var(--bg-card);
-            color: var(--accent);
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            transition: all 0.2s;
-        }
-
-        .header-link:hover {
-            background: var(--accent);
-            color: white;
-        }
-
         .tabs {
             display: flex;
             gap: 4px;
@@ -835,6 +816,255 @@
             color: var(--text-secondary);
             margin-top: 8px;
         }
+
+        /* Tools Guide Styles */
+        .tools-guide-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .tools-guide-section h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .tools-guide-section h3 {
+            font-size: 17px;
+            font-weight: 600;
+            margin: 20px 0 12px 0;
+        }
+
+        .tools-guide-section h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin: 16px 0 8px 0;
+            color: var(--text-secondary);
+        }
+
+        .tools-guide-section p {
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 16px 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .table-wrapper table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .table-wrapper th {
+            background: #f1f5f9;
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .table-wrapper td {
+            padding: 8px 14px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .table-wrapper tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .table-wrapper tr:hover {
+            background: #e8f4fd;
+        }
+
+        .table-wrapper code {
+            background: #e8f4fd;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 12px;
+            color: var(--accent);
+        }
+
+        .code-breakdown {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 16px 0;
+            overflow-x: auto;
+        }
+
+        .code-breakdown .example {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 22px;
+            color: #4ade80;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+
+        .code-breakdown .breakdown {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .code-breakdown .char {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 40px;
+        }
+
+        .code-breakdown .char-letter {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 18px;
+            color: #60a5fa;
+            padding: 4px 8px;
+            background: rgba(96, 165, 250, 0.2);
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .code-breakdown .char-meaning {
+            font-size: 10px;
+            color: #9ca3af;
+            text-align: center;
+            max-width: 60px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge-steel { background: #dbeafe; color: #1d4ed8; }
+        .badge-stainless { background: #fef3c7; color: #b45309; }
+        .badge-cast { background: #fee2e2; color: #b91c1c; }
+        .badge-aluminum { background: #d1fae5; color: #047857; }
+        .badge-super { background: #ede9fe; color: #6d28d9; }
+        .badge-hard { background: #fce7f3; color: #be185d; }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .tool-card {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .tool-card h4 {
+            margin-top: 0;
+            color: var(--accent);
+        }
+
+        .tool-card ul {
+            margin: 8px 0 0 20px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .tool-card li {
+            margin-bottom: 4px;
+        }
+
+        .coating-indicator {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        .coating-tin { background: linear-gradient(135deg, #fcd34d, #f59e0b); }
+        .coating-ticn { background: linear-gradient(135deg, #a78bfa, #7c3aed); }
+        .coating-tialn { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
+        .coating-altin { background: linear-gradient(135deg, #34d399, #10b981); }
+        .coating-al2o3 { background: linear-gradient(135deg, #f472b6, #ec4899); }
+        .coating-diamond { background: linear-gradient(135deg, #e5e7eb, #9ca3af); }
+        .coating-cbn { background: linear-gradient(135deg, #fbbf24, #d97706); }
+        .coating-pcd { background: linear-gradient(135deg, #a5f3fc, #22d3d8); }
+
+        .tip-box {
+            background: #ecfdf5;
+            border-left: 4px solid var(--success);
+            padding: 12px 16px;
+            margin: 16px 0;
+            border-radius: 0 8px 8px 0;
+            font-size: 13px;
+        }
+
+        .tip-box.warning {
+            background: #fffbeb;
+            border-left-color: var(--warning);
+        }
+
+        .tip-box strong {
+            color: var(--text-primary);
+        }
+
+        .tip-box ul {
+            margin: 8px 0 0 20px;
+        }
+
+        .nav-sections {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .nav-sections a {
+            padding: 8px 14px;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .nav-sections a:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        @media (max-width: 768px) {
+            .code-breakdown .example {
+                font-size: 16px;
+            }
+            .code-breakdown .char-letter {
+                font-size: 14px;
+            }
+            .tools-guide-section {
+                padding: 16px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -842,13 +1072,13 @@
         <header>
             <h1>🔧 CNC Turning Program Builder</h1>
             <p>Build complete turning programs for FANUC, Siemens & Haas controllers</p>
-            <a href="tools-guide.html" class="header-link">📖 Lathe Tooling Reference Guide</a>
         </header>
 
         <!-- Mode Tabs -->
         <div class="tabs">
             <button class="tab" data-tab="builder">Program Builder</button>
             <button class="tab active" data-tab="single">Single Operation</button>
+            <button class="tab" data-tab="tools">Tools Guide</button>
         </div>
 
         <!-- Program Builder Tab -->
@@ -1271,6 +1501,510 @@
                             <div class="expand-hint">Click to expand</div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tools Guide Tab -->
+        <div class="tab-content" id="tools-tab">
+            <!-- Section Navigation -->
+            <div class="nav-sections">
+                <a href="#operations">Operations</a>
+                <a href="#tool-holders">Tool Holders</a>
+                <a href="#inserts">Inserts</a>
+                <a href="#tool-types">Tool Types</a>
+                <a href="#grades">Grades & Coatings</a>
+                <a href="#chipbreakers">Chipbreakers</a>
+                <a href="#reference">Reference Charts</a>
+            </div>
+
+            <!-- Section 1: Operations Overview -->
+            <div class="tools-guide-section" id="operations">
+                <h2>Lathe Operations Overview</h2>
+                <p>Understanding each operation helps you select the right tool geometry, insert grade, and cutting parameters.</p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Operation</th>
+                                <th>Description</th>
+                                <th>Common Tools</th>
+                                <th>Key Considerations</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>Facing</strong></td><td>Machining the end face perpendicular to axis</td><td>PCLNR, MCLNR, DCLNR</td><td>Use 80° or 55° inserts; ensure clearance at center</td></tr>
+                            <tr><td><strong>OD Turning</strong></td><td>Reducing the outside diameter along length</td><td>PCLNR, MCLNR, DWLNR</td><td>Match insert angle to approach; consider chip flow</td></tr>
+                            <tr><td><strong>Roughing</strong></td><td>High material removal rate with larger DOC</td><td>PCLNR, MWLNR</td><td>Use strong insert shapes (C, W, S); heavy chipbreakers</td></tr>
+                            <tr><td><strong>Finishing</strong></td><td>Final pass for surface finish and accuracy</td><td>SVJBR, SDJCR</td><td>Small nose radius; light chipbreakers; higher speeds</td></tr>
+                            <tr><td><strong>Taper Turning</strong></td><td>Creating a conical surface with varying diameter</td><td>PCLNR, MCLNR</td><td>Consider effective cutting angle; use appropriate clearance</td></tr>
+                            <tr><td><strong>Profiling</strong></td><td>Complex contours combining radii, tapers, steps</td><td>SVJBR, SDJCR, DVJNR</td><td>35° or 55° inserts for accessibility; check interference</td></tr>
+                            <tr><td><strong>Boring</strong></td><td>Enlarging an existing hole from inside</td><td>S-SCLCR, A-SDUCR</td><td>Minimize overhang; use anti-vibration bars for deep bores</td></tr>
+                            <tr><td><strong>Drilling</strong></td><td>Creating a hole in the center of workpiece</td><td>Center drills, indexable drills</td><td>Start with center drill; peck for deep holes</td></tr>
+                            <tr><td><strong>OD Threading</strong></td><td>Cutting external threads on workpiece</td><td>SER, SEL, Laydown</td><td>Match thread form (60° metric, 55° BSP); use thread relief</td></tr>
+                            <tr><td><strong>ID Threading</strong></td><td>Cutting internal threads inside a bore</td><td>SIR, SNR</td><td>Ensure bore diameter allows tool entry; check clearance</td></tr>
+                            <tr><td><strong>Grooving</strong></td><td>Cutting a narrow channel or recess</td><td>GFVR, DGFHR</td><td>Match insert width to groove; consider chip evacuation</td></tr>
+                            <tr><td><strong>Parting</strong></td><td>Cutting off the workpiece from bar stock</td><td>QD, GY, Cut-off blades</td><td>Use narrow inserts; reduce speed near center; support part</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Section 2: Tool Holder Nomenclature -->
+            <div class="tools-guide-section" id="tool-holders">
+                <h2>Tool Holder Nomenclature</h2>
+                <p>Tool holders follow standardized naming conventions that describe their clamping method, insert compatibility, and dimensions.</p>
+
+                <h3>ISO Standard (Metric)</h3>
+                <p>Example: <code>PCLNR2525M12</code></p>
+                <div class="code-breakdown">
+                    <div class="example">P C L N R 25 25 M 12</div>
+                    <div class="breakdown">
+                        <div class="char"><span class="char-letter">P</span><span class="char-meaning">Clamping System</span></div>
+                        <div class="char"><span class="char-letter">C</span><span class="char-meaning">Insert Shape</span></div>
+                        <div class="char"><span class="char-letter">L</span><span class="char-meaning">Insert Clearance</span></div>
+                        <div class="char"><span class="char-letter">N</span><span class="char-meaning">Tool Style</span></div>
+                        <div class="char"><span class="char-letter">R</span><span class="char-meaning">Hand</span></div>
+                        <div class="char"><span class="char-letter">25</span><span class="char-meaning">Shank Height</span></div>
+                        <div class="char"><span class="char-letter">25</span><span class="char-meaning">Shank Width</span></div>
+                        <div class="char"><span class="char-letter">M</span><span class="char-meaning">Tool Length</span></div>
+                        <div class="char"><span class="char-letter">12</span><span class="char-meaning">Insert IC</span></div>
+                    </div>
+                </div>
+
+                <h4>Position 1: Clamping System</h4>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Code</th><th>System</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>P</code></td><td>Lever Lock</td><td>Most common; uses a lever to pull insert into pocket</td></tr>
+                            <tr><td><code>C</code></td><td>Top Clamp</td><td>Clamp presses on top of insert; good for negative inserts</td></tr>
+                            <tr><td><code>S</code></td><td>Screw</td><td>Center screw through insert; compact design</td></tr>
+                            <tr><td><code>M</code></td><td>Multi-Lock</td><td>Combination of clamp and pin; very secure</td></tr>
+                            <tr><td><code>D</code></td><td>Lever + Clamp</td><td>Dual locking for heavy machining</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h4>Position 2: Insert Shape</h4>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Code</th><th>Shape</th><th>Angle</th><th>Strength</th><th>Best For</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>C</code></td><td>Rhombus</td><td>80°</td><td>High</td><td>General turning, versatile</td></tr>
+                            <tr><td><code>D</code></td><td>Rhombus</td><td>55°</td><td>Medium</td><td>Profiling, copy turning</td></tr>
+                            <tr><td><code>V</code></td><td>Rhombus</td><td>35°</td><td>Low</td><td>Fine profiling, tight corners</td></tr>
+                            <tr><td><code>T</code></td><td>Triangle</td><td>60°</td><td>Medium</td><td>General turning, 3 edges</td></tr>
+                            <tr><td><code>S</code></td><td>Square</td><td>90°</td><td>High</td><td>Heavy roughing, 4/8 edges</td></tr>
+                            <tr><td><code>R</code></td><td>Round</td><td>-</td><td>Highest</td><td>Heavy roughing, scaling</td></tr>
+                            <tr><td><code>W</code></td><td>Trigon</td><td>80°</td><td>High</td><td>Heavy cuts, 6 edges</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h4>Position 3: Insert Clearance Angle</h4>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Code</th><th>Angle</th><th>Application</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>N</code></td><td>0°</td><td>Negative insert - double-sided, strong</td></tr>
+                            <tr><td><code>C</code></td><td>7°</td><td>Standard positive clearance</td></tr>
+                            <tr><td><code>P</code></td><td>11°</td><td>More positive - light cuts, profiling</td></tr>
+                            <tr><td><code>B</code></td><td>5°</td><td>Slight clearance</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h4>Position 4: Tool Style (Approach Angle)</h4>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Code</th><th>Lead Angle</th><th>Application</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>A</code></td><td>90°</td><td>Square shoulder, facing</td></tr>
+                            <tr><td><code>B</code></td><td>75°</td><td>General turning</td></tr>
+                            <tr><td><code>D</code></td><td>45°</td><td>Heavy roughing</td></tr>
+                            <tr><td><code>F</code></td><td>90°</td><td>End cutting, facing</td></tr>
+                            <tr><td><code>J</code></td><td>93°</td><td>General with slight lead</td></tr>
+                            <tr><td><code>K</code></td><td>75°</td><td>Standard OD turning</td></tr>
+                            <tr><td><code>L</code></td><td>95°</td><td>Back-facing capable</td></tr>
+                            <tr><td><code>S</code></td><td>45°</td><td>Maximum chip thinning</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h4>Position 5: Hand of Tool</h4>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Code</th><th>Hand</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>R</code></td><td>Right-hand</td><td>Cuts from right to left (toward chuck) - most common</td></tr>
+                            <tr><td><code>L</code></td><td>Left-hand</td><td>Cuts from left to right (away from chuck)</td></tr>
+                            <tr><td><code>N</code></td><td>Neutral</td><td>Can cut in both directions</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>ANSI Standard (Inch)</h3>
+                <p>Example: <code>MCLNR-164D</code></p>
+                <div class="code-breakdown">
+                    <div class="example">M C L N R - 16 4 D</div>
+                    <div class="breakdown">
+                        <div class="char"><span class="char-letter">M</span><span class="char-meaning">Clamp Type</span></div>
+                        <div class="char"><span class="char-letter">C</span><span class="char-meaning">Insert Shape</span></div>
+                        <div class="char"><span class="char-letter">L</span><span class="char-meaning">Clearance</span></div>
+                        <div class="char"><span class="char-letter">N</span><span class="char-meaning">Style</span></div>
+                        <div class="char"><span class="char-letter">R</span><span class="char-meaning">Hand</span></div>
+                        <div class="char"><span class="char-letter">16</span><span class="char-meaning">Shank (1/16")</span></div>
+                        <div class="char"><span class="char-letter">4</span><span class="char-meaning">Insert IC</span></div>
+                        <div class="char"><span class="char-letter">D</span><span class="char-meaning">Length</span></div>
+                    </div>
+                </div>
+                <div class="tip-box">
+                    <strong>Tip:</strong> ANSI shank size is in 1/16" increments. So "16" = 16/16" = 1" square shank. The insert IC is in 1/8" increments, so "4" = 4/8" = 1/2" IC.
+                </div>
+            </div>
+
+            <!-- Section 3: Insert Nomenclature -->
+            <div class="tools-guide-section" id="inserts">
+                <h2>Insert Nomenclature</h2>
+                <p>Carbide inserts use a standardized code that defines shape, size, tolerance, and features.</p>
+
+                <h3>ISO Standard</h3>
+                <p>Example: <code>CNMG120408-PM</code></p>
+                <div class="code-breakdown">
+                    <div class="example">C N M G 12 04 08 - PM</div>
+                    <div class="breakdown">
+                        <div class="char"><span class="char-letter">C</span><span class="char-meaning">Shape</span></div>
+                        <div class="char"><span class="char-letter">N</span><span class="char-meaning">Clearance</span></div>
+                        <div class="char"><span class="char-letter">M</span><span class="char-meaning">Tolerance</span></div>
+                        <div class="char"><span class="char-letter">G</span><span class="char-meaning">Features</span></div>
+                        <div class="char"><span class="char-letter">12</span><span class="char-meaning">Size (IC)</span></div>
+                        <div class="char"><span class="char-letter">04</span><span class="char-meaning">Thickness</span></div>
+                        <div class="char"><span class="char-letter">08</span><span class="char-meaning">Corner R</span></div>
+                        <div class="char"><span class="char-letter">PM</span><span class="char-meaning">Chipbreaker</span></div>
+                    </div>
+                </div>
+
+                <h4>Position 1: Insert Shape</h4>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Code</th><th>Shape</th><th>Included Angle</th><th>Edges</th><th>Strength</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>C</code></td><td>Rhombus</td><td>80°</td><td>2/4</td><td>Good balance of strength and accessibility</td></tr>
+                            <tr><td><code>D</code></td><td>Rhombus</td><td>55°</td><td>2/4</td><td>Better accessibility, less strength</td></tr>
+                            <tr><td><code>V</code></td><td>Rhombus</td><td>35°</td><td>2/4</td><td>Best accessibility, weakest</td></tr>
+                            <tr><td><code>T</code></td><td>Triangle</td><td>60°</td><td>3/6</td><td>Good economy, medium strength</td></tr>
+                            <tr><td><code>S</code></td><td>Square</td><td>90°</td><td>4/8</td><td>Strong, good for roughing</td></tr>
+                            <tr><td><code>R</code></td><td>Round</td><td>-</td><td>Infinite</td><td>Strongest, for heavy roughing</td></tr>
+                            <tr><td><code>W</code></td><td>Trigon</td><td>80°</td><td>3/6</td><td>Good economy and strength</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h4>Position 2: Clearance Angle</h4>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Code</th><th>Angle</th><th>Type</th><th>Application</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>N</code></td><td>0°</td><td>Negative</td><td>Double-sided, strongest, most economical</td></tr>
+                            <tr><td><code>A</code></td><td>3°</td><td>Positive</td><td>Light cutting</td></tr>
+                            <tr><td><code>B</code></td><td>5°</td><td>Positive</td><td>General positive</td></tr>
+                            <tr><td><code>C</code></td><td>7°</td><td>Positive</td><td>Standard positive</td></tr>
+                            <tr><td><code>P</code></td><td>11°</td><td>Positive</td><td>Heavy positive for aluminum/soft materials</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tip-box">
+                    <strong>Negative vs Positive:</strong> Negative inserts (N) are double-sided (twice the edges) and stronger but require more power. Positive inserts (C, P) cut more freely with lower forces but are single-sided.
+                </div>
+
+                <h4>Positions 5-6: Insert Size (IC)</h4>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Code</th><th>IC Diameter</th><th>Common Uses</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>06</code></td><td>6.35mm (1/4")</td><td>Small parts, finishing</td></tr>
+                            <tr><td><code>09</code></td><td>9.525mm (3/8")</td><td>Light to medium machining</td></tr>
+                            <tr><td><code>12</code></td><td>12.7mm (1/2")</td><td>General purpose - most common</td></tr>
+                            <tr><td><code>16</code></td><td>15.875mm (5/8")</td><td>Heavy machining</td></tr>
+                            <tr><td><code>19</code></td><td>19.05mm (3/4")</td><td>Heavy roughing</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h4>Positions 9-10: Corner Radius</h4>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Code</th><th>Radius (mm)</th><th>Radius (inch)</th><th>Application</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>02</code></td><td>0.2mm</td><td>0.008"</td><td>Fine finishing, weak edge</td></tr>
+                            <tr><td><code>04</code></td><td>0.4mm</td><td>0.016"</td><td>Finishing</td></tr>
+                            <tr><td><code>08</code></td><td>0.8mm</td><td>0.031"</td><td>General purpose</td></tr>
+                            <tr><td><code>12</code></td><td>1.2mm</td><td>0.047"</td><td>Medium roughing</td></tr>
+                            <tr><td><code>16</code></td><td>1.6mm</td><td>0.063"</td><td>Heavy roughing</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tip-box">
+                    <strong>Surface Finish Formula:</strong> Ra (μm) ≈ (feed² × 1000) / (8 × nose radius). Larger nose radius = better finish at same feed rate.
+                </div>
+
+                <h3>ANSI Standard</h3>
+                <p>Example: <code>CNMG-432</code></p>
+                <div class="code-breakdown">
+                    <div class="example">C N M G - 4 3 2</div>
+                    <div class="breakdown">
+                        <div class="char"><span class="char-letter">C</span><span class="char-meaning">Shape</span></div>
+                        <div class="char"><span class="char-letter">N</span><span class="char-meaning">Clearance</span></div>
+                        <div class="char"><span class="char-letter">M</span><span class="char-meaning">Tolerance</span></div>
+                        <div class="char"><span class="char-letter">G</span><span class="char-meaning">Features</span></div>
+                        <div class="char"><span class="char-letter">4</span><span class="char-meaning">IC (1/8")</span></div>
+                        <div class="char"><span class="char-letter">3</span><span class="char-meaning">Thick (1/16")</span></div>
+                        <div class="char"><span class="char-letter">2</span><span class="char-meaning">Corner R</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Tool Types by Operation -->
+            <div class="tools-guide-section" id="tool-types">
+                <h2>Tool Types by Operation</h2>
+                <p>Select the right tool holder style for your specific machining operation.</p>
+
+                <div class="cards-grid">
+                    <div class="tool-card">
+                        <h4>OD Turning - General</h4>
+                        <ul>
+                            <li><code>PCLNR</code> - 80° insert, lever lock, versatile</li>
+                            <li><code>MCLNR</code> - 80° insert, top clamp</li>
+                            <li><code>DCLNR</code> - 55° insert, more access</li>
+                            <li><code>DWLNR</code> - 80° trigon, heavy cuts</li>
+                        </ul>
+                    </div>
+                    <div class="tool-card">
+                        <h4>OD Turning - Finishing</h4>
+                        <ul>
+                            <li><code>SVJBR</code> - 35° insert, tight profiles</li>
+                            <li><code>SDJCR</code> - 55° insert, profiling</li>
+                            <li><code>SVVCN</code> - 35° insert, very accessible</li>
+                            <li><code>SDUCR</code> - 55° positive, light cuts</li>
+                        </ul>
+                    </div>
+                    <div class="tool-card">
+                        <h4>Facing</h4>
+                        <ul>
+                            <li><code>PCLNR/PCLNL</code> - Standard facing</li>
+                            <li><code>MWLNR</code> - Heavy facing</li>
+                            <li><code>SCLCR</code> - Light facing</li>
+                        </ul>
+                    </div>
+                    <div class="tool-card">
+                        <h4>Boring Bars</h4>
+                        <ul>
+                            <li><code>S-SCLCR</code> - Standard steel shank</li>
+                            <li><code>S-SDUCR</code> - 55° for profiles</li>
+                            <li><code>A-SCLCR</code> - Anti-vibration</li>
+                            <li><code>E-SCLCR</code> - Carbide shank</li>
+                            <li><code>C-SCLCR</code> - Coolant-through</li>
+                        </ul>
+                    </div>
+                    <div class="tool-card">
+                        <h4>Threading - External</h4>
+                        <ul>
+                            <li><code>SER</code> - 60° external right-hand</li>
+                            <li><code>SEL</code> - 60° external left-hand</li>
+                            <li><code>SER-NF</code> - UN threads (55°)</li>
+                            <li>Laydown style for rigidity</li>
+                        </ul>
+                    </div>
+                    <div class="tool-card">
+                        <h4>Threading - Internal</h4>
+                        <ul>
+                            <li><code>SIR</code> - Internal right-hand</li>
+                            <li><code>SNR</code> - Internal neutral</li>
+                            <li>Match bar diameter to bore</li>
+                            <li>Consider chip evacuation</li>
+                        </ul>
+                    </div>
+                    <div class="tool-card">
+                        <h4>Grooving</h4>
+                        <ul>
+                            <li><code>GFVR</code> - Face grooving</li>
+                            <li><code>DGFHR</code> - OD grooving</li>
+                            <li><code>GY</code> - Deep grooving</li>
+                            <li>Match insert width to groove</li>
+                        </ul>
+                    </div>
+                    <div class="tool-card">
+                        <h4>Parting / Cut-off</h4>
+                        <ul>
+                            <li><code>QD</code> - Quick disconnect blades</li>
+                            <li><code>GY</code> - Deep parting</li>
+                            <li>Narrow inserts (2-3mm)</li>
+                            <li>Reduce speed near center</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>Boring Bar Selection Guide</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Bore Diameter</th><th>Bar Diameter</th><th>Max Overhang</th><th>Type</th></tr></thead>
+                        <tbody>
+                            <tr><td>10-15mm</td><td>6-8mm</td><td>3×D</td><td>Steel</td></tr>
+                            <tr><td>15-25mm</td><td>10-16mm</td><td>4×D</td><td>Steel</td></tr>
+                            <tr><td>25-40mm</td><td>16-25mm</td><td>4×D</td><td>Steel or Carbide</td></tr>
+                            <tr><td>40-60mm</td><td>25-40mm</td><td>5-6×D</td><td>Carbide or Anti-vib</td></tr>
+                            <tr><td>>60mm</td><td>>40mm</td><td>6-10×D</td><td>Anti-vibration</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="tip-box warning">
+                    <strong>Rule of Thumb:</strong> Use the largest possible boring bar diameter. Maximum overhang for steel is 4×D, carbide 6×D, anti-vibration 10×D.
+                </div>
+            </div>
+
+            <!-- Section 5: Insert Grades & Coatings -->
+            <div class="tools-guide-section" id="grades">
+                <h2>Insert Grades & Coatings</h2>
+                <p>Selecting the correct grade and coating is critical for tool life and productivity.</p>
+
+                <h3>ISO Material Classification</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>ISO Code</th><th>Color</th><th>Material Group</th><th>Characteristics</th><th>Grade Range</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="badge badge-steel">P</span></td><td>Blue</td><td>Steel</td><td>Long chips, good machinability, adhesive wear</td><td>P10 - P40</td></tr>
+                            <tr><td><span class="badge badge-stainless">M</span></td><td>Yellow</td><td>Stainless Steel</td><td>Work hardening, built-up edge, abrasive</td><td>M10 - M40</td></tr>
+                            <tr><td><span class="badge badge-cast">K</span></td><td>Red</td><td>Cast Iron</td><td>Short chips, abrasive, easy to machine</td><td>K10 - K40</td></tr>
+                            <tr><td><span class="badge badge-aluminum">N</span></td><td>Green</td><td>Non-ferrous</td><td>Soft, gummy, long chips, low forces</td><td>N10 - N30</td></tr>
+                            <tr><td><span class="badge badge-super">S</span></td><td>Purple</td><td>Superalloys</td><td>High strength at temperature, work hardening</td><td>S10 - S30</td></tr>
+                            <tr><td><span class="badge badge-hard">H</span></td><td>Gray</td><td>Hardened Steel</td><td>>45 HRC, abrasive, high cutting forces</td><td>H10 - H30</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tip-box">
+                    <strong>Grade Number Guide:</strong> Lower numbers (P10, M10) = harder, more wear resistant, for finishing. Higher numbers (P40, M40) = tougher, for roughing and interrupted cuts.
+                </div>
+
+                <h3>Coating Types</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Coating</th><th>Process</th><th>Max Temp</th><th>Best Applications</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="coating-indicator coating-tin"></span><strong>TiN</strong></td><td>PVD</td><td>600°C</td><td>General purpose, easy wear detection, low-alloy steel</td></tr>
+                            <tr><td><span class="coating-indicator coating-ticn"></span><strong>TiCN</strong></td><td>PVD/CVD</td><td>400°C</td><td>Abrasive materials, cast iron, medium-carbon steel</td></tr>
+                            <tr><td><span class="coating-indicator coating-tialn"></span><strong>TiAlN</strong></td><td>PVD</td><td>800°C</td><td>High-speed machining, dry cutting, stainless, alloy steel</td></tr>
+                            <tr><td><span class="coating-indicator coating-altin"></span><strong>AlTiN</strong></td><td>PVD</td><td>900°C</td><td>Extreme heat, hardened steel, superalloys, dry machining</td></tr>
+                            <tr><td><span class="coating-indicator coating-al2o3"></span><strong>Al₂O₃</strong></td><td>CVD</td><td>1200°C</td><td>High-speed steel finishing, excellent chemical resistance</td></tr>
+                            <tr><td><span class="coating-indicator coating-diamond"></span><strong>CVD Diamond</strong></td><td>CVD</td><td>700°C</td><td>Aluminum, graphite, composites, non-ferrous</td></tr>
+                            <tr><td><span class="coating-indicator coating-cbn"></span><strong>CBN</strong></td><td>Sintered</td><td>1000°C</td><td>Hardened steel >45 HRC, cast iron, powder metal</td></tr>
+                            <tr><td><span class="coating-indicator coating-pcd"></span><strong>PCD</strong></td><td>Sintered</td><td>700°C</td><td>Aluminum-silicon, composites, non-ferrous, graphite</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Material-Specific Recommendations</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Material</th><th>ISO Grade</th><th>Coating</th><th>Speed Range</th><th>Notes</th></tr></thead>
+                        <tbody>
+                            <tr><td>Low Carbon Steel</td><td>P15-P25</td><td>TiCN + Al₂O₃</td><td>150-300 m/min</td><td>Watch for built-up edge</td></tr>
+                            <tr><td>Alloy Steel (4140)</td><td>P20-P35</td><td>TiAlN</td><td>100-200 m/min</td><td>Higher toughness needed</td></tr>
+                            <tr><td>Stainless 304/316</td><td>M15-M25</td><td>TiAlN or AlTiN</td><td>100-180 m/min</td><td>Sharp edge, positive rake</td></tr>
+                            <tr><td>Gray Cast Iron</td><td>K10-K20</td><td>TiN + Al₂O₃</td><td>150-300 m/min</td><td>Abrasive, dry cutting OK</td></tr>
+                            <tr><td>Aluminum 6061</td><td>N10-N20</td><td>Uncoated/PCD</td><td>300-1000 m/min</td><td>Sharp edge, positive rake</td></tr>
+                            <tr><td>Titanium Ti-6Al-4V</td><td>S15-S25</td><td>TiAlN/Uncoated</td><td>30-60 m/min</td><td>Low speed, high feed, coolant</td></tr>
+                            <tr><td>Inconel 718</td><td>S20-S30</td><td>AlTiN/Ceramic</td><td>20-40 m/min</td><td>Very tough, work hardens</td></tr>
+                            <tr><td>Hardened Steel 50 HRC</td><td>H10-H15</td><td>CBN</td><td>80-180 m/min</td><td>Rigid setup essential</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Section 6: Chipbreaker Selection -->
+            <div class="tools-guide-section" id="chipbreakers">
+                <h2>Chipbreaker Selection</h2>
+                <p>Chipbreakers control chip formation, breaking, and evacuation. Choose based on depth of cut and feed rate.</p>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Chipbreaker</th><th>Type</th><th>DOC Range</th><th>Feed Range</th><th>Application</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>-PF</code></td><td>Light Finishing</td><td>0.3 - 1.5 mm</td><td>0.05 - 0.15 mm/rev</td><td>Fine finishing, tight tolerances</td></tr>
+                            <tr><td><code>-MF</code></td><td>Medium Finishing</td><td>0.5 - 2.0 mm</td><td>0.10 - 0.25 mm/rev</td><td>General finishing, profiling</td></tr>
+                            <tr><td><code>-PM</code></td><td>Medium</td><td>0.5 - 3.0 mm</td><td>0.15 - 0.35 mm/rev</td><td>General purpose, most common</td></tr>
+                            <tr><td><code>-MM</code></td><td>Medium-Heavy</td><td>1.0 - 4.0 mm</td><td>0.20 - 0.40 mm/rev</td><td>Heavier roughing, good chip control</td></tr>
+                            <tr><td><code>-PR</code></td><td>Heavy Roughing</td><td>1.0 - 6.0 mm</td><td>0.25 - 0.50 mm/rev</td><td>Maximum material removal</td></tr>
+                            <tr><td><code>-MR</code></td><td>Roughing</td><td>2.0 - 8.0 mm</td><td>0.30 - 0.60 mm/rev</td><td>Heavy duty, interrupted cuts</td></tr>
+                            <tr><td><code>-GS</code></td><td>Stainless</td><td>0.5 - 2.5 mm</td><td>0.10 - 0.30 mm/rev</td><td>Stainless steel specific</td></tr>
+                            <tr><td><code>-SM</code></td><td>Superalloy</td><td>0.3 - 2.0 mm</td><td>0.08 - 0.20 mm/rev</td><td>Inconel, titanium, nickel alloys</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tip-box">
+                    <strong>Chip Control Tips:</strong>
+                    <ul>
+                        <li>If chips are too long: Increase feed or use a tighter chipbreaker</li>
+                        <li>If chips are burning/blue: Increase coolant or reduce speed</li>
+                        <li>If chips are nested: Wrong chipbreaker for the DOC/feed combination</li>
+                        <li>If insert is chipping: Chipbreaker is too aggressive for the conditions</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Section 7: Quick Reference Charts -->
+            <div class="tools-guide-section" id="reference">
+                <h2>Quick Reference Charts</h2>
+
+                <h3>Nose Radius Selection</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Surface Finish Required</th><th>Feed Rate</th><th>Recommended Nose Radius</th></tr></thead>
+                        <tbody>
+                            <tr><td>Ra 0.8 μm (Fine)</td><td>0.05-0.10 mm/rev</td><td>0.4-0.8 mm</td></tr>
+                            <tr><td>Ra 1.6 μm (Good)</td><td>0.10-0.20 mm/rev</td><td>0.8-1.2 mm</td></tr>
+                            <tr><td>Ra 3.2 μm (Medium)</td><td>0.20-0.35 mm/rev</td><td>0.8-1.6 mm</td></tr>
+                            <tr><td>Ra 6.3 μm (Rough)</td><td>0.30-0.50 mm/rev</td><td>1.2-2.4 mm</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Recommended Tool Holder Sizes</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Shank Size (mm)</th><th>Insert IC</th><th>Max DOC</th><th>Machine Size</th></tr></thead>
+                        <tbody>
+                            <tr><td>12×12</td><td>6-9 mm</td><td>2 mm</td><td>Small lathes</td></tr>
+                            <tr><td>16×16</td><td>9-12 mm</td><td>3 mm</td><td>Light duty</td></tr>
+                            <tr><td>20×20</td><td>12 mm</td><td>4 mm</td><td>Medium duty</td></tr>
+                            <tr><td>25×25</td><td>12-16 mm</td><td>6 mm</td><td>General purpose</td></tr>
+                            <tr><td>32×32</td><td>16-19 mm</td><td>8 mm</td><td>Heavy duty</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Threading Insert Selection</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Thread Type</th><th>Profile Angle</th><th>Insert Code</th><th>Pitch Range</th></tr></thead>
+                        <tbody>
+                            <tr><td>ISO Metric (M)</td><td>60°</td><td>16ER/IR AG60</td><td>0.5 - 6.0 mm</td></tr>
+                            <tr><td>UN (UNC, UNF)</td><td>60°</td><td>16ER/IR UN60</td><td>4 - 28 TPI</td></tr>
+                            <tr><td>Whitworth (BSW)</td><td>55°</td><td>16ER/IR W55</td><td>4 - 20 TPI</td></tr>
+                            <tr><td>BSP/BSPP (G)</td><td>55°</td><td>16ER/IR W55</td><td>8 - 28 TPI</td></tr>
+                            <tr><td>NPT/NPTF</td><td>60°</td><td>16ER/IR NPT</td><td>8 - 27 TPI</td></tr>
+                            <tr><td>Acme</td><td>29°</td><td>16ER/IR ACME</td><td>2 - 16 TPI</td></tr>
+                            <tr><td>Trapezoidal (Tr)</td><td>30°</td><td>16ER/IR TR30</td><td>1.5 - 12 mm</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tip-box">
+                    <strong>Thread Insert Sizing:</strong> The number before ER/IR indicates the insert size. 16ER = 16mm IC, 11ER = 11mm IC. Use full-profile inserts for best thread quality, or partial profile for multiple pitches.
                 </div>
             </div>
         </div>
