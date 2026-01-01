@@ -6,16 +6,16 @@
     <meta name="theme-color" content="#1a1a2e">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="description" content="Free online FANUC G-code generator for CNC turning. Create complete turning programs with roughing (G71, G72) and finishing (G70) cycles. Supports threading, taper turning, boring, grooving and more.">
-    <meta name="keywords" content="FANUC, G-code, CNC, turning, lathe, G71, G72, G70, G76, threading, taper, boring, grooving, program builder">
+    <meta name="description" content="Free online G-code generator for CNC turning. Supports FANUC, Siemens SINUMERIK 840D, and Haas controllers. Create complete turning programs with roughing and finishing cycles.">
+    <meta name="keywords" content="FANUC, Siemens, SINUMERIK, Haas, G-code, CNC, turning, lathe, G71, G72, G70, G76, CYCLE95, CYCLE97, threading, taper, boring, grooving, program builder">
     <meta name="author" content="gcodegen.in">
-    <meta property="og:title" content="FANUC G-Code Generator - CNC Turning Program Builder">
-    <meta property="og:description" content="Free online tool to generate FANUC turning G-code programs with roughing and finishing cycles.">
+    <meta property="og:title" content="CNC G-Code Generator - FANUC, Siemens, Haas Turning Programs">
+    <meta property="og:description" content="Free online tool to generate CNC turning G-code programs. Supports FANUC, Siemens SINUMERIK 840D/828D, and Haas controllers.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://gcodegen.in">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.svg">
-    <title>FANUC G-Code Generator | CNC Turning Program Builder</title>
+    <title>CNC G-Code Generator | Turning Program Builder</title>
     <style>
         * {
             margin: 0;
@@ -821,8 +821,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>🔧 FANUC Turning Program Builder</h1>
-            <p>Build complete CNC programs with roughing & finishing cycles</p>
+            <h1>🔧 CNC Turning Program Builder</h1>
+            <p>Build complete turning programs for FANUC, Siemens & Haas controllers</p>
         </header>
 
         <!-- Mode Tabs -->
@@ -869,9 +869,17 @@
                     <!-- Program Settings -->
                     <div class="card">
                         <div class="card-title">Program Settings</div>
+                        <div class="form-group">
+                            <label>CNC Controller</label>
+                            <select id="controllerType" onchange="updateControllerUI()">
+                                <option value="fanuc">FANUC</option>
+                                <option value="siemens">Siemens SINUMERIK 840D/828D</option>
+                                <option value="haas">Haas</option>
+                            </select>
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Program Number (O)</label>
+                                <label id="progNumLabel">Program Number (O)</label>
                                 <input type="number" id="progNumber" value="1000" min="1" max="9999">
                             </div>
                             <div class="form-group">
@@ -1029,9 +1037,17 @@
                     <!-- Program Settings for Single Operation -->
                     <div class="card">
                         <div class="card-title">Program Settings</div>
+                        <div class="form-group">
+                            <label>CNC Controller</label>
+                            <select id="sControllerType" onchange="updateSingleControllerUI()">
+                                <option value="fanuc">FANUC</option>
+                                <option value="siemens">Siemens SINUMERIK 840D/828D</option>
+                                <option value="haas">Haas</option>
+                            </select>
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Program Number</label>
+                                <label id="sProgNumLabel">Program Number</label>
                                 <input type="number" id="sProgramNum" value="1000">
                             </div>
                             <div class="form-group">
@@ -1552,6 +1568,314 @@
                 ]
             }
         };
+
+        // Controller configurations for multi-controller support
+        const controllerConfig = {
+            fanuc: {
+                name: 'FANUC',
+                programFormat: (num, name) => `O${String(num).padStart(4, '0')}`,
+                commentStart: '(',
+                commentEnd: ')',
+                safeStart: ['G28 U0 W0', 'G50 S{maxRPM}', 'G99'],
+                toolCall: (tool, offset) => `T${String(tool).padStart(2, '0')}${String(offset).padStart(2, '0')}`,
+                spindleOn: (mode, speed) => `${mode} S${speed} M03`,
+                feedPerRev: 'G99',
+                constantRPM: 'G97',
+                constantSurfaceSpeed: 'G96',
+                coolantOn: 'M08',
+                coolantOff: 'M09',
+                spindleOff: 'M05',
+                homeReturn: 'G28 U0 W0',
+                programEnd: 'M30',
+                rapidMove: 'G00',
+                linearMove: 'G01',
+                cwArc: 'G02',
+                ccwArc: 'G03',
+                dwell: (ms) => `G04 P${ms}`,
+                cycles: {
+                    roughingOD: 'G71',
+                    roughingFacing: 'G72',
+                    finishing: 'G70',
+                    drilling: 'G74',
+                    threading: 'G76',
+                    grooving: 'G75'
+                }
+            },
+            siemens: {
+                name: 'Siemens SINUMERIK 840D',
+                programFormat: (num, name) => name ? `%_N_${name.toUpperCase().replace(/[^A-Z0-9]/g, '_')}_MPF` : `%_N_PROG${num}_MPF`,
+                commentStart: '; ',
+                commentEnd: '',
+                safeStart: ['G0 G53 X0 Z0', 'LIMS={maxRPM}', 'G95'],
+                toolCall: (tool, offset) => `T${tool} D${offset}`,
+                spindleOn: (mode, speed) => `${mode === 'G97' ? 'G97' : 'G96'} S${speed} M3`,
+                feedPerRev: 'G95',
+                constantRPM: 'G97',
+                constantSurfaceSpeed: 'G96',
+                coolantOn: 'M8',
+                coolantOff: 'M9',
+                spindleOff: 'M5',
+                homeReturn: 'G0 G53 X0 Z0',
+                programEnd: 'M30',
+                rapidMove: 'G0',
+                linearMove: 'G1',
+                cwArc: 'G2',
+                ccwArc: 'G3',
+                dwell: (ms) => `G4 F${(ms/1000).toFixed(2)}`,
+                cycles: {
+                    roughingOD: 'CYCLE95',
+                    roughingFacing: 'CYCLE95',
+                    finishing: 'CYCLE95',
+                    drilling: 'CYCLE83',
+                    threading: 'CYCLE97',
+                    grooving: 'CYCLE93'
+                }
+            },
+            haas: {
+                name: 'Haas',
+                programFormat: (num, name) => `O${String(num).padStart(5, '0')}`,
+                commentStart: '(',
+                commentEnd: ')',
+                safeStart: ['G28 U0 W0', 'G50 S{maxRPM}', 'G99'],
+                toolCall: (tool, offset) => `T${String(tool).padStart(2, '0')}${String(offset).padStart(2, '0')}`,
+                spindleOn: (mode, speed) => `${mode} S${speed} M03`,
+                feedPerRev: 'G99',
+                constantRPM: 'G97',
+                constantSurfaceSpeed: 'G96',
+                coolantOn: 'M08',
+                coolantOff: 'M09',
+                spindleOff: 'M05',
+                homeReturn: 'G28 U0 W0',
+                programEnd: 'M30',
+                rapidMove: 'G00',
+                linearMove: 'G01',
+                cwArc: 'G02',
+                ccwArc: 'G03',
+                dwell: (ms) => `G04 P${(ms/1000).toFixed(2)}`,
+                cycles: {
+                    roughingOD: 'G71',
+                    roughingFacing: 'G72',
+                    finishing: 'G70',
+                    drilling: 'G74',
+                    threading: 'G76',
+                    grooving: 'G75'
+                }
+            }
+        };
+
+        // Helper function to create comments for specific controller
+        function makeComment(text, controller) {
+            const cfg = controllerConfig[controller || 'fanuc'];
+            return `${cfg.commentStart}${text}${cfg.commentEnd}`;
+        }
+
+        // Helper function to get current controller from UI
+        function getController(isSingleOp = false) {
+            const elementId = isSingleOp ? 'sControllerType' : 'controllerType';
+            const element = document.getElementById(elementId);
+            return element ? element.value : 'fanuc';
+        }
+
+        // Update UI when controller changes (Program Builder tab)
+        function updateControllerUI() {
+            const controller = getController(false);
+            const cfg = controllerConfig[controller];
+
+            // Update program number label
+            const progNumLabel = document.getElementById('progNumLabel');
+            if (progNumLabel) {
+                if (controller === 'siemens') {
+                    progNumLabel.textContent = 'Program Number';
+                } else if (controller === 'haas') {
+                    progNumLabel.textContent = 'Program Number (O)';
+                } else {
+                    progNumLabel.textContent = 'Program Number (O)';
+                }
+            }
+        }
+
+        // Update UI when controller changes (Single Operation tab)
+        function updateSingleControllerUI() {
+            const controller = getController(true);
+            const cfg = controllerConfig[controller];
+
+            // Update program number label
+            const progNumLabel = document.getElementById('sProgNumLabel');
+            if (progNumLabel) {
+                if (controller === 'siemens') {
+                    progNumLabel.textContent = 'Program Number';
+                } else {
+                    progNumLabel.textContent = 'Program Number';
+                }
+            }
+
+            // Update cycle labels if needed
+            updateSingleOpForm();
+        }
+
+        // ============================================
+        // SIEMENS SINUMERIK CYCLE GENERATORS
+        // ============================================
+
+        // Generate Siemens CYCLE95 for stock removal (roughing/finishing)
+        // CYCLE95 parameters:
+        // CYCLE95(NPP, MID, FALZ, FALX, FAL, FF1, FF2, FF3, VARI, DT, DAM, VRT)
+        // NPP = contour subprogram name
+        // MID = depth of cut
+        // FALZ = finish allowance Z
+        // FALX = finish allowance X (diameter)
+        // FAL = finish allowance for contour
+        // FF1 = rough feed
+        // FF2 = finish feed
+        // FF3 = infeed feed
+        // VARI = machining mode (1=rough, 2=finish, 3=both, +10 for ID)
+        // DT = dwell time
+        // DAM = depth at start
+        // VRT = retract distance
+        function generateSiemensCYCLE95(op, stockDia, safeZ, isID, isFacing) {
+            const code = [];
+            const p = op.params;
+            const cfg = controllerConfig.siemens;
+
+            // Determine machining mode
+            let vari = isID ? 10 : 0; // Add 10 for internal machining
+            if (op.roughing && op.finishing) {
+                vari += 3; // Rough + finish
+            } else if (op.finishing) {
+                vari += 2; // Finish only
+            } else {
+                vari += 1; // Rough only
+            }
+
+            // Calculate parameters
+            const mid = op.doc || 2; // Depth of cut
+            const falz = 0.1; // Finish allowance Z
+            const falx = op.finishAllowance || 0.3; // Finish allowance X
+            const ff1 = op.roughFeed || 0.25; // Rough feed
+            const ff2 = op.finishFeed || 0.1; // Finish feed
+
+            code.push(`${cfg.commentStart}CYCLE95 STOCK REMOVAL${cfg.commentEnd}`);
+
+            // For Siemens, we need to define the contour first
+            // Using inline contour definition with CONTOUR label
+            code.push(`${cfg.commentStart}CONTOUR START${cfg.commentEnd}`);
+            code.push('CONTOUR:');
+
+            if (isFacing) {
+                // Facing contour
+                code.push(`${cfg.rapidMove} X${p.faceDia.toFixed(1)}`);
+                code.push(`${cfg.linearMove} Z0 F${ff2}`);
+                code.push(`X${(p.stockDia + 1).toFixed(1)}`);
+            } else if (isID) {
+                // ID contour (boring)
+                code.push(`${cfg.rapidMove} X${p.endDia.toFixed(1)}`);
+                code.push(`${cfg.linearMove} Z0 F${ff2}`);
+                code.push(`Z-${(p.depth || p.length).toFixed(1)}`);
+                code.push(`X${(p.startDia - 1).toFixed(1)}`);
+            } else {
+                // OD contour (turning)
+                const endDia = p.endDia || p.startDia - 10;
+                const length = p.length || p.depth || 30;
+                code.push(`${cfg.rapidMove} X${endDia.toFixed(1)}`);
+                code.push(`${cfg.linearMove} Z0 F${ff2}`);
+                code.push(`Z-${length.toFixed(1)}`);
+                code.push(`X${(p.startDia + 1).toFixed(1)}`);
+            }
+
+            code.push('ENDCONTOUR:');
+            code.push('');
+
+            // Generate CYCLE95 call
+            code.push(`CYCLE95("CONTOUR",${mid.toFixed(1)},${falz},${falx.toFixed(2)},0,${ff1},${ff2},${ff1},${vari},0,0,1)`);
+
+            return code;
+        }
+
+        // Generate Siemens CYCLE97 for threading
+        // CYCLE97 parameters simplified:
+        // CYCLE97(PIT, MESSION, SPL, FPL, DM1, DM2, APP, ROP, TDEP, FAL, IANG, NSP, NRC, NID, VARI, NUMT, VRT, PPG, PPR)
+        function generateSiemensCYCLE97(op, isID) {
+            const code = [];
+            const p = op.params;
+            const cfg = controllerConfig.siemens;
+
+            const pitch = p.pitch || 2.0;
+            const majorDia = isID ? p.minorDia : p.majorDia;
+            const threadDepth = p.depth || 1.6;
+            const threadLength = p.length || 20;
+            const isTapered = p.taperAngle > 0;
+
+            code.push(`${cfg.commentStart}CYCLE97 THREADING CYCLE${cfg.commentEnd}`);
+            code.push(`${cfg.commentStart}PITCH: ${pitch.toFixed(3)}mm, DEPTH: ${threadDepth.toFixed(3)}mm${cfg.commentEnd}`);
+
+            // Simplified CYCLE97 call
+            // Using basic parameters for standard threading
+            const dm1 = majorDia; // Start diameter
+            const dm2 = isID ? (majorDia + threadDepth * 2) : (majorDia - threadDepth * 2); // End diameter
+            const nrc = 5; // Number of rough cuts
+            const vari = isID ? 2 : 1; // 1=external, 2=internal
+
+            if (isTapered) {
+                const taperAmount = threadLength * Math.tan(p.taperAngle * Math.PI / 180);
+                code.push(`CYCLE97(${pitch.toFixed(3)},0,${threadLength.toFixed(1)},${threadLength.toFixed(1)},${dm1.toFixed(3)},${dm2.toFixed(3)},2,2,${threadDepth.toFixed(3)},0.02,0,0,${nrc},1,${vari},1,1,0,0)`);
+            } else {
+                code.push(`CYCLE97(${pitch.toFixed(3)},0,${threadLength.toFixed(1)},${threadLength.toFixed(1)},${dm1.toFixed(3)},${dm2.toFixed(3)},2,2,${threadDepth.toFixed(3)},0.02,0,0,${nrc},1,${vari},1,1,0,0)`);
+            }
+
+            return code;
+        }
+
+        // Generate Siemens CYCLE83 for drilling
+        // CYCLE83(RTP, RFP, SDIS, DP, DPR, FDEP, FDPR, DAM, DTB, DTS, FRF, VARI, AXN, MDEP, VRT, DTD, DIS1)
+        function generateSiemensCYCLE83(op, safeZ) {
+            const code = [];
+            const p = op.params;
+            const cfg = controllerConfig.siemens;
+
+            const depth = p.depth || 30;
+            const peck = p.peck || 3;
+
+            code.push(`${cfg.commentStart}CYCLE83 DEEP HOLE DRILLING${cfg.commentEnd}`);
+            code.push(`${cfg.commentStart}DEPTH: ${depth.toFixed(1)}mm, PECK: ${peck.toFixed(1)}mm${cfg.commentEnd}`);
+
+            // Position to center
+            code.push(`${cfg.rapidMove} X0 Z${safeZ.toFixed(1)}`);
+
+            // CYCLE83 call - simplified parameters
+            // RTP = retract plane, RFP = reference plane, SDIS = safety distance
+            // DP = final depth, FDEP = first drilling depth, DAM = degression
+            code.push(`CYCLE83(${safeZ.toFixed(1)},0,1,-${depth.toFixed(1)},0,${peck.toFixed(1)},0,0.5,0,0,1,0)`);
+
+            return code;
+        }
+
+        // Generate Siemens CYCLE93 for grooving
+        // CYCLE93(SPD, SPL, WIDG, DIESSION, CRD, FRF, FRR, VARI, AXN, DT, DAM, VRT)
+        function generateSiemensCYCLE93(op) {
+            const code = [];
+            const p = op.params;
+            const cfg = controllerConfig.siemens;
+
+            const grooveWidth = p.grooveWidth || 3;
+            const grooveDepth = p.grooveDepth || 5;
+            const outerDia = p.outerDia || 40;
+            const zPos = p.zPos || -20;
+            const grooveBottom = outerDia - (grooveDepth * 2);
+
+            code.push(`${cfg.commentStart}CYCLE93 GROOVING CYCLE${cfg.commentEnd}`);
+            code.push(`${cfg.commentStart}WIDTH: ${grooveWidth.toFixed(1)}mm, DEPTH: ${grooveDepth.toFixed(1)}mm${cfg.commentEnd}`);
+
+            // Position to groove start
+            code.push(`${cfg.rapidMove} X${(outerDia + 2).toFixed(1)} Z${zPos.toFixed(1)}`);
+
+            // CYCLE93 parameters
+            // SPD = plunge position, SPL = retract position, WIDG = groove width
+            // DIESSION = grooving direction, CRD = corner radius
+            const peckDepth = Math.min(op.doc || 0.5, grooveDepth);
+            code.push(`CYCLE93(${grooveBottom.toFixed(1)},${(outerDia + 1).toFixed(1)},${grooveWidth.toFixed(1)},1,0,${(op.roughFeed / 2).toFixed(3)},${(op.roughFeed).toFixed(3)},1,3,0,${peckDepth.toFixed(1)},1)`);
+
+            return code;
+        }
 
         // Operation Illustrations (Z points left toward spindle, X points up)
         function getOperationIllustration(type) {
@@ -2702,6 +3026,9 @@
                 return;
             }
 
+            const controller = getController(false);
+            const cfg = controllerConfig[controller];
+
             const progNum = document.getElementById('progNumber').value;
             const progName = document.getElementById('progName').value.trim().toUpperCase();
             const stockProfile = document.getElementById('stockProfile').value;
@@ -2730,18 +3057,20 @@
             }
 
             let code = [];
-            code.push(`O${String(progNum).padStart(4, '0')}`);
+            // Program header - controller specific
+            code.push(cfg.programFormat(progNum, progName));
             if (progName) {
-                code.push(`(${progName})`);
+                code.push(makeComment(progName, controller));
             }
-            code.push('(FANUC TURNING PROGRAM)');
-            code.push(`(STOCK: ${stockDesc} x LEN ${stockLen})`);
-            code.push(`(DATE: ${new Date().toLocaleDateString()})`);
-            code.push(`(OPERATIONS: ${operations.length})`);
+            code.push(makeComment(`${cfg.name} TURNING PROGRAM`, controller));
+            code.push(makeComment(`STOCK: ${stockDesc} x LEN ${stockLen}`, controller));
+            code.push(makeComment(`DATE: ${new Date().toLocaleDateString()}`, controller));
+            code.push(makeComment(`OPERATIONS: ${operations.length}`, controller));
             code.push('');
-            code.push('(SAFE START)');
-            code.push('G28 U0 W0');
-            code.push('G50 S3000');
+            code.push(makeComment('SAFE START', controller));
+            cfg.safeStart.forEach(line => {
+                code.push(line.replace('{maxRPM}', '3000'));
+            });
             code.push('');
 
             operations.forEach((op, i) => {
@@ -2752,11 +3081,11 @@
                 // If threading with thread relief, generate thread relief first
                 if (isThreadingOp && includeRelief) {
                     const groovingTool = 6; // Default grooving tool
-                    code.push(`(--- OPERATION ${i + 1}a: THREAD RELIEF GROOVE ---)`);
-                    code.push(`T${String(groovingTool).padStart(2, '0')}${String(groovingTool).padStart(2, '0')}`);
-                    code.push(`G97 S${Math.round(op.speed * 0.7)} M03`);
-                    code.push('M08');
-                    code.push('G99');
+                    code.push(makeComment(`--- OPERATION ${i + 1}a: THREAD RELIEF GROOVE ---`, controller));
+                    code.push(cfg.toolCall(groovingTool, groovingTool));
+                    code.push(cfg.spindleOn('G97', Math.round(op.speed * 0.7)));
+                    code.push(cfg.coolantOn);
+                    code.push(cfg.feedPerRev);
                     code.push('');
 
                     // Calculate ISO thread relief dimensions
@@ -2788,36 +3117,36 @@
                         }
                     };
 
-                    const reliefCode = generateOperationCode(reliefOp, turningDia, safeZ, xClearance, zClearance, approachFeed);
+                    const reliefCode = generateOperationCode(reliefOp, turningDia, safeZ, xClearance, zClearance, approachFeed, controller);
                     code = code.concat(reliefCode);
 
                     code.push('');
-                    code.push('G28 U0 W0');
-                    code.push('M05');
-                    code.push('M09');
+                    code.push(cfg.homeReturn);
+                    code.push(cfg.spindleOff);
+                    code.push(cfg.coolantOff);
                     code.push('');
                 }
 
                 // Main operation
-                code.push(`(--- OPERATION ${i + 1}${isThreadingOp && includeRelief ? 'b' : ''}: ${op.name.toUpperCase()} ---)`);
-                code.push(`T${String(op.tool).padStart(2, '0')}${String(op.tool).padStart(2, '0')}`);
-                code.push(`G97 S${op.speed} M03`);
-                code.push('M08');
-                code.push('G99');
+                code.push(makeComment(`--- OPERATION ${i + 1}${isThreadingOp && includeRelief ? 'b' : ''}: ${op.name.toUpperCase()} ---`, controller));
+                code.push(cfg.toolCall(op.tool, op.tool));
+                code.push(cfg.spindleOn('G97', op.speed));
+                code.push(cfg.coolantOn);
+                code.push(cfg.feedPerRev);
                 code.push('');
 
-                const opCode = generateOperationCode(op, turningDia, safeZ, xClearance, zClearance, approachFeed);
+                const opCode = generateOperationCode(op, turningDia, safeZ, xClearance, zClearance, approachFeed, controller);
                 code = code.concat(opCode);
 
                 code.push('');
-                code.push('G28 U0 W0');
-                code.push('M05');
-                code.push('M09');
+                code.push(cfg.homeReturn);
+                code.push(cfg.spindleOff);
+                code.push(cfg.coolantOff);
                 code.push('');
             });
 
-            code.push('(PROGRAM END)');
-            code.push('M30');
+            code.push(makeComment('PROGRAM END', controller));
+            code.push(cfg.programEnd);
 
             displayCode(code, 'builderOutput');
 
@@ -2826,47 +3155,84 @@
             renderSimulation('builderCanvas', 'builderSimulation', gcode, turningDia, stockLen, safeZ);
         }
 
-        function generateOperationCode(op, stockDia, safeZ, xClear, zClear, approachFeed) {
+        function generateOperationCode(op, stockDia, safeZ, xClear, zClear, approachFeed, controller) {
             let code = [];
             const p = op.params;
             // Use defaults if not provided
             const xClearance = xClear || 2;
             const zClearance = zClear || 2;
             const appFeed = approachFeed || 0.3;
+            const ctrl = controller || 'fanuc';
+            const cfg = controllerConfig[ctrl];
+
+            // For Siemens, use specialized cycle generators
+            if (ctrl === 'siemens') {
+                switch(op.type) {
+                    case 'facing':
+                        return generateSiemensCYCLE95(op, stockDia, safeZ, false, true);
+                    case 'od-turning':
+                    case 'od-taper':
+                    case 'od-profile':
+                        return generateSiemensCYCLE95(op, stockDia, safeZ, false, false);
+                    case 'id-boring':
+                    case 'id-taper':
+                        return generateSiemensCYCLE95(op, stockDia, safeZ, true, false);
+                    case 'drilling':
+                        return generateSiemensCYCLE83(op, safeZ);
+                    case 'od-threading':
+                        return generateSiemensCYCLE97(op, false);
+                    case 'id-threading':
+                        return generateSiemensCYCLE97(op, true);
+                    case 'grooving':
+                        return generateSiemensCYCLE93(op);
+                    case 'thread-relief':
+                    case 'parting':
+                        // Use linear moves for thread relief and parting
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            // FANUC and Haas code generation (very similar)
+            const G0 = cfg.rapidMove;
+            const G1 = cfg.linearMove;
+            const G2 = cfg.cwArc;
+            const G3 = cfg.ccwArc;
 
             switch(op.type) {
                 case 'facing':
                     if (op.roughing) {
-                        code.push('(G72 FACING ROUGH CYCLE)');
-                        code.push(`(FACE FROM DIA ${p.stockDia.toFixed(1)} TO DIA ${p.faceDia.toFixed(1)})`);
-                        code.push(`G00 X${(p.stockDia + 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        code.push(makeComment('G72 FACING ROUGH CYCLE', ctrl));
+                        code.push(makeComment(`FACE FROM DIA ${p.stockDia.toFixed(1)} TO DIA ${p.faceDia.toFixed(1)}`, ctrl));
+                        code.push(`${G0} X${(p.stockDia + 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
                         code.push(`G72 W${op.doc.toFixed(1)} R1.0`);
                         code.push(`G72 P100 Q200 U0.3 W0.1 F${op.roughFeed}`);
-                        code.push(`N100 G00 X${p.faceDia.toFixed(1)}`);
-                        code.push(`G01 Z0 F${op.finishFeed}`);
+                        code.push(`N100 ${G0} X${p.faceDia.toFixed(1)}`);
+                        code.push(`${G1} Z0 F${op.finishFeed}`);
                         code.push(`X${(p.stockDia + 1).toFixed(1)}`);
-                        code.push('N200 G00 Z' + safeZ.toFixed(1));
+                        code.push('N200 ' + G0 + ' Z' + safeZ.toFixed(1));
                     }
                     if (op.finishing) {
-                        code.push('(G70 FACING FINISH CYCLE)');
+                        code.push(makeComment('G70 FACING FINISH CYCLE', ctrl));
                         code.push('G70 P100 Q200');
                     }
                     break;
 
                 case 'od-turning':
                     if (op.roughing) {
-                        code.push('(G71 OD ROUGH CYCLE)');
-                        code.push(`G00 X${(p.startDia + 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        code.push(makeComment('G71 OD ROUGH CYCLE', ctrl));
+                        code.push(`${G0} X${(p.startDia + 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
                         code.push(`G71 U${op.doc.toFixed(1)} R1.0`);
                         code.push(`G71 P100 Q200 U${op.finishAllowance.toFixed(2)} W0.1 F${op.roughFeed}`);
-                        code.push(`N100 G00 X${p.endDia.toFixed(3)} S${op.speed}`);
-                        code.push(`G01 Z0 F${op.finishFeed}`);
+                        code.push(`N100 ${G0} X${p.endDia.toFixed(3)} S${op.speed}`);
+                        code.push(`${G1} Z0 F${op.finishFeed}`);
                         code.push(`Z-${p.length.toFixed(1)}`);
                         code.push(`X${(p.startDia + 1).toFixed(1)}`);
-                        code.push('N200 G00 Z' + safeZ.toFixed(1));
+                        code.push('N200 ' + G0 + ' Z' + safeZ.toFixed(1));
                     }
                     if (op.finishing) {
-                        code.push('(G70 OD FINISH CYCLE)');
+                        code.push(makeComment('G70 OD FINISH CYCLE', ctrl));
                         code.push('G70 P100 Q200');
                     }
                     break;
@@ -2882,19 +3248,19 @@
                         odTaperEndDia = p.startDia + (taperPerSide * 2); // Gets larger toward chuck
                     }
                     if (op.roughing) {
-                        code.push('(G71 OD TAPER ROUGH CYCLE)');
-                        code.push(`(TAPER: ${p.startDia.toFixed(1)} AT FACE TO ${odTaperEndDia.toFixed(1)} AT CHUCK OVER ${p.length.toFixed(1)}mm)`);
-                        code.push(`G00 X${(odTaperEndDia + 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        code.push(makeComment('G71 OD TAPER ROUGH CYCLE', ctrl));
+                        code.push(makeComment(`TAPER: ${p.startDia.toFixed(1)} AT FACE TO ${odTaperEndDia.toFixed(1)} AT CHUCK OVER ${p.length.toFixed(1)}mm`, ctrl));
+                        code.push(`${G0} X${(odTaperEndDia + 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
                         code.push(`G71 U${op.doc.toFixed(1)} R1.0`);
                         code.push(`G71 P100 Q200 U${op.finishAllowance.toFixed(2)} W0.1 F${op.roughFeed}`);
-                        code.push(`N100 G00 X${p.startDia.toFixed(3)} S${op.speed}`);
-                        code.push(`G01 Z0 F${op.finishFeed}`);
+                        code.push(`N100 ${G0} X${p.startDia.toFixed(3)} S${op.speed}`);
+                        code.push(`${G1} Z0 F${op.finishFeed}`);
                         code.push(`X${odTaperEndDia.toFixed(3)} Z-${p.length.toFixed(1)}`);
                         code.push(`X${(odTaperEndDia + 1).toFixed(1)}`);
-                        code.push('N200 G00 Z' + safeZ.toFixed(1));
+                        code.push('N200 ' + G0 + ' Z' + safeZ.toFixed(1));
                     }
                     if (op.finishing) {
-                        code.push('(G70 OD TAPER FINISH CYCLE)');
+                        code.push(makeComment('G70 OD TAPER FINISH CYCLE', ctrl));
                         code.push('G70 P100 Q200');
                     }
                     break;
@@ -2930,29 +3296,29 @@
                         profilePath.push({ type: 'G01', x: startX + 2, z: lastZ });
 
                         if (op.roughing) {
-                            code.push('(G71 OD PROFILE ROUGH CYCLE)');
-                            code.push(`(PROFILE: START X${startX} Z${startZ}, ${segments.length} SEGMENTS)`);
-                            code.push(`G00 X${(startX + 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                            code.push(makeComment('G71 OD PROFILE ROUGH CYCLE', ctrl));
+                            code.push(makeComment(`PROFILE: START X${startX} Z${startZ}, ${segments.length} SEGMENTS`, ctrl));
+                            code.push(`${G0} X${(startX + 2).toFixed(1)} Z${safeZ.toFixed(1)}`);
                             code.push(`G71 U${op.doc.toFixed(1)} R1.0`);
                             code.push(`G71 P100 Q200 U${op.finishAllowance.toFixed(2)} W0.1 F${op.roughFeed}`);
 
                             // Generate profile path
                             profilePath.forEach((pt, i) => {
                                 if (i === 0) {
-                                    code.push(`N100 G00 X${pt.x.toFixed(3)}`);
-                                    code.push(`G01 Z${pt.z.toFixed(1)} F${op.finishFeed}`);
+                                    code.push(`N100 ${G0} X${pt.x.toFixed(3)}`);
+                                    code.push(`${G1} Z${pt.z.toFixed(1)} F${op.finishFeed}`);
                                 } else if (pt.type === 'G01') {
-                                    code.push(`G01 X${pt.x.toFixed(3)} Z${pt.z.toFixed(1)}`);
+                                    code.push(`${G1} X${pt.x.toFixed(3)} Z${pt.z.toFixed(1)}`);
                                 } else if (pt.type === 'G02') {
-                                    code.push(`G02 X${pt.x.toFixed(3)} Z${pt.z.toFixed(1)} R${pt.r.toFixed(1)}`);
+                                    code.push(`${G2} X${pt.x.toFixed(3)} Z${pt.z.toFixed(1)} R${pt.r.toFixed(1)}`);
                                 } else if (pt.type === 'G03') {
-                                    code.push(`G03 X${pt.x.toFixed(3)} Z${pt.z.toFixed(1)} R${pt.r.toFixed(1)}`);
+                                    code.push(`${G3} X${pt.x.toFixed(3)} Z${pt.z.toFixed(1)} R${pt.r.toFixed(1)}`);
                                 }
                             });
-                            code.push(`N200 G00 Z${safeZ.toFixed(1)}`);
+                            code.push(`N200 ${G0} Z${safeZ.toFixed(1)}`);
                         }
                         if (op.finishing) {
-                            code.push('(G70 OD PROFILE FINISH CYCLE)');
+                            code.push(makeComment('G70 OD PROFILE FINISH CYCLE', ctrl));
                             code.push('G70 P100 Q200');
                         }
                     }
@@ -2960,21 +3326,21 @@
 
                 case 'id-boring':
                     if (op.roughing) {
-                        code.push('(G71 BORING ROUGH CYCLE)');
-                        code.push(`(BORE FROM DIA ${p.startDia.toFixed(1)} TO DIA ${p.endDia.toFixed(1)} x DEPTH ${p.depth.toFixed(1)})`);
+                        code.push(makeComment('G71 BORING ROUGH CYCLE', ctrl));
+                        code.push(makeComment(`BORE FROM DIA ${p.startDia.toFixed(1)} TO DIA ${p.endDia.toFixed(1)} x DEPTH ${p.depth.toFixed(1)}`, ctrl));
                         // Rapid to safe Z first, then position at bore center
-                        code.push(`G00 Z${safeZ.toFixed(1)}`);
-                        code.push(`G00 X${(p.startDia - 2).toFixed(1)}`);
+                        code.push(`${G0} Z${safeZ.toFixed(1)}`);
+                        code.push(`${G0} X${(p.startDia - 2).toFixed(1)}`);
                         code.push(`G71 U${op.doc.toFixed(1)} R1.0`);
                         code.push(`G71 P100 Q200 U-${op.finishAllowance.toFixed(2)} W0.1 F${op.roughFeed}`);
-                        code.push(`N100 G00 X${p.endDia.toFixed(3)}`);
-                        code.push(`G01 Z0 F${op.finishFeed}`);
+                        code.push(`N100 ${G0} X${p.endDia.toFixed(3)}`);
+                        code.push(`${G1} Z0 F${op.finishFeed}`);
                         code.push(`Z-${p.depth.toFixed(1)}`);
                         code.push(`X${(p.startDia - 1).toFixed(1)}`);
-                        code.push('N200 G00 Z' + safeZ.toFixed(1));
+                        code.push('N200 ' + G0 + ' Z' + safeZ.toFixed(1));
                     }
                     if (op.finishing) {
-                        code.push('(G70 BORE FINISH CYCLE)');
+                        code.push(makeComment('G70 BORE FINISH CYCLE', ctrl));
                         code.push('G70 P100 Q200');
                     }
                     break;
@@ -2990,31 +3356,31 @@
                         idTaperEndDia = p.startDia - (taperPerSide * 2); // Gets smaller toward depth
                     }
                     if (op.roughing) {
-                        code.push('(G71 ID TAPER ROUGH CYCLE)');
-                        code.push(`(TAPER: ${p.startDia.toFixed(1)} AT FACE TO ${idTaperEndDia.toFixed(1)} AT DEPTH OVER ${p.depth.toFixed(1)}mm)`);
+                        code.push(makeComment('G71 ID TAPER ROUGH CYCLE', ctrl));
+                        code.push(makeComment(`TAPER: ${p.startDia.toFixed(1)} AT FACE TO ${idTaperEndDia.toFixed(1)} AT DEPTH OVER ${p.depth.toFixed(1)}mm`, ctrl));
                         // Rapid to safe Z first, then position at bore
-                        code.push(`G00 Z${safeZ.toFixed(1)}`);
-                        code.push(`G00 X${(idTaperEndDia - 2).toFixed(1)}`);
+                        code.push(`${G0} Z${safeZ.toFixed(1)}`);
+                        code.push(`${G0} X${(idTaperEndDia - 2).toFixed(1)}`);
                         code.push(`G71 U${op.doc.toFixed(1)} R1.0`);
                         code.push(`G71 P100 Q200 U-${op.finishAllowance.toFixed(2)} W0.1 F${op.roughFeed}`);
-                        code.push(`N100 G00 X${p.startDia.toFixed(3)} S${op.speed}`);
-                        code.push(`G01 Z0 F${op.finishFeed}`);
+                        code.push(`N100 ${G0} X${p.startDia.toFixed(3)} S${op.speed}`);
+                        code.push(`${G1} Z0 F${op.finishFeed}`);
                         code.push(`X${idTaperEndDia.toFixed(3)} Z-${p.depth.toFixed(1)}`);
                         code.push(`X${(idTaperEndDia - 1).toFixed(1)}`);
-                        code.push('N200 G00 Z' + safeZ.toFixed(1));
+                        code.push('N200 ' + G0 + ' Z' + safeZ.toFixed(1));
                     }
                     if (op.finishing) {
-                        code.push('(G70 ID TAPER FINISH CYCLE)');
+                        code.push(makeComment('G70 ID TAPER FINISH CYCLE', ctrl));
                         code.push('G70 P100 Q200');
                     }
                     break;
 
                 case 'drilling':
-                    code.push('(G74 PECK DRILLING CYCLE)');
-                    code.push(`G00 X0 Z${safeZ.toFixed(1)}`);
+                    code.push(makeComment('G74 PECK DRILLING CYCLE', ctrl));
+                    code.push(`${G0} X0 Z${safeZ.toFixed(1)}`);
                     code.push('G74 R1.0');
                     code.push(`G74 Z-${p.depth.toFixed(1)} Q${(p.peck * 1000).toFixed(0)} F${op.roughFeed}`);
-                    code.push(`G00 Z${safeZ.toFixed(1)}`);
+                    code.push(`${G0} Z${safeZ.toFixed(1)}`);
                     break;
 
                 case 'od-threading':
@@ -3025,20 +3391,20 @@
                         const startX = p.majorDia + xClearance;
                         const startZ = zClearance;
 
-                        code.push(`(G76 OD THREADING - ${threadSize})`);
-                        code.push(`(STANDARD: ${threadTypeLabel} - PITCH: ${p.pitch.toFixed(3)}mm)`);
-                        code.push(`(MAJOR DIA: ${p.majorDia.toFixed(3)}mm - DEPTH: ${p.depth.toFixed(3)}mm)`);
+                        code.push(makeComment(`G76 OD THREADING - ${threadSize}`, ctrl));
+                        code.push(makeComment(`STANDARD: ${threadTypeLabel} - PITCH: ${p.pitch.toFixed(3)}mm`, ctrl));
+                        code.push(makeComment(`MAJOR DIA: ${p.majorDia.toFixed(3)}mm - DEPTH: ${p.depth.toFixed(3)}mm`, ctrl));
 
                         if (isTapered) {
-                            code.push(`(TAPERED: 1:16 TAPER OVER ${p.length.toFixed(1)}mm)`);
+                            code.push(makeComment(`TAPERED: 1:16 TAPER OVER ${p.length.toFixed(1)}mm`, ctrl));
                         }
 
                         // Safe rapid to clearance position
-                        code.push(`G00 X${(startX + 10).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        code.push(`${G0} X${(startX + 10).toFixed(1)} Z${safeZ.toFixed(1)}`);
                         // G1 approach to starting position
-                        code.push('(SAFE APPROACH - G1)');
-                        code.push(`G01 X${startX.toFixed(1)} F${appFeed}`);
-                        code.push(`G01 Z${startZ.toFixed(1)} F${appFeed}`);
+                        code.push(makeComment('SAFE APPROACH - G1', ctrl));
+                        code.push(`${G1} X${startX.toFixed(1)} F${appFeed}`);
+                        code.push(`${G1} Z${startZ.toFixed(1)} F${appFeed}`);
 
                         // Threading cycle
                         code.push('G76 P010060 Q100 R0.05');
@@ -3051,10 +3417,10 @@
                         }
 
                         // Safe G1 retract
-                        code.push('(SAFE RETRACT - G1)');
-                        code.push(`G01 X${startX.toFixed(1)} F${appFeed}`);
-                        code.push(`G01 Z${startZ.toFixed(1)} F${appFeed}`);
-                        code.push(`G00 X${(startX + 10).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        code.push(makeComment('SAFE RETRACT - G1', ctrl));
+                        code.push(`${G1} X${startX.toFixed(1)} F${appFeed}`);
+                        code.push(`${G1} Z${startZ.toFixed(1)} F${appFeed}`);
+                        code.push(`${G0} X${(startX + 10).toFixed(1)} Z${safeZ.toFixed(1)}`);
                     }
                     break;
 
@@ -3066,20 +3432,20 @@
                         const startX = p.minorDia - xClearance;
                         const startZ = zClearance;
 
-                        code.push(`(G76 ID THREADING - ${threadSize})`);
-                        code.push(`(STANDARD: ${threadTypeLabel} - PITCH: ${p.pitch.toFixed(3)}mm)`);
-                        code.push(`(BORE DIA: ${p.minorDia.toFixed(3)}mm - DEPTH: ${p.depth.toFixed(3)}mm)`);
+                        code.push(makeComment(`G76 ID THREADING - ${threadSize}`, ctrl));
+                        code.push(makeComment(`STANDARD: ${threadTypeLabel} - PITCH: ${p.pitch.toFixed(3)}mm`, ctrl));
+                        code.push(makeComment(`BORE DIA: ${p.minorDia.toFixed(3)}mm - DEPTH: ${p.depth.toFixed(3)}mm`, ctrl));
 
                         if (isTapered) {
-                            code.push(`(TAPERED: 1:16 TAPER OVER ${p.length.toFixed(1)}mm)`);
+                            code.push(makeComment(`TAPERED: 1:16 TAPER OVER ${p.length.toFixed(1)}mm`, ctrl));
                         }
 
                         // Safe rapid to clearance position
-                        code.push(`G00 X${(startX - 5).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        code.push(`${G0} X${(startX - 5).toFixed(1)} Z${safeZ.toFixed(1)}`);
                         // G1 approach to starting position
-                        code.push('(SAFE APPROACH - G1)');
-                        code.push(`G01 X${startX.toFixed(1)} F${appFeed}`);
-                        code.push(`G01 Z${startZ.toFixed(1)} F${appFeed}`);
+                        code.push(makeComment('SAFE APPROACH - G1', ctrl));
+                        code.push(`${G1} X${startX.toFixed(1)} F${appFeed}`);
+                        code.push(`${G1} Z${startZ.toFixed(1)} F${appFeed}`);
 
                         // Threading cycle
                         code.push('G76 P010060 Q100 R0.05');
@@ -3092,10 +3458,10 @@
                         }
 
                         // Safe G1 retract
-                        code.push('(SAFE RETRACT - G1)');
-                        code.push(`G01 X${startX.toFixed(1)} F${appFeed}`);
-                        code.push(`G01 Z${startZ.toFixed(1)} F${appFeed}`);
-                        code.push(`G00 X${(startX - 5).toFixed(1)} Z${safeZ.toFixed(1)}`);
+                        code.push(makeComment('SAFE RETRACT - G1', ctrl));
+                        code.push(`${G1} X${startX.toFixed(1)} F${appFeed}`);
+                        code.push(`${G1} Z${startZ.toFixed(1)} F${appFeed}`);
+                        code.push(`${G0} X${(startX - 5).toFixed(1)} Z${safeZ.toFixed(1)}`);
                     }
                     break;
 
@@ -3118,36 +3484,36 @@
                         const grooveZ = p.zPos;
                         const reliefLabel = p.reliefType === 'iso' ? 'ISO STANDARD' : 'CUSTOM';
 
-                        code.push(`(THREAD RELIEF GROOVE - ${reliefLabel})`);
-                        code.push(`(PITCH: ${pitch.toFixed(2)}mm - WIDTH: ${reliefWidth.toFixed(2)}mm - DEPTH: ${reliefDepth.toFixed(2)}mm)`);
-                        code.push(`(CORNER RADIUS: ${radius.toFixed(2)}mm)`);
+                        code.push(makeComment(`THREAD RELIEF GROOVE - ${reliefLabel}`, ctrl));
+                        code.push(makeComment(`PITCH: ${pitch.toFixed(2)}mm - WIDTH: ${reliefWidth.toFixed(2)}mm - DEPTH: ${reliefDepth.toFixed(2)}mm`, ctrl));
+                        code.push(makeComment(`CORNER RADIUS: ${radius.toFixed(2)}mm`, ctrl));
 
                         // G1 approach to starting position
-                        code.push('(SAFE APPROACH - G1)');
-                        code.push(`G01 X${startX.toFixed(1)} F${appFeed}`);
-                        code.push(`G01 Z${(grooveZ + zClearance).toFixed(1)} F${appFeed}`);
+                        code.push(makeComment('SAFE APPROACH - G1', ctrl));
+                        code.push(`${G1} X${startX.toFixed(1)} F${appFeed}`);
+                        code.push(`${G1} Z${(grooveZ + zClearance).toFixed(1)} F${appFeed}`);
 
                         // Position for grooving - G1 for safety
-                        code.push(`G01 X${p.outerDia.toFixed(1)} F${appFeed}`);
-                        code.push(`G01 Z${grooveZ.toFixed(1)} F${appFeed}`);
+                        code.push(`${G1} X${p.outerDia.toFixed(1)} F${appFeed}`);
+                        code.push(`${G1} Z${grooveZ.toFixed(1)} F${appFeed}`);
 
                         // Plunge groove with corner blend
-                        code.push('(GROOVE PLUNGE)');
-                        code.push(`G01 X${grooveX.toFixed(3)} F${(op.roughFeed / 2).toFixed(3)}`);
-                        code.push('G04 P200'); // Dwell for chip breaking
+                        code.push(makeComment('GROOVE PLUNGE', ctrl));
+                        code.push(`${G1} X${grooveX.toFixed(3)} F${(op.roughFeed / 2).toFixed(3)}`);
+                        code.push(cfg.dwell(200)); // Dwell for chip breaking
 
                         // Move along groove width
-                        code.push(`G01 Z${(grooveZ - reliefWidth).toFixed(1)} F${(op.roughFeed / 2).toFixed(3)}`);
+                        code.push(`${G1} Z${(grooveZ - reliefWidth).toFixed(1)} F${(op.roughFeed / 2).toFixed(3)}`);
 
                         // Retract from groove
-                        code.push(`G01 X${p.outerDia.toFixed(1)} F${(op.roughFeed / 2).toFixed(3)}`);
+                        code.push(`${G1} X${p.outerDia.toFixed(1)} F${(op.roughFeed / 2).toFixed(3)}`);
 
                         // Safe G1 retract
-                        code.push('(SAFE RETRACT - G1)');
-                        code.push(`G01 X${startX.toFixed(1)} F${appFeed}`);
-                        code.push(`G01 Z${zClearance.toFixed(1)} F${appFeed}`);
-                        code.push(`G01 X${(startX + 10).toFixed(1)} F${appFeed}`);
-                        code.push(`G01 Z${safeZ.toFixed(1)} F${appFeed}`);
+                        code.push(makeComment('SAFE RETRACT - G1', ctrl));
+                        code.push(`${G1} X${startX.toFixed(1)} F${appFeed}`);
+                        code.push(`${G1} Z${zClearance.toFixed(1)} F${appFeed}`);
+                        code.push(`${G1} X${(startX + 10).toFixed(1)} F${appFeed}`);
+                        code.push(`${G1} Z${safeZ.toFixed(1)} F${appFeed}`);
                     }
                     break;
 
@@ -3160,20 +3526,20 @@
                         // Q = axial step in microns (use 80% of groove width or 2mm max per step)
                         const axialStep = Math.min(p.grooveWidth * 0.8, 2) * 1000;
 
-                        code.push('(G75 GROOVING CYCLE)');
-                        code.push(`(GROOVE: WIDTH ${p.grooveWidth.toFixed(1)}mm x DEPTH ${p.grooveDepth.toFixed(1)}mm AT Z${p.zPos.toFixed(1)})`);
-                        code.push(`G00 X${(p.outerDia + 2).toFixed(1)} Z${p.zPos.toFixed(1)}`);
+                        code.push(makeComment('G75 GROOVING CYCLE', ctrl));
+                        code.push(makeComment(`GROOVE: WIDTH ${p.grooveWidth.toFixed(1)}mm x DEPTH ${p.grooveDepth.toFixed(1)}mm AT Z${p.zPos.toFixed(1)}`, ctrl));
+                        code.push(`${G0} X${(p.outerDia + 2).toFixed(1)} Z${p.zPos.toFixed(1)}`);
                         code.push('G75 R0.5');
                         code.push(`G75 X${grooveBottom.toFixed(1)} Z${grooveEndZ.toFixed(1)} P${peckDepth.toFixed(0)} Q${axialStep.toFixed(0)} F${(op.roughFeed / 2).toFixed(3)}`);
                     }
                     break;
 
                 case 'parting':
-                    code.push('(PARTING OFF)');
-                    code.push(`G00 X${(p.outerDia + 2).toFixed(1)} Z${p.zPos.toFixed(1)}`);
-                    code.push(`G01 X${p.innerDia.toFixed(1)} F${(op.roughFeed / 3).toFixed(3)}`);
-                    if (p.innerDia <= 0) code.push('G04 P500');
-                    code.push(`G00 X${(p.outerDia + 5).toFixed(1)}`);
+                    code.push(makeComment('PARTING OFF', ctrl));
+                    code.push(`${G0} X${(p.outerDia + 2).toFixed(1)} Z${p.zPos.toFixed(1)}`);
+                    code.push(`${G1} X${p.innerDia.toFixed(1)} F${(op.roughFeed / 3).toFixed(3)}`);
+                    if (p.innerDia <= 0) code.push(cfg.dwell(500));
+                    code.push(`${G0} X${(p.outerDia + 5).toFixed(1)}`);
                     break;
             }
 
@@ -4548,22 +4914,27 @@
 
             const progName = document.getElementById('sProgName').value.trim().toUpperCase();
 
+            // Get controller type for single operation
+            const controller = getController(true);
+            const cfg = controllerConfig[controller];
+
             let code = [];
-            code.push(`O${String(progNum).padStart(4, '0')}`);
+            code.push(cfg.programFormat(progNum, progName));
 
             if (addHeader) {
                 if (progName) {
-                    code.push(`(${progName})`);
+                    code.push(makeComment(progName, controller));
                 }
-                code.push(`(${def.name.toUpperCase()} - ${def.cycle} CYCLE)`);
-                code.push(`(STOCK: ${stockDesc} x LEN ${stockLen})`);
-                code.push(`(DATE: ${new Date().toLocaleDateString()})`);
+                code.push(makeComment(`${def.name.toUpperCase()} - ${def.cycle} CYCLE`, controller));
+                code.push(makeComment(`STOCK: ${stockDesc} x LEN ${stockLen}`, controller));
+                code.push(makeComment(`DATE: ${new Date().toLocaleDateString()}`, controller));
                 code.push('');
             }
 
             if (addSafeStart) {
-                code.push('G28 U0 W0');
-                code.push(`G50 S${spindleMode === 'G96' ? maxRpm : speed}`);
+                cfg.safeStart.forEach(line => {
+                    code.push(line.replace('{maxRPM}', spindleMode === 'G96' ? maxRpm : speed));
+                });
             }
 
             // Check if thread relief should be included for threading operations
@@ -4573,11 +4944,11 @@
             // If threading with thread relief, generate thread relief first with grooving tool
             if (isThreadingOp && includeThreadRelief) {
                 const groovingTool = 6; // Default grooving tool number
-                code.push('(--- THREAD RELIEF GROOVE ---)');
-                code.push(`T${String(groovingTool).padStart(2, '0')}${String(groovingTool).padStart(2, '0')}`);
-                code.push(`G97 S${Math.round(speed * 0.7)} M03`);
-                code.push(coolant);
-                code.push('G99');
+                code.push(makeComment('--- THREAD RELIEF GROOVE ---', controller));
+                code.push(cfg.toolCall(groovingTool, groovingTool));
+                code.push(cfg.spindleOn('G97', Math.round(speed * 0.7)));
+                code.push(cfg.coolantOn);
+                code.push(cfg.feedPerRev);
                 code.push('');
 
                 // Calculate ISO thread relief dimensions
@@ -4610,32 +4981,32 @@
                     }
                 };
 
-                const reliefCode = generateOperationCode(reliefOp, turningDia, safeZ, sXClearance, sZClearance, sApproachFeed);
+                const reliefCode = generateOperationCode(reliefOp, turningDia, safeZ, sXClearance, sZClearance, sApproachFeed, controller);
                 code = code.concat(reliefCode);
 
                 code.push('');
-                code.push('G28 U0 W0');
-                code.push('M05');
-                code.push('M09');
+                code.push(cfg.homeReturn);
+                code.push(cfg.spindleOff);
+                code.push(cfg.coolantOff);
                 code.push('');
             }
 
             // Main operation tool call
-            code.push(`(--- ${def.name.toUpperCase()} ---)`);
-            code.push(`T${String(tool).padStart(2, '0')}${String(offset).padStart(2, '0')}`);
-            code.push(`${spindleMode} S${speed} M03`);
-            code.push(coolant);
-            code.push('G99');
+            code.push(makeComment(`--- ${def.name.toUpperCase()} ---`, controller));
+            code.push(cfg.toolCall(tool, offset));
+            code.push(cfg.spindleOn(spindleMode, speed));
+            code.push(cfg.coolantOn);
+            code.push(cfg.feedPerRev);
             code.push('');
 
-            const opCode = generateOperationCode(op, turningDia, safeZ, sXClearance, sZClearance, sApproachFeed);
+            const opCode = generateOperationCode(op, turningDia, safeZ, sXClearance, sZClearance, sApproachFeed, controller);
             code = code.concat(opCode);
 
             code.push('');
-            code.push('M09');
-            code.push('M05');
-            code.push('G28 U0 W0');
-            code.push('M30');
+            code.push(cfg.coolantOff);
+            code.push(cfg.spindleOff);
+            code.push(cfg.homeReturn);
+            code.push(cfg.programEnd);
 
             displayCode(code, 'singleOutput');
 
