@@ -685,6 +685,119 @@
         .axis-3 { background: #dbeafe; color: #1d4ed8; }
         .axis-4 { background: #fef3c7; color: #b45309; }
         .axis-5 { background: #ede9fe; color: #7c3aed; }
+
+        /* Workpiece Setup Panel */
+        .setup-panel {
+            background: var(--bg-card);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .setup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--accent);
+            transition: all 0.2s;
+        }
+
+        .setup-header:hover {
+            background: linear-gradient(135deg, #ddd6fe, #c4b5fd);
+        }
+
+        .setup-toggle {
+            transition: transform 0.3s ease;
+        }
+
+        .setup-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .setup-content {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+            display: block;
+        }
+
+        .setup-content.collapsed {
+            display: none;
+        }
+
+        .setup-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .setup-group {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .setup-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .setup-hint {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .setup-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .setup-row .form-group {
+            margin-bottom: 0;
+        }
+
+        .origin-preview {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            margin-top: 10px;
+        }
+
+        .material-info {
+            margin-top: 12px;
+            padding: 12px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .material-params {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .material-params strong {
+            color: var(--text-primary);
+        }
     </style>
 </head>
 <body>
@@ -720,6 +833,127 @@
                     <option value="metric">Metric (mm)</option>
                     <option value="inch">Inch</option>
                 </select>
+            </div>
+        </div>
+
+        <!-- Workpiece Setup -->
+        <div class="setup-panel">
+            <div class="setup-header" onclick="toggleSetup()">
+                <span>Workpiece & Material Setup</span>
+                <span class="setup-toggle" id="setupToggle">▼</span>
+            </div>
+            <div class="setup-content" id="setupContent">
+                <div class="setup-grid">
+                    <!-- Workpiece Dimensions -->
+                    <div class="setup-group">
+                        <div class="setup-title">Workpiece Dimensions</div>
+                        <div class="setup-row">
+                            <div class="form-group">
+                                <label>Length X (mm)</label>
+                                <input type="number" id="wpLengthX" value="100" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Width Y (mm)</label>
+                                <input type="number" id="wpWidthY" value="100" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Height Z (mm)</label>
+                                <input type="number" id="wpHeightZ" value="25" step="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Origin Reference -->
+                    <div class="setup-group">
+                        <div class="setup-title">Origin Reference (Home Position)</div>
+                        <p class="setup-hint">All tools will rapid to this home position first, then move to operation locations.</p>
+                        <div class="setup-row">
+                            <div class="form-group">
+                                <label>Origin Location</label>
+                                <select id="originLocation" onchange="updateOriginPreview()">
+                                    <option value="top-left">Top Surface - Left Front Corner</option>
+                                    <option value="top-center" selected>Top Surface - Center</option>
+                                    <option value="top-right">Top Surface - Right Front Corner</option>
+                                    <option value="bottom-center">Bottom Surface - Center</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="origin-preview" id="originPreview">
+                            <svg viewBox="0 0 120 80" width="120" height="80">
+                                <rect x="20" y="20" width="80" height="50" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1"/>
+                                <circle id="originDot" cx="60" cy="20" r="4" fill="#8b5cf6"/>
+                                <text x="60" y="12" text-anchor="middle" font-size="8" fill="#8b5cf6">Origin</text>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Safe Distances -->
+                    <div class="setup-group">
+                        <div class="setup-title">Safe Distances</div>
+                        <p class="setup-hint">Clearance heights for tool movements.</p>
+                        <div class="setup-row">
+                            <div class="form-group">
+                                <label>Safe Z (G0 Rapid)</label>
+                                <input type="number" id="safeZRapid" value="50" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Clearance Z (G01 Approach)</label>
+                                <input type="number" id="clearanceZ" value="5" step="0.5">
+                            </div>
+                            <div class="form-group">
+                                <label>XY Clearance</label>
+                                <input type="number" id="clearanceXY" value="10" step="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Material Selection -->
+                    <div class="setup-group">
+                        <div class="setup-title">Material</div>
+                        <div class="setup-row">
+                            <div class="form-group">
+                                <label>Workpiece Material</label>
+                                <select id="material" onchange="applyMaterialPreset()">
+                                    <option value="custom">Custom Parameters</option>
+                                    <optgroup label="Aluminum">
+                                        <option value="alu-6061" selected>Aluminum 6061-T6</option>
+                                        <option value="alu-7075">Aluminum 7075-T6</option>
+                                        <option value="alu-cast">Cast Aluminum</option>
+                                    </optgroup>
+                                    <optgroup label="Steel">
+                                        <option value="steel-mild">Mild Steel (1018/1020)</option>
+                                        <option value="steel-4140">Alloy Steel (4140)</option>
+                                        <option value="steel-tool">Tool Steel (D2/A2)</option>
+                                    </optgroup>
+                                    <optgroup label="Stainless Steel">
+                                        <option value="ss-304">Stainless 304</option>
+                                        <option value="ss-316">Stainless 316</option>
+                                        <option value="ss-17-4">17-4 PH Stainless</option>
+                                    </optgroup>
+                                    <optgroup label="Other Metals">
+                                        <option value="brass">Brass</option>
+                                        <option value="copper">Copper</option>
+                                        <option value="titanium">Titanium (Ti-6Al-4V)</option>
+                                        <option value="cast-iron">Cast Iron</option>
+                                    </optgroup>
+                                    <optgroup label="Plastics">
+                                        <option value="plastic-acrylic">Acrylic/PMMA</option>
+                                        <option value="plastic-delrin">Delrin/POM</option>
+                                        <option value="plastic-nylon">Nylon</option>
+                                        <option value="plastic-hdpe">HDPE</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="material-info" id="materialInfo">
+                            <div class="material-params">
+                                <span><strong>SFM:</strong> <span id="matSFM">300-500</span></span>
+                                <span><strong>Feed/Tooth:</strong> <span id="matFPT">0.10-0.20 mm</span></span>
+                                <span><strong>DOC:</strong> <span id="matDOC">Up to 1×D</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1141,6 +1375,78 @@
         let currentOp = null;
         let operations = [];
         let editingOpIndex = -1;
+
+        // Material presets with suggested cutting parameters
+        const materialPresets = {
+            'custom': { name: 'Custom', sfm: '—', fpt: '—', doc: '—' },
+            'alu-6061': { name: 'Aluminum 6061-T6', sfm: '300-500', fpt: '0.10-0.20 mm', doc: 'Up to 1×D', sfmVal: 400, fptVal: 0.15 },
+            'alu-7075': { name: 'Aluminum 7075-T6', sfm: '250-400', fpt: '0.08-0.15 mm', doc: 'Up to 0.75×D', sfmVal: 325, fptVal: 0.12 },
+            'alu-cast': { name: 'Cast Aluminum', sfm: '200-350', fpt: '0.10-0.18 mm', doc: 'Up to 0.75×D', sfmVal: 275, fptVal: 0.14 },
+            'steel-mild': { name: 'Mild Steel', sfm: '80-120', fpt: '0.05-0.10 mm', doc: 'Up to 0.5×D', sfmVal: 100, fptVal: 0.08 },
+            'steel-4140': { name: 'Alloy Steel 4140', sfm: '60-100', fpt: '0.04-0.08 mm', doc: 'Up to 0.4×D', sfmVal: 80, fptVal: 0.06 },
+            'steel-tool': { name: 'Tool Steel D2/A2', sfm: '40-70', fpt: '0.03-0.06 mm', doc: 'Up to 0.3×D', sfmVal: 55, fptVal: 0.045 },
+            'ss-304': { name: 'Stainless 304', sfm: '50-80', fpt: '0.04-0.08 mm', doc: 'Up to 0.4×D', sfmVal: 65, fptVal: 0.06 },
+            'ss-316': { name: 'Stainless 316', sfm: '45-75', fpt: '0.04-0.07 mm', doc: 'Up to 0.35×D', sfmVal: 60, fptVal: 0.055 },
+            'ss-17-4': { name: '17-4 PH Stainless', sfm: '40-70', fpt: '0.03-0.06 mm', doc: 'Up to 0.3×D', sfmVal: 55, fptVal: 0.045 },
+            'brass': { name: 'Brass', sfm: '200-400', fpt: '0.10-0.20 mm', doc: 'Up to 1×D', sfmVal: 300, fptVal: 0.15 },
+            'copper': { name: 'Copper', sfm: '150-300', fpt: '0.08-0.15 mm', doc: 'Up to 0.75×D', sfmVal: 225, fptVal: 0.12 },
+            'titanium': { name: 'Titanium Ti-6Al-4V', sfm: '30-60', fpt: '0.03-0.06 mm', doc: 'Up to 0.25×D', sfmVal: 45, fptVal: 0.045 },
+            'cast-iron': { name: 'Cast Iron', sfm: '60-100', fpt: '0.08-0.15 mm', doc: 'Up to 0.5×D', sfmVal: 80, fptVal: 0.12 },
+            'plastic-acrylic': { name: 'Acrylic/PMMA', sfm: '500-1000', fpt: '0.10-0.25 mm', doc: 'Up to 1.5×D', sfmVal: 750, fptVal: 0.18 },
+            'plastic-delrin': { name: 'Delrin/POM', sfm: '400-800', fpt: '0.10-0.20 mm', doc: 'Up to 1.5×D', sfmVal: 600, fptVal: 0.15 },
+            'plastic-nylon': { name: 'Nylon', sfm: '400-700', fpt: '0.08-0.18 mm', doc: 'Up to 1×D', sfmVal: 550, fptVal: 0.13 },
+            'plastic-hdpe': { name: 'HDPE', sfm: '500-1000', fpt: '0.12-0.25 mm', doc: 'Up to 2×D', sfmVal: 750, fptVal: 0.18 }
+        };
+
+        // Workpiece and material setup functions
+        function toggleSetup() {
+            const content = document.getElementById('setupContent');
+            const toggle = document.getElementById('setupToggle');
+            content.classList.toggle('collapsed');
+            toggle.classList.toggle('collapsed');
+        }
+
+        function updateOriginPreview() {
+            const origin = document.getElementById('originLocation').value;
+            const dot = document.getElementById('originDot');
+            const positions = {
+                'top-left': { cx: 20, cy: 20 },
+                'top-center': { cx: 60, cy: 20 },
+                'top-right': { cx: 100, cy: 20 },
+                'bottom-center': { cx: 60, cy: 70 }
+            };
+            const pos = positions[origin] || positions['top-center'];
+            dot.setAttribute('cx', pos.cx);
+            dot.setAttribute('cy', pos.cy);
+        }
+
+        function applyMaterialPreset() {
+            const materialKey = document.getElementById('material').value;
+            const preset = materialPresets[materialKey];
+            if (preset) {
+                document.getElementById('matSFM').textContent = preset.sfm;
+                document.getElementById('matFPT').textContent = preset.fpt;
+                document.getElementById('matDOC').textContent = preset.doc;
+            }
+        }
+
+        function getWorkpieceSetup() {
+            return {
+                lengthX: parseFloat(document.getElementById('wpLengthX').value) || 100,
+                widthY: parseFloat(document.getElementById('wpWidthY').value) || 100,
+                heightZ: parseFloat(document.getElementById('wpHeightZ').value) || 25,
+                origin: document.getElementById('originLocation').value,
+                safeZRapid: parseFloat(document.getElementById('safeZRapid').value) || 50,
+                clearanceZ: parseFloat(document.getElementById('clearanceZ').value) || 5,
+                clearanceXY: parseFloat(document.getElementById('clearanceXY').value) || 10,
+                material: document.getElementById('material').value
+            };
+        }
+
+        function getMaterialSuggestions() {
+            const materialKey = document.getElementById('material').value;
+            return materialPresets[materialKey] || materialPresets['alu-6061'];
+        }
 
         // Controller configurations
         const controllerConfig = {
@@ -1644,9 +1950,10 @@
         }
 
         // Generate code for a specific operation
-        function generateOperationCode(opType, params) {
+        function generateOperationCode(opType, params, setup = null) {
             const cfg = controllerConfig[currentController];
             const lines = [];
+            const clearanceZ = setup ? setup.clearanceZ : 5;
 
             // Common header for tool operations
             if (params.tool !== undefined) {
@@ -1859,20 +2166,36 @@
             const cfg = controllerConfig[currentController];
             const programNum = document.getElementById('programNumber').value;
             const workOffset = document.getElementById('workOffset').value;
-            const safeZ = document.getElementById('safeZ').value;
+            const setup = getWorkpieceSetup();
+            const material = materialPresets[setup.material] || materialPresets['alu-6061'];
 
             const lines = [];
             lines.push(cfg.programFormat(programNum));
             lines.push(cfg.comment('CNC Milling Program'));
             lines.push(cfg.comment(`Generated by gcodegen.in`));
             lines.push('');
+
+            // Workpiece info header
+            lines.push(cfg.comment(`Workpiece: ${setup.lengthX} x ${setup.widthY} x ${setup.heightZ} mm`));
+            lines.push(cfg.comment(`Material: ${material.name}`));
+            lines.push(cfg.comment(`Origin: ${setup.origin.replace('-', ' ')}`));
+            lines.push(cfg.comment(`Safe Z: ${setup.safeZRapid}mm, Clearance Z: ${setup.clearanceZ}mm`));
+            lines.push('');
+
             cfg.safeStart.forEach(s => lines.push(s));
             lines.push(`G${workOffset}`);
             lines.push('');
 
+            // Initial rapid to safe Z (home position)
+            lines.push(cfg.comment('Rapid to home position'));
+            lines.push(`${cfg.rapid} Z${setup.safeZRapid}`);
+            lines.push('');
+
             operations.forEach((op, i) => {
                 lines.push(cfg.comment(`Operation ${i + 1}: ${opDefinitions[op.type].name}`));
-                const opCode = generateOperationCode(op.type, op.params);
+                // Rapid to safe Z before each operation
+                lines.push(`${cfg.rapid} Z${setup.safeZRapid}`);
+                const opCode = generateOperationCode(op.type, op.params, setup);
                 lines.push(...opCode);
                 lines.push('');
             });
@@ -1880,6 +2203,8 @@
             lines.push(cfg.comment('End of program'));
             lines.push(cfg.coolant.off);
             lines.push('M05');
+            // Return to safe Z height first
+            lines.push(`${cfg.rapid} Z${setup.safeZRapid}`);
             lines.push(cfg.homeReturn);
             lines.push(cfg.programEnd);
 

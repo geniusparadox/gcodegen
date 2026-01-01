@@ -1084,6 +1084,123 @@
                 padding: 16px;
             }
         }
+
+        /* Workpiece Setup Panel */
+        .setup-panel {
+            background: var(--bg-card);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .setup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--accent);
+            transition: all 0.2s;
+        }
+
+        .setup-header:hover {
+            background: linear-gradient(135deg, #bfdbfe, #93c5fd);
+        }
+
+        .setup-toggle {
+            transition: transform 0.3s ease;
+        }
+
+        .setup-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .setup-content {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+            display: block;
+        }
+
+        .setup-content.collapsed {
+            display: none;
+        }
+
+        .setup-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .setup-group {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .setup-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .setup-hint {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .setup-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .setup-row.three {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .setup-row .form-group {
+            margin-bottom: 0;
+        }
+
+        .origin-preview {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            margin-top: 10px;
+        }
+
+        .material-info {
+            margin-top: 12px;
+            padding: 12px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .material-params {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .material-params strong {
+            color: var(--text-primary);
+        }
     </style>
 </head>
 <body>
@@ -1099,6 +1216,133 @@
             <button class="tab" data-tab="builder">Program Builder</button>
             <button class="tab active" data-tab="single">Single Operation</button>
             <button class="tab" data-tab="tools">Tools Guide</button>
+        </div>
+
+        <!-- Workpiece Setup -->
+        <div class="setup-panel">
+            <div class="setup-header" onclick="toggleSetup()">
+                <span>Workpiece & Material Setup</span>
+                <span class="setup-toggle" id="setupToggle">▼</span>
+            </div>
+            <div class="setup-content" id="setupContent">
+                <div class="setup-grid">
+                    <!-- Workpiece Dimensions -->
+                    <div class="setup-group">
+                        <div class="setup-title">Stock Dimensions</div>
+                        <div class="setup-row">
+                            <div class="form-group">
+                                <label>Stock Diameter (mm)</label>
+                                <input type="number" id="wpStockDia" value="50" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Stock Length (mm)</label>
+                                <input type="number" id="wpStockLength" value="100" step="1">
+                            </div>
+                        </div>
+                        <div class="setup-row" style="margin-top: 10px;">
+                            <div class="form-group">
+                                <label>Finished Diameter (mm)</label>
+                                <input type="number" id="wpFinishDia" value="40" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label>Finished Length (mm)</label>
+                                <input type="number" id="wpFinishLength" value="95" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Origin Reference -->
+                    <div class="setup-group">
+                        <div class="setup-title">Origin Reference (Home Position)</div>
+                        <p class="setup-hint">All tools will rapid to this home position first, then move to operation locations.</p>
+                        <div class="form-group">
+                            <label>Z Origin Location</label>
+                            <select id="originLocation" onchange="updateOriginPreview()">
+                                <option value="chuck-face" selected>Chuck Face (Z0 at face)</option>
+                                <option value="part-end">Part End (Z0 at end of part)</option>
+                            </select>
+                        </div>
+                        <div class="origin-preview" id="originPreview">
+                            <svg viewBox="0 0 160 60" width="160" height="60">
+                                <!-- Chuck -->
+                                <rect x="0" y="10" width="20" height="40" fill="#94a3b8" stroke="#64748b" stroke-width="1"/>
+                                <text x="10" y="55" text-anchor="middle" font-size="7" fill="#64748b">Chuck</text>
+                                <!-- Stock -->
+                                <rect x="20" y="15" width="100" height="30" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1"/>
+                                <!-- Origin marker -->
+                                <line id="originLine" x1="20" y1="5" x2="20" y2="55" stroke="#2563eb" stroke-width="2" stroke-dasharray="3,2"/>
+                                <circle id="originDot" cx="20" cy="30" r="4" fill="#2563eb"/>
+                                <text id="originLabel" x="20" y="3" text-anchor="middle" font-size="7" fill="#2563eb">Z0</text>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Safe Distances -->
+                    <div class="setup-group">
+                        <div class="setup-title">Safe Distances</div>
+                        <p class="setup-hint">Clearance positions for tool movements.</p>
+                        <div class="setup-row three">
+                            <div class="form-group">
+                                <label>Safe X (G0 Rapid)</label>
+                                <input type="number" id="safeXRapid" value="100" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Safe Z (G0 Rapid)</label>
+                                <input type="number" id="safeZRapid" value="10" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Clearance X (Approach)</label>
+                                <input type="number" id="clearanceX" value="2" step="0.5">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Material Selection -->
+                    <div class="setup-group">
+                        <div class="setup-title">Material</div>
+                        <div class="form-group">
+                            <label>Workpiece Material</label>
+                            <select id="material" onchange="applyMaterialPreset()">
+                                <option value="custom">Custom Parameters</option>
+                                <optgroup label="Aluminum">
+                                    <option value="alu-6061" selected>Aluminum 6061-T6</option>
+                                    <option value="alu-7075">Aluminum 7075-T6</option>
+                                    <option value="alu-cast">Cast Aluminum</option>
+                                </optgroup>
+                                <optgroup label="Steel">
+                                    <option value="steel-mild">Mild Steel (1018/1020)</option>
+                                    <option value="steel-4140">Alloy Steel (4140)</option>
+                                    <option value="steel-tool">Tool Steel (D2/A2)</option>
+                                </optgroup>
+                                <optgroup label="Stainless Steel">
+                                    <option value="ss-304">Stainless 304</option>
+                                    <option value="ss-316">Stainless 316</option>
+                                    <option value="ss-17-4">17-4 PH Stainless</option>
+                                </optgroup>
+                                <optgroup label="Other Metals">
+                                    <option value="brass">Brass</option>
+                                    <option value="copper">Copper</option>
+                                    <option value="titanium">Titanium (Ti-6Al-4V)</option>
+                                    <option value="cast-iron">Cast Iron</option>
+                                </optgroup>
+                                <optgroup label="Plastics">
+                                    <option value="plastic-acrylic">Acrylic/PMMA</option>
+                                    <option value="plastic-delrin">Delrin/POM</option>
+                                    <option value="plastic-nylon">Nylon</option>
+                                    <option value="plastic-hdpe">HDPE</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="material-info" id="materialInfo">
+                            <div class="material-params">
+                                <span><strong>SFM:</strong> <span id="matSFM">300-500</span></span>
+                                <span><strong>Feed (mm/rev):</strong> <span id="matFeed">0.15-0.30</span></span>
+                                <span><strong>DOC:</strong> <span id="matDOC">Up to 3mm</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Program Builder Tab -->
@@ -2052,6 +2296,84 @@
         let operations = [];
         let editingIndex = -1;
         let selectedCycle = 'roughing';
+
+        // Material presets with suggested cutting parameters for turning
+        const materialPresets = {
+            'custom': { name: 'Custom', sfm: '—', feed: '—', doc: '—' },
+            'alu-6061': { name: 'Aluminum 6061-T6', sfm: '400-800', feed: '0.15-0.30 mm/rev', doc: 'Up to 3mm', sfmVal: 600, feedVal: 0.25 },
+            'alu-7075': { name: 'Aluminum 7075-T6', sfm: '350-700', feed: '0.12-0.25 mm/rev', doc: 'Up to 2.5mm', sfmVal: 525, feedVal: 0.20 },
+            'alu-cast': { name: 'Cast Aluminum', sfm: '300-600', feed: '0.15-0.30 mm/rev', doc: 'Up to 3mm', sfmVal: 450, feedVal: 0.25 },
+            'steel-mild': { name: 'Mild Steel', sfm: '100-200', feed: '0.10-0.20 mm/rev', doc: 'Up to 2mm', sfmVal: 150, feedVal: 0.15 },
+            'steel-4140': { name: 'Alloy Steel 4140', sfm: '80-150', feed: '0.08-0.15 mm/rev', doc: 'Up to 1.5mm', sfmVal: 115, feedVal: 0.12 },
+            'steel-tool': { name: 'Tool Steel D2/A2', sfm: '50-100', feed: '0.05-0.10 mm/rev', doc: 'Up to 1mm', sfmVal: 75, feedVal: 0.08 },
+            'ss-304': { name: 'Stainless 304', sfm: '60-120', feed: '0.08-0.15 mm/rev', doc: 'Up to 1.5mm', sfmVal: 90, feedVal: 0.12 },
+            'ss-316': { name: 'Stainless 316', sfm: '55-110', feed: '0.07-0.12 mm/rev', doc: 'Up to 1.2mm', sfmVal: 82, feedVal: 0.10 },
+            'ss-17-4': { name: '17-4 PH Stainless', sfm: '50-100', feed: '0.06-0.10 mm/rev', doc: 'Up to 1mm', sfmVal: 75, feedVal: 0.08 },
+            'brass': { name: 'Brass', sfm: '300-600', feed: '0.15-0.30 mm/rev', doc: 'Up to 3mm', sfmVal: 450, feedVal: 0.25 },
+            'copper': { name: 'Copper', sfm: '200-400', feed: '0.12-0.25 mm/rev', doc: 'Up to 2.5mm', sfmVal: 300, feedVal: 0.20 },
+            'titanium': { name: 'Titanium Ti-6Al-4V', sfm: '40-80', feed: '0.05-0.10 mm/rev', doc: 'Up to 1mm', sfmVal: 60, feedVal: 0.08 },
+            'cast-iron': { name: 'Cast Iron', sfm: '80-150', feed: '0.10-0.20 mm/rev', doc: 'Up to 2mm', sfmVal: 115, feedVal: 0.15 },
+            'plastic-acrylic': { name: 'Acrylic/PMMA', sfm: '600-1000', feed: '0.15-0.35 mm/rev', doc: 'Up to 5mm', sfmVal: 800, feedVal: 0.25 },
+            'plastic-delrin': { name: 'Delrin/POM', sfm: '500-900', feed: '0.15-0.30 mm/rev', doc: 'Up to 5mm', sfmVal: 700, feedVal: 0.22 },
+            'plastic-nylon': { name: 'Nylon', sfm: '500-800', feed: '0.12-0.25 mm/rev', doc: 'Up to 4mm', sfmVal: 650, feedVal: 0.20 },
+            'plastic-hdpe': { name: 'HDPE', sfm: '600-1000', feed: '0.15-0.35 mm/rev', doc: 'Up to 6mm', sfmVal: 800, feedVal: 0.25 }
+        };
+
+        // Workpiece and material setup functions
+        function toggleSetup() {
+            const content = document.getElementById('setupContent');
+            const toggle = document.getElementById('setupToggle');
+            content.classList.toggle('collapsed');
+            toggle.classList.toggle('collapsed');
+        }
+
+        function updateOriginPreview() {
+            const origin = document.getElementById('originLocation').value;
+            const line = document.getElementById('originLine');
+            const dot = document.getElementById('originDot');
+            const label = document.getElementById('originLabel');
+
+            if (origin === 'chuck-face') {
+                line.setAttribute('x1', 20);
+                line.setAttribute('x2', 20);
+                dot.setAttribute('cx', 20);
+                label.setAttribute('x', 20);
+            } else {
+                line.setAttribute('x1', 120);
+                line.setAttribute('x2', 120);
+                dot.setAttribute('cx', 120);
+                label.setAttribute('x', 120);
+            }
+        }
+
+        function applyMaterialPreset() {
+            const materialKey = document.getElementById('material').value;
+            const preset = materialPresets[materialKey];
+            if (preset) {
+                document.getElementById('matSFM').textContent = preset.sfm;
+                document.getElementById('matFeed').textContent = preset.feed;
+                document.getElementById('matDOC').textContent = preset.doc;
+            }
+        }
+
+        function getWorkpieceSetup() {
+            return {
+                stockDia: parseFloat(document.getElementById('wpStockDia').value) || 50,
+                stockLength: parseFloat(document.getElementById('wpStockLength').value) || 100,
+                finishDia: parseFloat(document.getElementById('wpFinishDia').value) || 40,
+                finishLength: parseFloat(document.getElementById('wpFinishLength').value) || 95,
+                origin: document.getElementById('originLocation').value,
+                safeXRapid: parseFloat(document.getElementById('safeXRapid').value) || 100,
+                safeZRapid: parseFloat(document.getElementById('safeZRapid').value) || 10,
+                clearanceX: parseFloat(document.getElementById('clearanceX').value) || 2,
+                material: document.getElementById('material').value
+            };
+        }
+
+        function getMaterialSuggestions() {
+            const materialKey = document.getElementById('material').value;
+            return materialPresets[materialKey] || materialPresets['alu-6061'];
+        }
 
         // Standard Thread Data Tables
         // Thread depth = 0.6134 * pitch (for 60° threads)
@@ -3803,15 +4125,19 @@
             const controller = getController(false);
             const cfg = controllerConfig[controller];
 
+            // Get workpiece setup values
+            const setup = getWorkpieceSetup();
+            const material = materialPresets[setup.material] || materialPresets['alu-6061'];
+
             const progNum = document.getElementById('progNumber').value;
             const progName = document.getElementById('progName').value.trim().toUpperCase();
             const stockProfile = document.getElementById('stockProfile').value;
-            const stockDia = parseFloat(document.getElementById('stockDiameter').value);
-            const stockLen = parseFloat(document.getElementById('stockLength').value);
-            const safeZ = parseFloat(document.getElementById('safeZ').value);
-            const xClearance = parseFloat(document.getElementById('xClearance').value);
-            const zClearance = parseFloat(document.getElementById('zClearance').value);
-            const approachFeed = parseFloat(document.getElementById('approachFeed').value);
+            const stockDia = parseFloat(document.getElementById('stockDiameter').value) || setup.stockDia;
+            const stockLen = parseFloat(document.getElementById('stockLength').value) || setup.stockLength;
+            const safeZ = setup.safeZRapid;
+            const xClearance = setup.clearanceX;
+            const zClearance = parseFloat(document.getElementById('zClearance').value) || 2;
+            const approachFeed = parseFloat(document.getElementById('approachFeed').value) || 0.3;
 
             // Calculate turning diameter for hex/square stock
             let turningDia = stockDia;
@@ -3838,6 +4164,9 @@
             }
             code.push(makeComment(`${cfg.name} TURNING PROGRAM`, controller));
             code.push(makeComment(`STOCK: ${stockDesc} x LEN ${stockLen}`, controller));
+            code.push(makeComment(`MATERIAL: ${material.name}`, controller));
+            code.push(makeComment(`ORIGIN: ${setup.origin === 'chuck-face' ? 'Chuck Face' : 'Part End'}`, controller));
+            code.push(makeComment(`SAFE X: ${setup.safeXRapid} Z: ${safeZ}`, controller));
             code.push(makeComment(`DATE: ${new Date().toLocaleDateString()}`, controller));
             code.push(makeComment(`OPERATIONS: ${operations.length}`, controller));
             code.push('');
@@ -5692,6 +6021,10 @@
             const controller = getController(true);
             const cfg = controllerConfig[controller];
 
+            // Get workpiece setup values
+            const setup = getWorkpieceSetup();
+            const material = materialPresets[setup.material] || materialPresets['alu-6061'];
+
             let code = [];
             code.push(cfg.programFormat(progNum, progName));
 
@@ -5701,6 +6034,8 @@
                 }
                 code.push(makeComment(`${def.name.toUpperCase()} - ${def.cycle} CYCLE`, controller));
                 code.push(makeComment(`STOCK: ${stockDesc} x LEN ${stockLen}`, controller));
+                code.push(makeComment(`MATERIAL: ${material.name}`, controller));
+                code.push(makeComment(`ORIGIN: ${setup.origin === 'chuck-face' ? 'Chuck Face' : 'Part End'}`, controller));
                 code.push(makeComment(`DATE: ${new Date().toLocaleDateString()}`, controller));
                 code.push('');
             }
