@@ -918,6 +918,121 @@
                 justify-content: space-around;
             }
         }
+
+        /* Modal overlay for expanded preview */
+        .preview-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .preview-modal-overlay.active {
+            display: flex;
+        }
+
+        .preview-modal {
+            background: white;
+            border-radius: 16px;
+            max-width: 95vw;
+            max-height: 95vh;
+            overflow: auto;
+            position: relative;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .preview-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: white;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .preview-modal-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .preview-modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #f1f5f9;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .preview-modal-close:hover {
+            background: #e2e8f0;
+        }
+
+        .preview-modal-close svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--text-secondary);
+        }
+
+        .preview-modal-content {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        @media (min-width: 800px) {
+            .preview-modal-content {
+                flex-direction: row;
+                gap: 32px;
+            }
+        }
+
+        .preview-modal-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .preview-modal-view svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Make preview clickable */
+        .preview-views {
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .preview-views:hover {
+            transform: scale(1.01);
+        }
+
+        .preview-click-hint {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            padding-bottom: 8px;
+        }
     </style>
 </head>
 <body>
@@ -1032,7 +1147,8 @@
                                 </svg>
                             </div>
                             <div class="expandable-content">
-                                <div class="preview-views" id="safeDistancePreview"></div>
+                                <div class="preview-views" id="safeDistancePreview" onclick="openPreviewModal()"></div>
+                                <div class="preview-click-hint">Click illustration to expand</div>
                             </div>
                         </div>
                     </div>
@@ -1778,6 +1894,158 @@
 
             container.innerHTML = xySvg + xzSvg;
         }
+
+        function openPreviewModal() {
+            const setup = getWorkpieceSetup();
+            const modal = document.getElementById('previewModal');
+            const content = document.getElementById('previewModalContent');
+
+            // Larger view size for modal
+            const viewSize = 350;
+
+            // Calculate scales for XY view
+            const maxDimXY = Math.max(setup.lengthX + setup.clearanceX * 2, setup.widthY + setup.clearanceY * 2);
+            const scaleXY = Math.min((viewSize - 80) / maxDimXY, 1.8);
+            const wpW = setup.lengthX * scaleXY;
+            const wpD = setup.widthY * scaleXY;
+            const clrX = setup.clearanceX * scaleXY;
+            const clrY = setup.clearanceY * scaleXY;
+
+            // XY View positioning
+            const xyOffsetX = 40 + clrX;
+            const xyOffsetY = 50 + clrY;
+            const pos = getOriginPosition(setup, wpW, wpD, xyOffsetX, xyOffsetY);
+
+            // Calculate scales for XZ view
+            const maxH = Math.max(setup.safeZRapid + 20, setup.heightZ + setup.safeZRapid);
+            const scaleZ = (viewSize - 100) / maxH;
+            const wpH = setup.heightZ * scaleZ;
+            const safeZ = setup.safeZRapid * scaleZ;
+            const clearZ = setup.clearanceZ * scaleZ;
+
+            // Side view positioning
+            const sideOffsetX = 40;
+            const baseY = viewSize - 45;
+            const wpTop = baseY - wpH;
+
+            // XY Top View SVG (larger)
+            const xySvg = `
+                <div class="preview-modal-view">
+                    <svg viewBox="0 0 ${viewSize} ${viewSize}" width="${viewSize}" height="${viewSize}">
+                        <!-- Title -->
+                        <text x="${viewSize/2}" y="22" text-anchor="middle" font-size="16" font-weight="600" fill="#374151">XY Top View</text>
+
+                        <!-- X Clearance zones -->
+                        <rect x="${xyOffsetX - clrX}" y="${xyOffsetY}" width="${clrX}" height="${wpD}"
+                              fill="#fef3c7" stroke="#f59e0b" stroke-width="2" stroke-dasharray="6,3"/>
+                        <rect x="${xyOffsetX + wpW}" y="${xyOffsetY}" width="${clrX}" height="${wpD}"
+                              fill="#fef3c7" stroke="#f59e0b" stroke-width="2" stroke-dasharray="6,3"/>
+
+                        <!-- Y Clearance zones -->
+                        <rect x="${xyOffsetX}" y="${xyOffsetY - clrY}" width="${wpW}" height="${clrY}"
+                              fill="#dcfce7" stroke="#059669" stroke-width="2" stroke-dasharray="6,3"/>
+                        <rect x="${xyOffsetX}" y="${xyOffsetY + wpD}" width="${wpW}" height="${clrY}"
+                              fill="#dcfce7" stroke="#059669" stroke-width="2" stroke-dasharray="6,3"/>
+
+                        <!-- Workpiece -->
+                        <rect x="${xyOffsetX}" y="${xyOffsetY}" width="${wpW}" height="${wpD}" fill="#e0e7ff" stroke="#6366f1" stroke-width="2.5"/>
+
+                        <!-- Origin marker -->
+                        <circle cx="${pos.originX}" cy="${pos.originY}" r="7" fill="#7c3aed" stroke="white" stroke-width="2.5"/>
+                        <line x1="${pos.originX - 14}" y1="${pos.originY}" x2="${pos.originX + 14}" y2="${pos.originY}" stroke="#7c3aed" stroke-width="2"/>
+                        <line x1="${pos.originX}" y1="${pos.originY - 14}" x2="${pos.originX}" y2="${pos.originY + 14}" stroke="#7c3aed" stroke-width="2"/>
+
+                        <!-- Dimension labels -->
+                        <text x="${xyOffsetX + wpW/2}" y="${xyOffsetY - clrY - 10}" text-anchor="middle" font-size="14" font-weight="600" fill="#1e40af">${setup.lengthX} mm</text>
+                        <text x="${xyOffsetX + wpW + clrX + 15}" y="${xyOffsetY + wpD/2 + 5}" font-size="14" font-weight="600" fill="#1e40af">${setup.widthY} mm</text>
+
+                        <!-- X Clearance labels -->
+                        <text x="${xyOffsetX - clrX/2}" y="${xyOffsetY + wpD/2 + 5}" text-anchor="middle" font-size="12" font-weight="600" fill="#f59e0b">${setup.clearanceX}</text>
+                        <text x="${xyOffsetX + wpW + clrX/2}" y="${xyOffsetY + wpD/2 + 5}" text-anchor="middle" font-size="12" font-weight="600" fill="#f59e0b">${setup.clearanceX}</text>
+
+                        <!-- Y Clearance labels -->
+                        <text x="${xyOffsetX + wpW/2}" y="${xyOffsetY - clrY/2 + 4}" text-anchor="middle" font-size="12" font-weight="600" fill="#059669">${setup.clearanceY}</text>
+                        <text x="${xyOffsetX + wpW/2}" y="${xyOffsetY + wpD + clrY/2 + 4}" text-anchor="middle" font-size="12" font-weight="600" fill="#059669">${setup.clearanceY}</text>
+
+                        <!-- Legend -->
+                        <rect x="20" y="${viewSize - 28}" width="16" height="6" fill="#f59e0b" rx="2"/>
+                        <text x="40" y="${viewSize - 20}" font-size="12" fill="#64748b">X Clearance</text>
+                        <rect x="130" y="${viewSize - 28}" width="16" height="6" fill="#059669" rx="2"/>
+                        <text x="150" y="${viewSize - 20}" font-size="12" fill="#64748b">Y Clearance</text>
+                        <rect x="250" y="${viewSize - 28}" width="16" height="6" fill="#6366f1" rx="2"/>
+                        <text x="270" y="${viewSize - 20}" font-size="12" fill="#64748b">Workpiece</text>
+                    </svg>
+                </div>
+            `;
+
+            // XZ Side View SVG (larger)
+            const xzSvg = `
+                <div class="preview-modal-view">
+                    <svg viewBox="0 0 ${viewSize} ${viewSize}" width="${viewSize}" height="${viewSize}">
+                        <!-- Title -->
+                        <text x="${viewSize/2}" y="22" text-anchor="middle" font-size="16" font-weight="600" fill="#374151">XZ Side View</text>
+
+                        <!-- Table -->
+                        <rect x="${sideOffsetX}" y="${baseY}" width="${viewSize - 80}" height="10" fill="#94a3b8" stroke="#64748b" stroke-width="1.5"/>
+                        <text x="${sideOffsetX + (viewSize-80)/2}" y="${baseY + 22}" text-anchor="middle" font-size="11" fill="#64748b">Machine Table</text>
+
+                        <!-- Workpiece -->
+                        <rect x="${sideOffsetX + 25}" y="${wpTop}" width="${viewSize - 130}" height="${wpH}" fill="#c7d2fe" stroke="#6366f1" stroke-width="2.5"/>
+                        <text x="${sideOffsetX + 25 + (viewSize-130)/2}" y="${wpTop + wpH/2 + 5}" text-anchor="middle" font-size="13" fill="#64748b">Height: ${setup.heightZ} mm</text>
+
+                        <!-- Origin at top surface -->
+                        <circle cx="${viewSize - 45}" cy="${wpTop}" r="7" fill="#7c3aed" stroke="white" stroke-width="2.5"/>
+                        <text x="${viewSize - 25}" y="${wpTop + 5}" font-size="13" font-weight="600" fill="#7c3aed">Z=0</text>
+
+                        <!-- Z Clearance level -->
+                        <line x1="${sideOffsetX + 20}" y1="${wpTop - clearZ}" x2="${viewSize - 55}" y2="${wpTop - clearZ}" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="8,4"/>
+                        <circle cx="${viewSize - 45}" cy="${wpTop - clearZ}" r="5" fill="#3b82f6"/>
+                        <text x="${viewSize - 25}" y="${wpTop - clearZ + 5}" font-size="12" font-weight="600" fill="#3b82f6">Z=${setup.clearanceZ}</text>
+
+                        <!-- Safe Z level -->
+                        <line x1="${sideOffsetX + 20}" y1="${wpTop - safeZ}" x2="${viewSize - 55}" y2="${wpTop - safeZ}" stroke="#059669" stroke-width="3"/>
+                        <circle cx="${viewSize - 45}" cy="${wpTop - safeZ}" r="5" fill="#059669"/>
+                        <text x="${viewSize - 25}" y="${wpTop - safeZ + 5}" font-size="12" font-weight="600" fill="#059669">Z=${setup.safeZRapid}</text>
+
+                        <!-- Tool path -->
+                        <path d="M ${sideOffsetX + 25 + (viewSize-130)/2} ${wpTop - safeZ}
+                                 L ${sideOffsetX + 25 + (viewSize-130)/2} ${wpTop - clearZ}
+                                 L ${sideOffsetX + 25 + (viewSize-130)/2} ${wpTop - 5}"
+                              stroke="#059669" stroke-width="2.5" fill="none" stroke-dasharray="8,4"/>
+
+                        <!-- Tool -->
+                        <polygon points="${sideOffsetX + 25 + (viewSize-130)/2 - 12},${wpTop - safeZ - 12} ${sideOffsetX + 25 + (viewSize-130)/2 + 12},${wpTop - safeZ - 12} ${sideOffsetX + 25 + (viewSize-130)/2},${wpTop - safeZ}" fill="#374151"/>
+                        <rect x="${sideOffsetX + 25 + (viewSize-130)/2 - 6}" y="${wpTop - safeZ - 30}" width="12" height="18" fill="#374151"/>
+
+                        <!-- Legend -->
+                        <rect x="20" y="${viewSize - 28}" width="16" height="6" fill="#059669" rx="2"/>
+                        <text x="40" y="${viewSize - 20}" font-size="12" fill="#64748b">Safe Z (Rapid)</text>
+                        <rect x="140" y="${viewSize - 28}" width="16" height="6" fill="#3b82f6" rx="2"/>
+                        <text x="160" y="${viewSize - 20}" font-size="12" fill="#64748b">Z Clearance</text>
+                        <rect x="260" y="${viewSize - 28}" width="16" height="6" fill="#6366f1" rx="2"/>
+                        <text x="280" y="${viewSize - 20}" font-size="12" fill="#64748b">Workpiece</text>
+                    </svg>
+                </div>
+            `;
+
+            content.innerHTML = xySvg + xzSvg;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePreviewModal(event) {
+            if (event && event.target !== event.currentTarget) return;
+            const modal = document.getElementById('previewModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closePreviewModal();
+            }
+        });
 
         function applyMaterialPreset() {
             const materialKey = document.getElementById('material').value;
@@ -2690,5 +2958,23 @@
             document.querySelector('[data-tab="builder"]').click();
         }
     </script>
+
+    <!-- Modal for expanded preview -->
+    <div class="preview-modal-overlay" id="previewModal" onclick="closePreviewModal(event)">
+        <div class="preview-modal" onclick="event.stopPropagation()">
+            <div class="preview-modal-header">
+                <h3>Safe Distances Preview</h3>
+                <button class="preview-modal-close" onclick="closePreviewModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="preview-modal-content" id="previewModalContent">
+                <!-- SVGs will be inserted here -->
+            </div>
+        </div>
+    </div>
 </body>
 </html>
