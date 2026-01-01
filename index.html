@@ -68,6 +68,25 @@
             font-size: 14px;
         }
 
+        .header-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: var(--bg-card);
+            color: var(--accent);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            transition: all 0.2s;
+        }
+
+        .header-link:hover {
+            background: var(--accent);
+            color: white;
+        }
+
         .tabs {
             display: flex;
             gap: 4px;
@@ -823,6 +842,7 @@
         <header>
             <h1>🔧 CNC Turning Program Builder</h1>
             <p>Build complete turning programs for FANUC, Siemens & Haas controllers</p>
+            <a href="tools-guide.html" class="header-link">📖 Lathe Tooling Reference Guide</a>
         </header>
 
         <!-- Mode Tabs -->
