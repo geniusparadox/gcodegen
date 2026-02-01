@@ -1,7 +1,7 @@
 {
   "name": "CNC G-Code Generator",
   "short_name": "G-Code Gen",
-  "description": "Generate CNC turning G-code programs for FANUC, Siemens SINUMERIK, and Haas controllers",
+  "description": "Generate CNC G-code programs for turning and milling. Import CAD drawings (DXF) and auto-generate programs for FANUC, Siemens, Haas controllers.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

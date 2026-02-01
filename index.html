@@ -127,6 +127,27 @@
             border-color: var(--milling-color);
         }
 
+        .machine-card.cad-import:hover {
+            border-color: #3b82f6;
+        }
+
+        .cad-import .machine-icon {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        }
+
+        .cad-import .machine-icon svg {
+            stroke: #3b82f6;
+        }
+
+        .cad-import .feature-tag {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .cad-import .arrow {
+            background: #3b82f6;
+        }
+
         .machine-icon {
             width: 64px;
             height: 64px;
@@ -361,6 +382,32 @@
                 </div>
                 <div class="machine-controllers">
                     <strong>Controllers:</strong> FANUC, Siemens, Haas, Heidenhain
+                </div>
+                <div class="arrow">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            </a>
+
+            <a href="cad-import/" class="machine-card cad-import">
+                <div class="machine-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <path d="M12 18v-6"/>
+                        <path d="M9 15l3-3 3 3"/>
+                    </svg>
+                </div>
+                <h2>CAD Import</h2>
+                <p>Upload 2D AutoCAD drawings (DXF) and automatically generate G-code with smart setup planning.</p>
+                <div class="machine-features">
+                    <span class="feature-tag">DXF Import</span>
+                    <span class="feature-tag">Auto Features</span>
+                    <span class="feature-tag">Setup Planning</span>
+                </div>
+                <div class="machine-controllers">
+                    <strong>Supports:</strong> Turning & Milling
                 </div>
                 <div class="arrow">
                     <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
